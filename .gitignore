@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+backend/bin/
+backend/tmp/
+backend/server
+
+# Playwright
+frontend/playwright-report/
+frontend/test-results/
+
+# Supabase
+frontend/supabase/.temp/
