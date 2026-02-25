@@ -8,7 +8,8 @@ import ReactCrop, {
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "@/providers/auth-provider";
-import { createClient } from "@/lib/supabase/client";
+import { useProfile } from "@/hooks/use-profile";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,15 +52,18 @@ function getCroppedBlob(
 }
 
 export default function SettingsPage() {
-  const { user, profile, refreshProfile } = useAuth();
-  const supabase = createClient();
+  const { user } = useAuth();
+  const { profile, updating, updateProfile } = useProfile();
+  const {
+    uploadAvatar,
+    uploading,
+    error: avatarError,
+  } = useAvatarUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
     type: "error" | "success";
     text: string;
@@ -112,76 +116,37 @@ export default function SettingsPage() {
   const handleCropUpload = async () => {
     if (!imgRef.current || !crop || !user) return;
 
-    setUploading(true);
     setMessage(null);
 
     const blob = await getCroppedBlob(imgRef.current, crop);
     if (!blob) {
       setMessage({ type: "error", text: "Failed to crop image." });
-      setUploading(false);
       return;
     }
 
-    const filePath = `${user.id}/avatar.jpg`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, blob, {
-        upsert: true,
-        contentType: "image/jpeg",
-      });
-
-    if (uploadError) {
-      setMessage({ type: "error", text: uploadError.message });
-      setUploading(false);
-      return;
-    }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-    const freshUrl = `${publicUrl}?t=${Date.now()}`;
-    setAvatarUrl(freshUrl);
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ avatar_url: freshUrl, updated_at: new Date().toISOString() })
-      .eq("id", user.id);
-
-    if (updateError) {
-      setMessage({ type: "error", text: updateError.message });
-    } else {
-      await refreshProfile();
+    const freshUrl = await uploadAvatar(blob);
+    if (freshUrl) {
+      setAvatarUrl(freshUrl);
       setMessage({ type: "success", text: "Avatar updated." });
+    } else if (avatarError) {
+      setMessage({ type: "error", text: avatarError });
     }
 
     setImageSrc(null);
-    setUploading(false);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    setSaving(true);
     setMessage(null);
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        display_name: displayName || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
-
-    if (error) {
-      setMessage({ type: "error", text: error.message });
-    } else {
-      await refreshProfile();
+    try {
+      await updateProfile({ display_name: displayName || null });
       setMessage({ type: "success", text: "Profile saved." });
+    } catch {
+      setMessage({ type: "error", text: "Failed to save profile." });
     }
-    setSaving(false);
   };
 
   return (
@@ -302,8 +267,8 @@ export default function SettingsPage() {
               />
             </div>
 
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={updating}>
+              {updating ? "Saving..." : "Save Changes"}
             </Button>
 
             {message && (

@@ -11,13 +11,8 @@ import {
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-
-export interface Profile {
-  id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  email: string | null;
-}
+import type { Profile } from "@/lib/types/database";
+import { getProfile } from "@/lib/services/profiles";
 
 interface AuthContextType {
   user: User | null;
@@ -44,11 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(
     async (userId: string) => {
       try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, email")
-          .eq("id", userId)
-          .single();
+        const data = await getProfile(supabase, userId);
         setProfile(data);
       } catch {
         setProfile(null);
