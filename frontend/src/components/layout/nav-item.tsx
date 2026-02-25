@@ -9,9 +9,10 @@ import type { NavItem as NavItemType } from "@/config/navigation";
 interface NavItemProps {
   item: NavItemType;
   collapsed?: boolean;
+  indent?: boolean;
 }
 
-export function NavItem({ item, collapsed }: NavItemProps) {
+export function NavItem({ item, collapsed, indent }: NavItemProps) {
   const pathname = usePathname();
   const isActive = pathname === item.href;
 
@@ -23,10 +24,11 @@ export function NavItem({ item, collapsed }: NavItemProps) {
         "hover:bg-accent hover:text-accent-foreground",
         isActive
           ? "bg-accent text-accent-foreground"
-          : "text-muted-foreground"
+          : "text-muted-foreground",
+        indent && "pl-9"
       )}
     >
-      <item.icon className="h-4 w-4 shrink-0" />
+      <item.icon className={cn("shrink-0", indent ? "h-3.5 w-3.5" : "h-4 w-4")} />
       {!collapsed && <span>{item.title}</span>}
     </Link>
   );

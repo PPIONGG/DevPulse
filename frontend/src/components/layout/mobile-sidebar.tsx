@@ -13,6 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { navigationItems } from "@/config/navigation";
 import { NavItem } from "./nav-item";
+import { NavGroup } from "./nav-group";
 import { UserMenu } from "./user-menu";
 
 export function MobileSidebar() {
@@ -30,10 +31,14 @@ export function MobileSidebar() {
         <SheetHeader className="border-b p-4">
           <SheetTitle className="text-lg font-bold">DevPulse</SheetTitle>
         </SheetHeader>
-        <nav className="flex-1 space-y-1 p-3" onClick={() => setOpen(false)}>
-          {navigationItems.map((item) => (
-            <NavItem key={item.href} item={item} />
-          ))}
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3" onClick={() => setOpen(false)}>
+          {navigationItems.map((item) =>
+            item.children ? (
+              <NavGroup key={item.href} item={item} />
+            ) : (
+              <NavItem key={item.href} item={item} />
+            )
+          )}
         </nav>
         <Separator />
         <UserMenu />

@@ -2,6 +2,7 @@
 
 import { navigationItems } from "@/config/navigation";
 import { NavItem } from "./nav-item";
+import { NavGroup } from "./nav-group";
 import { UserMenu } from "./user-menu";
 import { Separator } from "@/components/ui/separator";
 
@@ -11,10 +12,14 @@ export function AppSidebar() {
       <div className="flex h-14 items-center border-b px-4">
         <span className="text-lg font-bold">DevPulse</span>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
-        {navigationItems.map((item) => (
-          <NavItem key={item.href} item={item} />
-        ))}
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        {navigationItems.map((item) =>
+          item.children ? (
+            <NavGroup key={item.href} item={item} />
+          ) : (
+            <NavItem key={item.href} item={item} />
+          )
+        )}
       </nav>
       <Separator />
       <UserMenu />
