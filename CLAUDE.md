@@ -36,7 +36,8 @@ DevPulse/
 │       ├── lib/
 │       │   ├── supabase/     # Client/server/middleware Supabase helpers
 │       │   ├── services/     # Supabase service functions (snippets, work-logs, articles, bookmarks, dashboard, profiles, storage)
-│       │   └── types/        # Shared TypeScript types (database types)
+│       │   ├── types/        # Shared TypeScript types (database types)
+│       │   └── utils/        # Utility helpers (with-timeout)
 │       └── providers/        # AuthProvider (wraps entire app)
 ├── backend/                  # Go API server
 │   ├── main.go              # Entry point (net/http server)
@@ -50,11 +51,12 @@ DevPulse/
 ## Key Conventions
 
 - **UI components:** Use `npx shadcn@latest add <component>` — never hand-edit files in `components/ui/`
-- **Supabase calls:** All Supabase queries go through `lib/services/`. Components use custom hooks from `hooks/`, not direct Supabase calls.
+- **Supabase calls:** All Supabase queries go through `lib/services/`. Components use custom hooks from `hooks/`, not direct Supabase calls. All service functions are wrapped with `withTimeout()` (15s default, 30s for uploads).
 - **Types:** Database table types live in `lib/types/database.ts`
 - **Auth:** Supabase Auth with GitHub OAuth. `AuthProvider` wraps the app in root layout. Use `useAuth()` to access user/profile.
 - **Routing:** App Router with `(app)` route group for authenticated pages. Proxy (`src/proxy.ts`) handles session refresh.
-- **Error handling:** Custom error/not-found pages at root (`app/not-found.tsx`, `app/global-error.tsx`) and app level (`app/(app)/error.tsx`, `app/(app)/not-found.tsx`).
+- **Error handling:** Custom error/not-found pages at root (`app/not-found.tsx`, `app/global-error.tsx`) and app level (`app/(app)/error.tsx`, `app/(app)/not-found.tsx`). Fetch errors show inline banners with "Try again" button on pages. Mutation errors use `toast.error()` from sonner.
+- **Hooks pattern:** All data hooks use `mountedRef` to guard `setState` after unmount. Mutations call `toast.success()` on success. `toggleFavorite` uses optimistic update with `toast.error()` on revert. Dashboard uses `Promise.allSettled` for partial failure resilience.
 - **Navigation:** Sidebar nav items are defined in `config/navigation.ts` — add new pages there.
 - **Styling:** Tailwind CSS v4 with CSS variables for theming. Use `cn()` from `lib/utils` for conditional classes.
 
@@ -80,7 +82,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-anon-key>
 
 1. **New pages:** Create under `app/(app)/your-page/page.tsx` — they automatically get the sidebar layout.
 2. **New nav items:** Add to `config/navigation.ts`.
-3. **New Supabase tables:** Add type in `lib/types/database.ts`, service in `lib/services/`, hook in `hooks/`.
+3. **New Supabase tables:** Add type in `lib/types/database.ts`, service in `lib/services/` (wrap with `withTimeout`), hook in `hooks/` (use `mountedRef` + toast pattern).
 4. **Components that need auth:** Use `useAuth()` from `providers/auth-provider`.
 5. **Server components** are the default. Add `"use client"` only when you need hooks/interactivity.
 
@@ -102,3 +104,5 @@ All tables have RLS enabled — users can only access their own rows.
 - Do not edit `components/ui/` files — they are managed by shadcn CLI.
 - Do not use `yarn`, `pnpm`, or `bun` — this project uses `npm`.
 - Do not store secrets in code — all env vars go in `.env.local`.
+- Do not add service functions without `withTimeout()` wrapping — all Supabase calls must have a timeout.
+- Do not `setState` in hooks without checking `mountedRef.current` — prevents React warnings on unmount.
