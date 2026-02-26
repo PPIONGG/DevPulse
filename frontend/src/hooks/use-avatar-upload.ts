@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { uploadAvatar as uploadAvatarService } from "@/lib/services/storage";
 import { updateProfile } from "@/lib/services/profiles";
@@ -11,6 +12,13 @@ export function useAvatarUpload() {
   const supabase = useMemo(() => createClient(), []);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const uploadAvatar = useCallback(
     async (blob: Blob): Promise<string | null> => {
@@ -21,14 +29,18 @@ export function useAvatarUpload() {
         const freshUrl = await uploadAvatarService(supabase, user.id, blob);
         await updateProfile(supabase, user.id, { avatar_url: freshUrl });
         await refreshProfile();
+        if (mountedRef.current) toast.success("Avatar uploaded");
         return freshUrl;
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to upload avatar";
-        setError(message);
+        if (mountedRef.current) {
+          setError(message);
+          toast.error(message);
+        }
         return null;
       } finally {
-        setUploading(false);
+        if (mountedRef.current) setUploading(false);
       }
     },
     [user, supabase, refreshProfile]

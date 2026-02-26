@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import {
   getArticles,
@@ -17,17 +18,29 @@ export function useArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const fetchArticles = useCallback(async () => {
     if (!user) return;
     try {
+      setLoading(true);
       const data = await getArticles(supabase, user.id);
-      setArticles(data);
-      setError(null);
+      if (mountedRef.current) {
+        setArticles(data);
+        setError(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch articles");
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to fetch articles");
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [user, supabase]);
 
@@ -39,7 +52,10 @@ export function useArticles() {
     async (input: ArticleInput) => {
       if (!user) return;
       const created = await createArticleService(supabase, user.id, input);
-      setArticles((prev) => [created, ...prev]);
+      if (mountedRef.current) {
+        setArticles((prev) => [created, ...prev]);
+        toast.success("Article created");
+      }
       return created;
     },
     [user, supabase]
@@ -48,9 +64,12 @@ export function useArticles() {
   const updateArticle = useCallback(
     async (articleId: string, input: Partial<ArticleInput>) => {
       const updated = await updateArticleService(supabase, articleId, input);
-      setArticles((prev) =>
-        prev.map((a) => (a.id === articleId ? updated : a))
-      );
+      if (mountedRef.current) {
+        setArticles((prev) =>
+          prev.map((a) => (a.id === articleId ? updated : a))
+        );
+        toast.success("Article updated");
+      }
       return updated;
     },
     [supabase]
@@ -59,7 +78,10 @@ export function useArticles() {
   const deleteArticle = useCallback(
     async (articleId: string) => {
       await deleteArticleService(supabase, articleId);
-      setArticles((prev) => prev.filter((a) => a.id !== articleId));
+      if (mountedRef.current) {
+        setArticles((prev) => prev.filter((a) => a.id !== articleId));
+        toast.success("Article deleted");
+      }
     },
     [supabase]
   );
@@ -77,11 +99,14 @@ export function useArticles() {
           is_favorite: newValue,
         });
       } catch {
-        setArticles((prev) =>
-          prev.map((a) =>
-            a.id === article.id ? { ...a, is_favorite: article.is_favorite } : a
-          )
-        );
+        if (mountedRef.current) {
+          setArticles((prev) =>
+            prev.map((a) =>
+              a.id === article.id ? { ...a, is_favorite: article.is_favorite } : a
+            )
+          );
+          toast.error("Failed to update favorite");
+        }
       }
     },
     [supabase]

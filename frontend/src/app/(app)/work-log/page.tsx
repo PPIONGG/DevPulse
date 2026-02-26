@@ -25,15 +25,18 @@ import { WorkLogCard } from "@/components/work-log-card";
 import { WorkLogForm } from "@/components/work-log-form";
 import { useWorkLogs } from "@/hooks/use-work-logs";
 import { workLogCategories } from "@/config/categories";
+import { toast } from "sonner";
 import type { WorkLog, WorkLogInput } from "@/lib/types/database";
 
 export default function WorkLogPage() {
   const {
     workLogs,
     loading,
+    error,
     createWorkLog,
     updateWorkLog,
     deleteWorkLog,
+    refetch,
   } = useWorkLogs();
 
   const [search, setSearch] = useState("");
@@ -76,8 +79,13 @@ export default function WorkLogPage() {
 
   const handleDelete = async () => {
     if (!deletingLog) return;
-    await deleteWorkLog(deletingLog.id);
-    setDeletingLog(null);
+    try {
+      await deleteWorkLog(deletingLog.id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete work log");
+    } finally {
+      setDeletingLog(null);
+    }
   };
 
   const handleFormOpenChange = (open: boolean) => {
@@ -124,6 +132,15 @@ export default function WorkLogPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground">

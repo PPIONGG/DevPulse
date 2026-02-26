@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import {
   getWorkLogs,
@@ -17,17 +18,29 @@ export function useWorkLogs() {
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const fetchWorkLogs = useCallback(async () => {
     if (!user) return;
     try {
+      setLoading(true);
       const data = await getWorkLogs(supabase, user.id);
-      setWorkLogs(data);
-      setError(null);
+      if (mountedRef.current) {
+        setWorkLogs(data);
+        setError(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch work logs");
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to fetch work logs");
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [user, supabase]);
 
@@ -39,7 +52,10 @@ export function useWorkLogs() {
     async (input: WorkLogInput) => {
       if (!user) return;
       const created = await createWorkLogService(supabase, user.id, input);
-      setWorkLogs((prev) => [created, ...prev]);
+      if (mountedRef.current) {
+        setWorkLogs((prev) => [created, ...prev]);
+        toast.success("Work log created");
+      }
       return created;
     },
     [user, supabase]
@@ -48,9 +64,12 @@ export function useWorkLogs() {
   const updateWorkLog = useCallback(
     async (workLogId: string, input: Partial<WorkLogInput>) => {
       const updated = await updateWorkLogService(supabase, workLogId, input);
-      setWorkLogs((prev) =>
-        prev.map((w) => (w.id === workLogId ? updated : w))
-      );
+      if (mountedRef.current) {
+        setWorkLogs((prev) =>
+          prev.map((w) => (w.id === workLogId ? updated : w))
+        );
+        toast.success("Work log updated");
+      }
       return updated;
     },
     [supabase]
@@ -59,7 +78,10 @@ export function useWorkLogs() {
   const deleteWorkLog = useCallback(
     async (workLogId: string) => {
       await deleteWorkLogService(supabase, workLogId);
-      setWorkLogs((prev) => prev.filter((w) => w.id !== workLogId));
+      if (mountedRef.current) {
+        setWorkLogs((prev) => prev.filter((w) => w.id !== workLogId));
+        toast.success("Work log deleted");
+      }
     },
     [supabase]
   );

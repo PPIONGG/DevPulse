@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { withTimeout } from "@/lib/utils/with-timeout";
 
 export async function uploadAvatar(
   supabase: SupabaseClient,
@@ -7,9 +8,12 @@ export async function uploadAvatar(
 ): Promise<string> {
   const filePath = `${userId}/avatar.jpg`;
 
-  const { error: uploadError } = await supabase.storage
-    .from("avatars")
-    .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+  const { error: uploadError } = await withTimeout(
+    supabase.storage
+      .from("avatars")
+      .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" }),
+    30_000
+  );
 
   if (uploadError) throw uploadError;
 

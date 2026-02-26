@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { updateProfile as updateProfileService } from "@/lib/services/profiles";
 import { useAuth } from "@/providers/auth-provider";
@@ -11,6 +12,13 @@ export function useProfile() {
   const supabase = useMemo(() => createClient(), []);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const updateProfile = useCallback(
     async (data: Partial<Pick<Profile, "display_name" | "avatar_url">>) => {
@@ -20,13 +28,14 @@ export function useProfile() {
       try {
         await updateProfileService(supabase, user.id, data);
         await refreshProfile();
+        if (mountedRef.current) toast.success("Profile updated");
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to update profile";
-        setError(message);
+        if (mountedRef.current) setError(message);
         throw err;
       } finally {
-        setUpdating(false);
+        if (mountedRef.current) setUpdating(false);
       }
     },
     [user, supabase, refreshProfile]

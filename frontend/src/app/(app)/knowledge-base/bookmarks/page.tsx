@@ -17,16 +17,19 @@ import {
 import { BookmarkCard } from "@/components/bookmark-card";
 import { BookmarkForm } from "@/components/bookmark-form";
 import { useBookmarks } from "@/hooks/use-bookmarks";
+import { toast } from "sonner";
 import type { Bookmark, BookmarkInput } from "@/lib/types/database";
 
 export default function BookmarksPage() {
   const {
     bookmarks,
     loading,
+    error,
     createBookmark,
     updateBookmark,
     deleteBookmark,
     toggleFavorite,
+    refetch,
   } = useBookmarks();
 
   const [search, setSearch] = useState("");
@@ -77,8 +80,13 @@ export default function BookmarksPage() {
 
   const handleDelete = async () => {
     if (!deletingBookmark) return;
-    await deleteBookmark(deletingBookmark.id);
-    setDeletingBookmark(null);
+    try {
+      await deleteBookmark(deletingBookmark.id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete bookmark");
+    } finally {
+      setDeletingBookmark(null);
+    }
   };
 
   const handleFormOpenChange = (open: boolean) => {
@@ -126,6 +134,15 @@ export default function BookmarksPage() {
           </select>
         )}
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground">

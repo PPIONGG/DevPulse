@@ -17,16 +17,19 @@ import {
 import { SnippetCard } from "@/components/snippet-card";
 import { SnippetForm } from "@/components/snippet-form";
 import { useSnippets } from "@/hooks/use-snippets";
+import { toast } from "sonner";
 import type { CodeSnippet, CodeSnippetInput } from "@/lib/types/database";
 
 export default function MySnippetsPage() {
   const {
     snippets,
     loading,
+    error,
     createSnippet,
     updateSnippet,
     deleteSnippet,
     toggleFavorite,
+    refetch,
   } = useSnippets();
 
   const [search, setSearch] = useState("");
@@ -67,8 +70,13 @@ export default function MySnippetsPage() {
 
   const handleDelete = async () => {
     if (!deletingSnippet) return;
-    await deleteSnippet(deletingSnippet.id);
-    setDeletingSnippet(null);
+    try {
+      await deleteSnippet(deletingSnippet.id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete snippet");
+    } finally {
+      setDeletingSnippet(null);
+    }
   };
 
   const handleFormOpenChange = (open: boolean) => {
@@ -100,6 +108,15 @@ export default function MySnippetsPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground">

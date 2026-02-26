@@ -7,7 +7,7 @@ import { SnippetCard } from "@/components/snippet-card";
 import { useSharedSnippets } from "@/hooks/use-shared-snippets";
 
 export default function SharedSnippetsPage() {
-  const { snippets, loading } = useSharedSnippets();
+  const { snippets, loading, error, refetch } = useSharedSnippets();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -40,6 +40,15 @@ export default function SharedSnippetsPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground">

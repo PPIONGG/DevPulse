@@ -13,13 +13,32 @@ import { useDashboard } from "@/hooks/use-dashboard";
 import { getCategoryConfig } from "@/config/categories";
 
 export default function DashboardPage() {
-  const { stats, recentSnippets, recentWorkLogs, weeklyHours, loading } =
+  const { stats, recentSnippets, recentWorkLogs, weeklyHours, loading, error, refetch } =
     useDashboard();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12 text-muted-foreground">
         Loading dashboard...
+      </div>
+    );
+  }
+
+  if (error && !stats.snippets && !stats.workLogs && !stats.articles && !stats.bookmarks) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+          <p className="mt-1 text-muted-foreground">
+            Welcome to DevPulse. Your developer productivity hub.
+          </p>
+        </div>
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
@@ -59,6 +78,15 @@ export default function DashboardPage() {
           Welcome to DevPulse. Your developer productivity hub.
         </p>
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (

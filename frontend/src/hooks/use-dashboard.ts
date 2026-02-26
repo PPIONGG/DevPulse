@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   getDashboardStats,
@@ -37,23 +37,60 @@ export function useDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const fetchDashboard = useCallback(async () => {
     if (!user) return;
     try {
-      const [stats, recentSnippets, recentWorkLogs, weeklyHours] =
-        await Promise.all([
-          getDashboardStats(supabase, user.id),
-          getRecentSnippets(supabase, user.id),
-          getRecentWorkLogs(supabase, user.id),
-          getWeeklyHours(supabase, user.id),
-        ]);
-      setData({ stats, recentSnippets, recentWorkLogs, weeklyHours });
-      setError(null);
+      setLoading(true);
+      const results = await Promise.allSettled([
+        getDashboardStats(supabase, user.id),
+        getRecentSnippets(supabase, user.id),
+        getRecentWorkLogs(supabase, user.id),
+        getWeeklyHours(supabase, user.id),
+      ]);
+
+      const allFailed = results.every((r) => r.status === "rejected");
+      if (allFailed) {
+        const first = results[0] as PromiseRejectedResult;
+        throw first.reason;
+      }
+
+      if (mountedRef.current) {
+        setData({
+          stats:
+            results[0].status === "fulfilled"
+              ? results[0].value
+              : defaultStats,
+          recentSnippets:
+            results[1].status === "fulfilled" ? results[1].value : [],
+          recentWorkLogs:
+            results[2].status === "fulfilled" ? results[2].value : [],
+          weeklyHours:
+            results[3].status === "fulfilled" ? results[3].value : 0,
+        });
+
+        const hasPartialError = results.some((r) => r.status === "rejected");
+        setError(
+          hasPartialError
+            ? "Some dashboard data could not be loaded"
+            : null
+        );
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch dashboard");
+      if (mountedRef.current) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch dashboard"
+        );
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [user, supabase]);
 

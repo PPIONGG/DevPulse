@@ -17,16 +17,19 @@ import {
 import { ArticleCard } from "@/components/article-card";
 import { ArticleForm } from "@/components/article-form";
 import { useArticles } from "@/hooks/use-articles";
+import { toast } from "sonner";
 import type { Article, ArticleInput } from "@/lib/types/database";
 
 export default function ArticlesPage() {
   const {
     articles,
     loading,
+    error,
     createArticle,
     updateArticle,
     deleteArticle,
     toggleFavorite,
+    refetch,
   } = useArticles();
 
   const [search, setSearch] = useState("");
@@ -76,8 +79,13 @@ export default function ArticlesPage() {
 
   const handleDelete = async () => {
     if (!deletingArticle) return;
-    await deleteArticle(deletingArticle.id);
-    setDeletingArticle(null);
+    try {
+      await deleteArticle(deletingArticle.id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete article");
+    } finally {
+      setDeletingArticle(null);
+    }
   };
 
   const handleFormOpenChange = (open: boolean) => {
@@ -125,6 +133,15 @@ export default function ArticlesPage() {
           </select>
         )}
       </div>
+
+      {error && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p>{error}</p>
+          <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
+            Try again
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground">

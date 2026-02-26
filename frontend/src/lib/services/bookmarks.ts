@@ -1,15 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Bookmark, BookmarkInput } from "@/lib/types/database";
+import { withTimeout } from "@/lib/utils/with-timeout";
 
 export async function getBookmarks(
   supabase: SupabaseClient,
   userId: string
 ): Promise<Bookmark[]> {
-  const { data, error } = await supabase
-    .from("bookmarks")
-    .select("*")
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false });
+  const { data, error } = await withTimeout(
+    supabase
+      .from("bookmarks")
+      .select("*")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+  );
   if (error) throw error;
   return data ?? [];
 }
@@ -19,11 +22,13 @@ export async function createBookmark(
   userId: string,
   input: BookmarkInput
 ): Promise<Bookmark> {
-  const { data, error } = await supabase
-    .from("bookmarks")
-    .insert({ ...input, user_id: userId })
-    .select()
-    .single();
+  const { data, error } = await withTimeout(
+    supabase
+      .from("bookmarks")
+      .insert({ ...input, user_id: userId })
+      .select()
+      .single()
+  );
   if (error) throw error;
   return data;
 }
@@ -33,12 +38,14 @@ export async function updateBookmark(
   bookmarkId: string,
   input: Partial<BookmarkInput>
 ): Promise<Bookmark> {
-  const { data, error } = await supabase
-    .from("bookmarks")
-    .update({ ...input, updated_at: new Date().toISOString() })
-    .eq("id", bookmarkId)
-    .select()
-    .single();
+  const { data, error } = await withTimeout(
+    supabase
+      .from("bookmarks")
+      .update({ ...input, updated_at: new Date().toISOString() })
+      .eq("id", bookmarkId)
+      .select()
+      .single()
+  );
   if (error) throw error;
   return data;
 }
@@ -47,9 +54,8 @@ export async function deleteBookmark(
   supabase: SupabaseClient,
   bookmarkId: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from("bookmarks")
-    .delete()
-    .eq("id", bookmarkId);
+  const { error } = await withTimeout(
+    supabase.from("bookmarks").delete().eq("id", bookmarkId)
+  );
   if (error) throw error;
 }
