@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +11,7 @@ import { Button } from "@/components/ui/button";
 export function UserMenu() {
   const { user, profile, loading, signOut } = useAuth();
   const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
 
   if (loading) {
     return (
@@ -44,7 +47,9 @@ export function UserMenu() {
     : email?.slice(0, 2).toUpperCase() ?? "?";
 
   const handleSignOut = async () => {
+    setSigningOut(true);
     await signOut();
+    toast.success("Signed out successfully!");
     router.push("/auth/login");
   };
 
@@ -67,8 +72,13 @@ export function UserMenu() {
         size="icon"
         className="h-8 w-8 shrink-0"
         onClick={handleSignOut}
+        disabled={signingOut}
       >
-        <LogOut className="h-4 w-4" />
+        {signingOut ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <LogOut className="h-4 w-4" />
+        )}
         <span className="sr-only">Sign out</span>
       </Button>
     </div>
