@@ -31,3 +31,8 @@ frontend/test-results/
 
 # Supabase
 frontend/supabase/.temp/
+
+# Claude Code
+.agents/
+skills-lock.json
+snippets-examples.md
