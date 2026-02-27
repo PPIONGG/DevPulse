@@ -8,7 +8,7 @@ import { useAuth } from "@/providers/auth-provider";
 const AUTH_TIMEOUT_MS = 10_000;
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isSigningOut } = useAuth();
   const router = useRouter();
   const [timedOut, setTimedOut] = useState(false);
 
@@ -19,11 +19,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [loading]);
 
   useEffect(() => {
+    if (isSigningOut) return;
     if ((!loading && !user) || (timedOut && !user)) {
       toast.error("Session expired. Please sign in again.");
       router.replace("/auth/login");
     }
-  }, [loading, user, timedOut, router]);
+  }, [loading, user, timedOut, isSigningOut, router]);
 
   if (loading && !timedOut) {
     return (

@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -18,6 +19,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  isSigningOut: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -26,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
+  isSigningOut: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -90,7 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [supabase, fetchProfile]);
 
+  const signingOutRef = useRef(false);
+
   const signOut = async () => {
+    signingOutRef.current = true;
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
@@ -102,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, loading, signOut, refreshProfile }}
+      value={{ user, profile, loading, isSigningOut: signingOutRef.current, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>
