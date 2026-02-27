@@ -26,6 +26,7 @@ DevPulse/
 │       ├── components/
 │       │   ├── layout/       # AppSidebar, MobileSidebar, UserMenu, NavItem, NavGroup
 │       │   ├── ui/           # shadcn/ui primitives (do not edit by hand)
+│       │   ├── skeletons.tsx         # All skeleton loading components
 │       │   ├── snippet-card.tsx / snippet-form.tsx
 │       │   ├── work-log-card.tsx / work-log-form.tsx
 │       │   ├── article-card.tsx / article-form.tsx
@@ -58,6 +59,7 @@ DevPulse/
 - **Error handling:** Custom error/not-found pages at root (`app/not-found.tsx`, `app/global-error.tsx`) and app level (`app/(app)/error.tsx`, `app/(app)/not-found.tsx`). Fetch errors show inline banners with "Try again" button on pages. Mutation errors use `toast.error()` from sonner.
 - **Hooks pattern:** All data hooks use `mountedRef` to guard `setState` after unmount. Mutations call `toast.success()` on success. `toggleFavorite` uses optimistic update with `toast.error()` on revert. Dashboard uses `Promise.allSettled` for partial failure resilience.
 - **Navigation:** Sidebar nav items are defined in `config/navigation.ts` — add new pages there.
+- **Loading states:** All list pages use skeleton card components from `components/skeletons.tsx` instead of text spinners. New skeletons should match the shape of their corresponding card component.
 - **Styling:** Tailwind CSS v4 with CSS variables for theming. Use `cn()` from `lib/utils` for conditional classes.
 
 ## Commands

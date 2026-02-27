@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { WorkLogCard } from "@/components/work-log-card";
 import { WorkLogForm } from "@/components/work-log-form";
+import { WorkLogCardSkeleton } from "@/components/skeletons";
 import { useWorkLogs } from "@/hooks/use-work-logs";
 import { workLogCategories } from "@/config/categories";
 import { toast } from "sonner";
@@ -143,8 +144,10 @@ export default function WorkLogPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          Loading work logs...
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <WorkLogCardSkeleton key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">

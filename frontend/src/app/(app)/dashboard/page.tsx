@@ -1,27 +1,26 @@
 "use client";
 
+import Link from "next/link";
 import {
   Code2,
   ClipboardList,
   FileText,
   LinkIcon,
   Clock,
+  ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { getCategoryConfig } from "@/config/categories";
+import { DashboardSkeleton } from "@/components/skeletons";
 
 export default function DashboardPage() {
   const { stats, recentSnippets, recentWorkLogs, weeklyHours, loading, error, refetch } =
     useDashboard();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        Loading dashboard...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error && !stats.snippets && !stats.workLogs && !stats.articles && !stats.bookmarks) {
@@ -90,17 +89,19 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.label} className="gap-0 py-0">
-            <CardHeader className="flex-row items-center justify-between px-4 py-3">
-              <p className="text-sm font-medium text-muted-foreground">
-                {stat.label}
-              </p>
-              <stat.icon className="size-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="px-4 pb-4 pt-0">
-              <p className="text-2xl font-bold">{stat.value}</p>
-            </CardContent>
-          </Card>
+          <Link key={stat.label} href={stat.href} className="group">
+            <Card className="gap-0 py-0 transition-colors group-hover:border-primary/50 group-hover:shadow-md">
+              <CardHeader className="flex-row items-center justify-between px-4 py-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {stat.label}
+                </p>
+                <stat.icon className="size-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="px-4 pb-4 pt-0">
+                <p className="text-2xl font-bold">{stat.value}</p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
@@ -117,18 +118,26 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="gap-0 py-0">
-          <CardHeader className="px-4 py-3">
+          <CardHeader className="flex-row items-center justify-between px-4 py-3">
             <CardTitle className="text-base">Recent Snippets</CardTitle>
+            <Link
+              href="/code-snippets/my-snippets"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View all
+              <ArrowRight className="size-3" />
+            </Link>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
             {recentSnippets.length === 0 ? (
               <p className="text-sm text-muted-foreground">No snippets yet.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {recentSnippets.map((s) => (
-                  <div
+                  <Link
                     key={s.id}
-                    className="flex items-center justify-between gap-2"
+                    href="/code-snippets/my-snippets"
+                    className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-accent transition-colors"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{s.title}</p>
@@ -139,7 +148,7 @@ export default function DashboardPage() {
                     <Badge variant="secondary" className="shrink-0 text-xs">
                       {s.language}
                     </Badge>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -147,8 +156,15 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="gap-0 py-0">
-          <CardHeader className="px-4 py-3">
+          <CardHeader className="flex-row items-center justify-between px-4 py-3">
             <CardTitle className="text-base">Recent Work Logs</CardTitle>
+            <Link
+              href="/work-log"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View all
+              <ArrowRight className="size-3" />
+            </Link>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
             {recentWorkLogs.length === 0 ? (
@@ -156,13 +172,14 @@ export default function DashboardPage() {
                 No work logs yet.
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {recentWorkLogs.map((w) => {
                   const category = getCategoryConfig(w.category);
                   return (
-                    <div
+                    <Link
                       key={w.id}
-                      className="flex items-center justify-between gap-2"
+                      href="/work-log"
+                      className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-accent transition-colors"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
@@ -178,7 +195,7 @@ export default function DashboardPage() {
                       >
                         {category.label}
                       </Badge>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>

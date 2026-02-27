@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArticleCard } from "@/components/article-card";
 import { ArticleForm } from "@/components/article-form";
+import { ArticleCardSkeleton } from "@/components/skeletons";
 import { useArticles } from "@/hooks/use-articles";
 import { toast } from "sonner";
 import type { Article, ArticleInput } from "@/lib/types/database";
@@ -144,8 +145,10 @@ export default function ArticlesPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          Loading articles...
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <ArticleCardSkeleton key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">

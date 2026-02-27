@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SnippetCard } from "@/components/snippet-card";
 import { SnippetForm } from "@/components/snippet-form";
+import { SnippetCardSkeleton } from "@/components/skeletons";
 import { useSnippets } from "@/hooks/use-snippets";
 import { toast } from "sonner";
 import type { CodeSnippet, CodeSnippetInput } from "@/lib/types/database";
@@ -119,8 +120,10 @@ export default function MySnippetsPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          Loading snippets...
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SnippetCardSkeleton key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">

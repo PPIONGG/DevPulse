@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Search, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SnippetCard } from "@/components/snippet-card";
+import { SnippetCardSkeleton } from "@/components/skeletons";
 import { useSharedSnippets } from "@/hooks/use-shared-snippets";
 
 export default function SharedSnippetsPage() {
@@ -51,8 +52,10 @@ export default function SharedSnippetsPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          Loading shared snippets...
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SnippetCardSkeleton key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">

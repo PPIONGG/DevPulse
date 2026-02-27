@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BookmarkCard } from "@/components/bookmark-card";
 import { BookmarkForm } from "@/components/bookmark-form";
+import { BookmarkCardSkeleton } from "@/components/skeletons";
 import { useBookmarks } from "@/hooks/use-bookmarks";
 import { toast } from "sonner";
 import type { Bookmark, BookmarkInput } from "@/lib/types/database";
@@ -145,8 +146,10 @@ export default function BookmarksPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12 text-muted-foreground">
-          Loading bookmarks...
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <BookmarkCardSkeleton key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
