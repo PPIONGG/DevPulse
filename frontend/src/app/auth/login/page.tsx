@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,9 +19,7 @@ import { Github, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,30 +34,15 @@ function LoginForm() {
     }
   }, [searchParams]);
 
-  const handleGitHubLogin = async () => {
-    setGithubLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Signed in successfully!");
-      router.push("/dashboard");
+    try {
+      await api.post("/api/auth/login", { email, password });
+      window.location.href = "/dashboard";
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed");
     }
     setLoading(false);
   };
@@ -68,18 +51,11 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Check your email for a confirmation link.");
+    try {
+      await api.post("/api/auth/register", { email, password });
+      window.location.href = "/dashboard";
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Registration failed");
     }
     setLoading(false);
   };
@@ -94,7 +70,10 @@ function LoginForm() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Button
-          onClick={handleGitHubLogin}
+          onClick={() => {
+            setGithubLoading(true);
+            window.location.href = "/api/auth/github";
+          }}
           variant="outline"
           size="lg"
           className="w-full gap-2"

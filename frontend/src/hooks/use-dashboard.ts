@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   getDashboardStats,
-  getRecentSnippets,
-  getRecentWorkLogs,
-  getWeeklyHours,
+  getDashboardRecent,
   type DashboardStats,
 } from "@/lib/services/dashboard";
 import { useAuth } from "@/providers/auth-provider";
@@ -28,7 +25,6 @@ const defaultStats: DashboardStats = {
 
 export function useDashboard() {
   const { user, loading: authLoading } = useAuth();
-  const supabase = useMemo(() => createClient(), []);
   const [data, setData] = useState<DashboardData>({
     stats: defaultStats,
     recentSnippets: [],
@@ -54,10 +50,8 @@ export function useDashboard() {
     try {
       setLoading(true);
       const results = await Promise.allSettled([
-        getDashboardStats(supabase, user.id),
-        getRecentSnippets(supabase, user.id),
-        getRecentWorkLogs(supabase, user.id),
-        getWeeklyHours(supabase, user.id),
+        getDashboardStats(),
+        getDashboardRecent(),
       ]);
 
       const allFailed = results.every((r) => r.status === "rejected");
@@ -67,17 +61,20 @@ export function useDashboard() {
       }
 
       if (mountedRef.current) {
+        const stats =
+          results[0].status === "fulfilled"
+            ? results[0].value
+            : defaultStats;
+        const recent =
+          results[1].status === "fulfilled"
+            ? results[1].value
+            : { recentSnippets: [], recentWorkLogs: [], weeklyHours: 0 };
+
         setData({
-          stats:
-            results[0].status === "fulfilled"
-              ? results[0].value
-              : defaultStats,
-          recentSnippets:
-            results[1].status === "fulfilled" ? results[1].value : [],
-          recentWorkLogs:
-            results[2].status === "fulfilled" ? results[2].value : [],
-          weeklyHours:
-            results[3].status === "fulfilled" ? results[3].value : 0,
+          stats,
+          recentSnippets: recent.recentSnippets,
+          recentWorkLogs: recent.recentWorkLogs,
+          weeklyHours: recent.weeklyHours,
         });
 
         const hasPartialError = results.some((r) => r.status === "rejected");
@@ -96,7 +93,7 @@ export function useDashboard() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, authLoading, supabase]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetchDashboard();

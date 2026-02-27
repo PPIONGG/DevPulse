@@ -1,61 +1,21 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { api } from "@/lib/api/client";
 import type { WorkLog, WorkLogInput } from "@/lib/types/database";
-import { withTimeout } from "@/lib/utils/with-timeout";
 
-export async function getWorkLogs(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<WorkLog[]> {
-  const { data, error } = await withTimeout(
-    supabase
-      .from("work_logs")
-      .select("*")
-      .eq("user_id", userId)
-      .order("date", { ascending: false })
-  );
-  if (error) throw error;
-  return data ?? [];
+export async function getWorkLogs(): Promise<WorkLog[]> {
+  return api.get<WorkLog[]>("/api/work-logs");
 }
 
-export async function createWorkLog(
-  supabase: SupabaseClient,
-  userId: string,
-  input: WorkLogInput
-): Promise<WorkLog> {
-  const { data, error } = await withTimeout(
-    supabase
-      .from("work_logs")
-      .insert({ ...input, user_id: userId })
-      .select()
-      .single()
-  );
-  if (error) throw error;
-  return data;
+export async function createWorkLog(input: WorkLogInput): Promise<WorkLog> {
+  return api.post<WorkLog>("/api/work-logs", input);
 }
 
 export async function updateWorkLog(
-  supabase: SupabaseClient,
   workLogId: string,
   input: Partial<WorkLogInput>
 ): Promise<WorkLog> {
-  const { data, error } = await withTimeout(
-    supabase
-      .from("work_logs")
-      .update({ ...input, updated_at: new Date().toISOString() })
-      .eq("id", workLogId)
-      .select()
-      .single()
-  );
-  if (error) throw error;
-  return data;
+  return api.put<WorkLog>(`/api/work-logs/${workLogId}`, input);
 }
 
-export async function deleteWorkLog(
-  supabase: SupabaseClient,
-  workLogId: string
-): Promise<void> {
-  const { error } = await withTimeout(
-    supabase.from("work_logs").delete().eq("id", workLogId)
-  );
-  if (error) throw error;
+export async function deleteWorkLog(workLogId: string): Promise<void> {
+  await api.delete(`/api/work-logs/${workLogId}`);
 }

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import {
   getBookmarks,
   createBookmark as createBookmarkService,
@@ -14,7 +13,6 @@ import type { Bookmark, BookmarkInput } from "@/lib/types/database";
 
 export function useBookmarks() {
   const { user, loading: authLoading } = useAuth();
-  const supabase = useMemo(() => createClient(), []);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,7 @@ export function useBookmarks() {
     }
     try {
       setLoading(true);
-      const data = await getBookmarks(supabase, user.id);
+      const data = await getBookmarks();
       if (mountedRef.current) {
         setBookmarks(data);
         setError(null);
@@ -46,7 +44,7 @@ export function useBookmarks() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, authLoading, supabase]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetchBookmarks();
@@ -55,19 +53,19 @@ export function useBookmarks() {
   const createBookmark = useCallback(
     async (input: BookmarkInput) => {
       if (!user) return;
-      const created = await createBookmarkService(supabase, user.id, input);
+      const created = await createBookmarkService(input);
       if (mountedRef.current) {
         setBookmarks((prev) => [created, ...prev]);
         toast.success("Bookmark created");
       }
       return created;
     },
-    [user, supabase]
+    [user]
   );
 
   const updateBookmark = useCallback(
     async (bookmarkId: string, input: Partial<BookmarkInput>) => {
-      const updated = await updateBookmarkService(supabase, bookmarkId, input);
+      const updated = await updateBookmarkService(bookmarkId, input);
       if (mountedRef.current) {
         setBookmarks((prev) =>
           prev.map((b) => (b.id === bookmarkId ? updated : b))
@@ -76,18 +74,18 @@ export function useBookmarks() {
       }
       return updated;
     },
-    [supabase]
+    []
   );
 
   const deleteBookmark = useCallback(
     async (bookmarkId: string) => {
-      await deleteBookmarkService(supabase, bookmarkId);
+      await deleteBookmarkService(bookmarkId);
       if (mountedRef.current) {
         setBookmarks((prev) => prev.filter((b) => b.id !== bookmarkId));
         toast.success("Bookmark deleted");
       }
     },
-    [supabase]
+    []
   );
 
   const toggleFavorite = useCallback(
@@ -99,7 +97,7 @@ export function useBookmarks() {
         )
       );
       try {
-        await updateBookmarkService(supabase, bookmark.id, {
+        await updateBookmarkService(bookmark.id, {
           is_favorite: newValue,
         });
       } catch {
@@ -113,7 +111,7 @@ export function useBookmarks() {
         }
       }
     },
-    [supabase]
+    []
   );
 
   return {

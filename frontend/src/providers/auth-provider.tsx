@@ -4,19 +4,21 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
   useCallback,
   useRef,
   type ReactNode,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { api } from "@/lib/api/client";
 import type { Profile } from "@/lib/types/database";
-import { getProfile } from "@/lib/services/profiles";
+
+interface AuthUser {
+  id: string;
+  email: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   profile: Profile | null;
   loading: boolean;
   isSigningOut: boolean;
@@ -34,34 +36,35 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = useMemo(() => createClient(), []);
+  const signingOutRef = useRef(false);
 
-  const fetchProfile = useCallback(
-    async (userId: string) => {
-      try {
-        const data = await getProfile(supabase, userId);
-        setProfile(data);
-      } catch {
-        setProfile(null);
-      }
-    },
-    [supabase]
-  );
+  const fetchMe = useCallback(async () => {
+    try {
+      const data = await api.get<{ user: AuthUser; profile: Profile | null }>(
+        "/api/auth/me"
+      );
+      setUser(data.user);
+      setProfile(data.profile);
+    } catch {
+      setUser(null);
+      setProfile(null);
+    }
+  }, []);
 
   useEffect(() => {
     let stale = false;
 
-    const getUser = async () => {
+    const init = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const data = await api.get<{ user: AuthUser; profile: Profile | null }>(
+          "/api/auth/me"
+        );
         if (stale) return;
-        setUser(user);
-        if (user) await fetchProfile(user.id);
+        setUser(data.user);
+        setProfile(data.profile);
       } catch {
         if (stale) return;
         setUser(null);
@@ -71,40 +74,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (stale) return;
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
+    init();
 
     return () => {
       stale = true;
-      subscription.unsubscribe();
     };
-  }, [supabase, fetchProfile]);
-
-  const signingOutRef = useRef(false);
+  }, []);
 
   const signOut = async () => {
     signingOutRef.current = true;
-    await supabase.auth.signOut();
+    try {
+      await api.post("/api/auth/logout");
+    } catch {
+      // Ignore logout errors
+    }
     setUser(null);
     setProfile(null);
   };
 
   const refreshProfile = useCallback(async () => {
-    if (user) await fetchProfile(user.id);
-  }, [user, fetchProfile]);
+    if (user) {
+      await fetchMe();
+    }
+  }, [user, fetchMe]);
 
   return (
     <AuthContext.Provider

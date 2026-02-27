@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import {
   getMySnippets,
   createSnippet as createSnippetService,
@@ -14,7 +13,6 @@ import type { CodeSnippet, CodeSnippetInput } from "@/lib/types/database";
 
 export function useSnippets() {
   const { user, loading: authLoading } = useAuth();
-  const supabase = useMemo(() => createClient(), []);
   const [snippets, setSnippets] = useState<CodeSnippet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,7 @@ export function useSnippets() {
     }
     try {
       setLoading(true);
-      const data = await getMySnippets(supabase, user.id);
+      const data = await getMySnippets();
       if (mountedRef.current) {
         setSnippets(data);
         setError(null);
@@ -46,7 +44,7 @@ export function useSnippets() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, authLoading, supabase]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetchSnippets();
@@ -55,19 +53,19 @@ export function useSnippets() {
   const createSnippet = useCallback(
     async (input: CodeSnippetInput) => {
       if (!user) return;
-      const created = await createSnippetService(supabase, user.id, input);
+      const created = await createSnippetService(input);
       if (mountedRef.current) {
         setSnippets((prev) => [created, ...prev]);
         toast.success("Snippet created");
       }
       return created;
     },
-    [user, supabase]
+    [user]
   );
 
   const updateSnippet = useCallback(
     async (snippetId: string, input: Partial<CodeSnippetInput>) => {
-      const updated = await updateSnippetService(supabase, snippetId, input);
+      const updated = await updateSnippetService(snippetId, input);
       if (mountedRef.current) {
         setSnippets((prev) =>
           prev.map((s) => (s.id === snippetId ? updated : s))
@@ -76,18 +74,18 @@ export function useSnippets() {
       }
       return updated;
     },
-    [supabase]
+    []
   );
 
   const deleteSnippet = useCallback(
     async (snippetId: string) => {
-      await deleteSnippetService(supabase, snippetId);
+      await deleteSnippetService(snippetId);
       if (mountedRef.current) {
         setSnippets((prev) => prev.filter((s) => s.id !== snippetId));
         toast.success("Snippet deleted");
       }
     },
-    [supabase]
+    []
   );
 
   const toggleFavorite = useCallback(
@@ -99,7 +97,7 @@ export function useSnippets() {
         )
       );
       try {
-        await updateSnippetService(supabase, snippet.id, {
+        await updateSnippetService(snippet.id, {
           is_favorite: newValue,
         });
       } catch {
@@ -113,7 +111,7 @@ export function useSnippets() {
         }
       }
     },
-    [supabase]
+    []
   );
 
   return {

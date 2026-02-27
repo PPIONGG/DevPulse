@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import {
   getArticles,
   createArticle as createArticleService,
@@ -14,7 +13,6 @@ import type { Article, ArticleInput } from "@/lib/types/database";
 
 export function useArticles() {
   const { user, loading: authLoading } = useAuth();
-  const supabase = useMemo(() => createClient(), []);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,7 @@ export function useArticles() {
     }
     try {
       setLoading(true);
-      const data = await getArticles(supabase, user.id);
+      const data = await getArticles();
       if (mountedRef.current) {
         setArticles(data);
         setError(null);
@@ -46,7 +44,7 @@ export function useArticles() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, authLoading, supabase]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetchArticles();
@@ -55,19 +53,19 @@ export function useArticles() {
   const createArticle = useCallback(
     async (input: ArticleInput) => {
       if (!user) return;
-      const created = await createArticleService(supabase, user.id, input);
+      const created = await createArticleService(input);
       if (mountedRef.current) {
         setArticles((prev) => [created, ...prev]);
         toast.success("Article created");
       }
       return created;
     },
-    [user, supabase]
+    [user]
   );
 
   const updateArticle = useCallback(
     async (articleId: string, input: Partial<ArticleInput>) => {
-      const updated = await updateArticleService(supabase, articleId, input);
+      const updated = await updateArticleService(articleId, input);
       if (mountedRef.current) {
         setArticles((prev) =>
           prev.map((a) => (a.id === articleId ? updated : a))
@@ -76,18 +74,18 @@ export function useArticles() {
       }
       return updated;
     },
-    [supabase]
+    []
   );
 
   const deleteArticle = useCallback(
     async (articleId: string) => {
-      await deleteArticleService(supabase, articleId);
+      await deleteArticleService(articleId);
       if (mountedRef.current) {
         setArticles((prev) => prev.filter((a) => a.id !== articleId));
         toast.success("Article deleted");
       }
     },
-    [supabase]
+    []
   );
 
   const toggleFavorite = useCallback(
@@ -99,7 +97,7 @@ export function useArticles() {
         )
       );
       try {
-        await updateArticleService(supabase, article.id, {
+        await updateArticleService(article.id, {
           is_favorite: newValue,
         });
       } catch {
@@ -113,7 +111,7 @@ export function useArticles() {
         }
       }
     },
-    [supabase]
+    []
   );
 
   return {

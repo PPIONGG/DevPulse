@@ -1,25 +1,10 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { withTimeout } from "@/lib/utils/with-timeout";
+import { api } from "@/lib/api/client";
+import type { Profile } from "@/lib/types/database";
 
-export async function uploadAvatar(
-  supabase: SupabaseClient,
-  userId: string,
-  blob: Blob
-): Promise<string> {
-  const filePath = `${userId}/avatar.jpg`;
+export async function uploadAvatar(blob: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append("avatar", blob, "avatar.jpg");
 
-  const { error: uploadError } = await withTimeout(
-    supabase.storage
-      .from("avatars")
-      .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" }),
-    30_000
-  );
-
-  if (uploadError) throw uploadError;
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-  return `${publicUrl}?t=${Date.now()}`;
+  const profile = await api.upload<Profile>("/api/profile/avatar", formData);
+  return profile.avatar_url ?? "";
 }

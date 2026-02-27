@@ -29,8 +29,8 @@ backend/server
 frontend/playwright-report/
 frontend/test-results/
 
-# Supabase
-frontend/supabase/.temp/
+# Uploads
+backend/uploads/
 
 # Claude Code
 .agents/

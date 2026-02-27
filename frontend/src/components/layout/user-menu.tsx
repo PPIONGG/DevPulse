@@ -27,14 +27,8 @@ export function UserMenu() {
 
   if (!user) return null;
 
-  // ใช้ข้อมูลจาก profiles table ก่อน fallback ไป user_metadata
-  const metadata = user.user_metadata;
-  const displayName =
-    profile?.display_name ||
-    metadata?.full_name ||
-    metadata?.user_name ||
-    null;
-  const avatarUrl = profile?.avatar_url || metadata?.avatar_url;
+  const displayName = profile?.display_name || null;
+  const avatarUrl = profile?.avatar_url;
   const email = profile?.email || user.email;
 
   const initials = displayName
@@ -56,7 +50,7 @@ export function UserMenu() {
   return (
     <div className="flex items-center gap-3 px-3 py-2">
       <Avatar className="h-8 w-8">
-        <AvatarImage src={avatarUrl} alt={displayName ?? email ?? "User"} />
+        <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? email ?? "User"} />
         <AvatarFallback className="text-xs">{initials}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">

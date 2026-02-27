@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { updateProfile as updateProfileService } from "@/lib/services/profiles";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/lib/types/database";
 
 export function useProfile() {
   const { user, profile, loading, refreshProfile } = useAuth();
-  const supabase = useMemo(() => createClient(), []);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
@@ -27,7 +25,7 @@ export function useProfile() {
       setUpdating(true);
       setError(null);
       try {
-        await updateProfileService(supabase, user.id, data);
+        await updateProfileService(data);
         await refreshProfile();
         if (mountedRef.current) toast.success("Profile updated");
       } catch (err) {
@@ -39,7 +37,7 @@ export function useProfile() {
         if (mountedRef.current) setUpdating(false);
       }
     },
-    [user, supabase, refreshProfile]
+    [user, refreshProfile]
   );
 
   return { profile, loading, updating, error, updateProfile };

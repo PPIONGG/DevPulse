@@ -1,61 +1,21 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { api } from "@/lib/api/client";
 import type { Bookmark, BookmarkInput } from "@/lib/types/database";
-import { withTimeout } from "@/lib/utils/with-timeout";
 
-export async function getBookmarks(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<Bookmark[]> {
-  const { data, error } = await withTimeout(
-    supabase
-      .from("bookmarks")
-      .select("*")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-  );
-  if (error) throw error;
-  return data ?? [];
+export async function getBookmarks(): Promise<Bookmark[]> {
+  return api.get<Bookmark[]>("/api/bookmarks");
 }
 
-export async function createBookmark(
-  supabase: SupabaseClient,
-  userId: string,
-  input: BookmarkInput
-): Promise<Bookmark> {
-  const { data, error } = await withTimeout(
-    supabase
-      .from("bookmarks")
-      .insert({ ...input, user_id: userId })
-      .select()
-      .single()
-  );
-  if (error) throw error;
-  return data;
+export async function createBookmark(input: BookmarkInput): Promise<Bookmark> {
+  return api.post<Bookmark>("/api/bookmarks", input);
 }
 
 export async function updateBookmark(
-  supabase: SupabaseClient,
   bookmarkId: string,
   input: Partial<BookmarkInput>
 ): Promise<Bookmark> {
-  const { data, error } = await withTimeout(
-    supabase
-      .from("bookmarks")
-      .update({ ...input, updated_at: new Date().toISOString() })
-      .eq("id", bookmarkId)
-      .select()
-      .single()
-  );
-  if (error) throw error;
-  return data;
+  return api.put<Bookmark>(`/api/bookmarks/${bookmarkId}`, input);
 }
 
-export async function deleteBookmark(
-  supabase: SupabaseClient,
-  bookmarkId: string
-): Promise<void> {
-  const { error } = await withTimeout(
-    supabase.from("bookmarks").delete().eq("id", bookmarkId)
-  );
-  if (error) throw error;
+export async function deleteBookmark(bookmarkId: string): Promise<void> {
+  await api.delete(`/api/bookmarks/${bookmarkId}`);
 }
