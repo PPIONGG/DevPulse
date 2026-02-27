@@ -16,6 +16,7 @@ func New(
 	article *handlers.ArticleHandler,
 	bookmark *handlers.BookmarkHandler,
 	dashboard *handlers.DashboardHandler,
+	calculation *handlers.CalculationHandler,
 	sessionRepo *repository.SessionRepo,
 	frontendURL string,
 	uploadsDir string,
@@ -48,6 +49,7 @@ func New(
 	mux.Handle("GET /api/snippets", authMW(http.HandlerFunc(snippet.List)))
 	mux.Handle("GET /api/snippets/shared", authMW(http.HandlerFunc(snippet.ListShared)))
 	mux.Handle("POST /api/snippets", authMW(http.HandlerFunc(snippet.Create)))
+	mux.Handle("POST /api/snippets/copy/{id}", authMW(http.HandlerFunc(snippet.Copy)))
 	mux.Handle("PUT /api/snippets/{id}", authMW(http.HandlerFunc(snippet.Update)))
 	mux.Handle("DELETE /api/snippets/{id}", authMW(http.HandlerFunc(snippet.Delete)))
 
@@ -68,6 +70,11 @@ func New(
 
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))
+
+	mux.Handle("GET /api/calculations", authMW(http.HandlerFunc(calculation.List)))
+	mux.Handle("POST /api/calculations", authMW(http.HandlerFunc(calculation.Create)))
+	mux.Handle("DELETE /api/calculations/{id}", authMW(http.HandlerFunc(calculation.Delete)))
+	mux.Handle("DELETE /api/calculations", authMW(http.HandlerFunc(calculation.ClearAll)))
 
 	// Apply global middleware
 	var handler http.Handler = mux

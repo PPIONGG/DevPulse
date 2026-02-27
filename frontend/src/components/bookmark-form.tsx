@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useState, useEffect, type FormEvent, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import {
   Dialog,
@@ -53,6 +53,24 @@ export function BookmarkForm({
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setForm(
+        bookmark
+          ? {
+              title: bookmark.title,
+              url: bookmark.url,
+              description: bookmark.description,
+              tags: bookmark.tags,
+              is_favorite: bookmark.is_favorite,
+            }
+          : defaultValues
+      );
+      setTagInput("");
+      setError(null);
+    }
+  }, [open, bookmark]);
 
   const handleOpenChange = (value: boolean) => {
     if (value) {

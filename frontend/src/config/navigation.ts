@@ -3,6 +3,7 @@ import {
   BookOpen,
   Code2,
   ClipboardList,
+  Calculator,
   Settings,
   FileText,
   Bookmark,
@@ -62,6 +63,11 @@ export const navigationItems: NavItem[] = [
     title: "Work Log",
     href: "/work-log",
     icon: ClipboardList,
+  },
+  {
+    title: "Calculator",
+    href: "/calculator",
+    icon: Calculator,
   },
   {
     title: "Settings",

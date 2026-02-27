@@ -1,0 +1,1 @@
+ALTER TABLE snippets ADD COLUMN copied_from UUID REFERENCES snippets(id) ON DELETE SET NULL;

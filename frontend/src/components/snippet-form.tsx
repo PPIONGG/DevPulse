@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useState, useEffect, type FormEvent, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import {
   Dialog,
@@ -66,7 +66,27 @@ export function SnippetForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset form when dialog opens/closes or snippet changes
+  // Sync form state when dialog opens or snippet changes
+  useEffect(() => {
+    if (open) {
+      setForm(
+        snippet
+          ? {
+              title: snippet.title,
+              code: snippet.code,
+              language: snippet.language,
+              description: snippet.description,
+              tags: snippet.tags,
+              is_public: snippet.is_public,
+              is_favorite: snippet.is_favorite,
+            }
+          : defaultValues
+      );
+      setTagInput("");
+      setError(null);
+    }
+  }, [open, snippet]);
+
   const handleOpenChange = (value: boolean) => {
     if (value) {
       setForm(
@@ -237,6 +257,7 @@ export function SnippetForm({
               <Checkbox
                 id="is_public"
                 checked={form.is_public}
+                disabled={!!snippet?.copied_from}
                 onCheckedChange={(checked) =>
                   setForm((prev) => ({
                     ...prev,
@@ -246,6 +267,9 @@ export function SnippetForm({
               />
               <Label htmlFor="is_public" className="font-normal">
                 Public (visible to others)
+                {snippet?.copied_from && (
+                  <span className="ml-1 text-xs text-muted-foreground">(Copied snippet)</span>
+                )}
               </Label>
             </div>
             <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +59,23 @@ export function WorkLogForm({
   const [form, setForm] = useState<WorkLogInput>(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setForm(
+        workLog
+          ? {
+              title: workLog.title,
+              content: workLog.content,
+              date: workLog.date,
+              category: workLog.category,
+              hours_spent: workLog.hours_spent,
+            }
+          : { ...defaultValues, date: today() }
+      );
+      setError(null);
+    }
+  }, [open, workLog]);
 
   const handleOpenChange = (value: boolean) => {
     if (value) {

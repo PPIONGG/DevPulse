@@ -5,6 +5,13 @@ import { Plus, Search, Code2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,7 +26,12 @@ import { SnippetForm } from "@/components/snippet-form";
 import { SnippetCardSkeleton } from "@/components/skeletons";
 import { useSnippets } from "@/hooks/use-snippets";
 import { toast } from "sonner";
+import { languages } from "@/config/languages";
 import type { CodeSnippet, CodeSnippetInput } from "@/lib/types/database";
+
+const languageLabelMap = Object.fromEntries(
+  languages.map((l) => [l.value, l.label])
+);
 
 export default function MySnippetsPage() {
   const {
@@ -34,6 +46,7 @@ export default function MySnippetsPage() {
   } = useSnippets();
 
   const [search, setSearch] = useState("");
+  const [language, setLanguage] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingSnippet, setEditingSnippet] = useState<CodeSnippet | null>(
     null
@@ -42,17 +55,33 @@ export default function MySnippetsPage() {
     null
   );
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return snippets;
-    const q = search.toLowerCase();
-    return snippets.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.language.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.toLowerCase().includes(q))
+  const availableLanguages = useMemo(() => {
+    const langs = [...new Set(snippets.map((s) => s.language))];
+    langs.sort((a, b) =>
+      (languageLabelMap[a] ?? a).localeCompare(languageLabelMap[b] ?? b)
     );
-  }, [snippets, search]);
+    return langs;
+  }, [snippets]);
+
+  const filtered = useMemo(() => {
+    let result = snippets;
+    if (language !== "all") {
+      result = result.filter((s) => s.language === language);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.title.toLowerCase().includes(q) ||
+          s.description.toLowerCase().includes(q) ||
+          s.language.toLowerCase().includes(q) ||
+          s.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [snippets, search, language]);
+
+  const hasFilters = search.trim() || language !== "all";
 
   const handleCreate = async (data: CodeSnippetInput) => {
     await createSnippet(data);
@@ -100,14 +129,29 @@ export default function MySnippetsPage() {
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search snippets..."
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search snippets..."
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={language} onValueChange={setLanguage}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Languages" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Languages</SelectItem>
+            {availableLanguages.map((lang) => (
+              <SelectItem key={lang} value={lang}>
+                {languageLabelMap[lang] ?? lang}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {error && (
@@ -129,14 +173,14 @@ export default function MySnippetsPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Code2 className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {search ? "No matching snippets" : "No snippets yet"}
+            {hasFilters ? "No matching snippets" : "No snippets yet"}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {search
-              ? "Try a different search term."
+            {hasFilters
+              ? "Try a different search term or language."
               : "Create your first snippet to get started."}
           </p>
-          {!search && (
+          {!hasFilters && (
             <Button className="mt-4" onClick={() => setFormOpen(true)}>
               <Plus className="mr-2 size-4" />
               New Snippet

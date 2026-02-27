@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Code2,
   ClipboardList,
@@ -16,8 +19,20 @@ import { getCategoryConfig } from "@/config/categories";
 import { DashboardSkeleton } from "@/components/skeletons";
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
   const { stats, recentSnippets, recentWorkLogs, weeklyHours, loading, error, refetch } =
     useDashboard();
+
+  const toastShown = useRef(false);
+  useEffect(() => {
+    if (toastShown.current) return;
+    const t = searchParams.get("toast");
+    if (t === "login") { toast.success("Signed in successfully!"); toastShown.current = true; }
+    if (t === "register") { toast.success("Account created successfully!"); toastShown.current = true; }
+    if (t) {
+      window.history.replaceState(null, "", "/dashboard");
+    }
+  }, [searchParams]);
 
   if (loading) {
     return <DashboardSkeleton />;

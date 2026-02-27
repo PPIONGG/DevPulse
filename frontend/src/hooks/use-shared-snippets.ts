@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getSharedSnippets } from "@/lib/services/snippets";
+import { toast } from "sonner";
+import { getSharedSnippets, copySnippet } from "@/lib/services/snippets";
 import { useAuth } from "@/providers/auth-provider";
 import type { CodeSnippet } from "@/lib/types/database";
 
@@ -46,5 +47,24 @@ export function useSharedSnippets() {
     fetchSnippets();
   }, [fetchSnippets]);
 
-  return { snippets, loading, error, refetch: fetchSnippets };
+  const copyToMine = useCallback(
+    async (snippetId: string) => {
+      if (!user) return;
+      try {
+        await copySnippet(snippetId);
+        if (mountedRef.current) {
+          toast.success("Copied to My Snippets");
+        }
+      } catch (err) {
+        if (mountedRef.current) {
+          toast.error(
+            err instanceof Error ? err.message : "Failed to copy snippet"
+          );
+        }
+      }
+    },
+    [user]
+  );
+
+  return { snippets, loading, error, refetch: fetchSnippets, copyToMine };
 }

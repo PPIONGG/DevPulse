@@ -45,6 +45,7 @@ func main() {
 	workLogRepo := repository.NewWorkLogRepo(pool)
 	articleRepo := repository.NewArticleRepo(pool)
 	bookmarkRepo := repository.NewBookmarkRepo(pool)
+	calculationRepo := repository.NewCalculationRepo(pool)
 	dashboardRepo := repository.NewDashboardRepo(snippetRepo, workLogRepo, articleRepo, bookmarkRepo)
 
 	// Create handlers
@@ -57,13 +58,14 @@ func main() {
 	workLogHandler := handlers.NewWorkLogHandler(workLogRepo)
 	articleHandler := handlers.NewArticleHandler(articleRepo)
 	bookmarkHandler := handlers.NewBookmarkHandler(bookmarkRepo)
+	calculationHandler := handlers.NewCalculationHandler(calculationRepo)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardRepo)
 
 	// Create router
 	handler := router.New(
 		authHandler, profileHandler,
 		snippetHandler, workLogHandler, articleHandler, bookmarkHandler,
-		dashboardHandler,
+		dashboardHandler, calculationHandler,
 		sessionRepo, cfg.FrontendURL, cfg.UploadsDir,
 	)
 

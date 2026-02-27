@@ -25,3 +25,7 @@ export async function updateSnippet(
 export async function deleteSnippet(snippetId: string): Promise<void> {
   await api.delete(`/api/snippets/${snippetId}`);
 }
+
+export async function copySnippet(snippetId: string): Promise<CodeSnippet> {
+  return api.post<CodeSnippet>(`/api/snippets/copy/${snippetId}`);
+}

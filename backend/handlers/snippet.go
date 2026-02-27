@@ -71,6 +71,17 @@ func (h *SnippetHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if input.Tags == nil {
 		input.Tags = []string{}
 	}
+
+	// Enforce: copied snippets cannot be made public
+	existing, err := h.repo.GetByID(r.Context(), id, userID)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "snippet not found")
+		return
+	}
+	if existing.CopiedFrom != nil {
+		input.IsPublic = false
+	}
+
 	snippet, err := h.repo.Update(r.Context(), id, userID, input)
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "failed to update snippet")
@@ -95,4 +106,19 @@ func (h *SnippetHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.JSON(w, http.StatusOK, map[string]string{"message": "deleted"})
+}
+
+func (h *SnippetHandler) Copy(w http.ResponseWriter, r *http.Request) {
+	userID := helpers.UserIDFromContext(r.Context())
+	sourceID, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid snippet ID")
+		return
+	}
+	snippet, err := h.repo.CopySnippet(r.Context(), sourceID, userID)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to copy snippet")
+		return
+	}
+	helpers.JSON(w, http.StatusCreated, snippet)
 }

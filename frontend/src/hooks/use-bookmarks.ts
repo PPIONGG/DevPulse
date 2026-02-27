@@ -98,6 +98,10 @@ export function useBookmarks() {
       );
       try {
         await updateBookmarkService(bookmark.id, {
+          title: bookmark.title,
+          url: bookmark.url,
+          description: bookmark.description,
+          tags: bookmark.tags,
           is_favorite: newValue,
         });
       } catch {

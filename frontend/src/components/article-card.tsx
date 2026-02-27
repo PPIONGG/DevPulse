@@ -69,9 +69,7 @@ export function ArticleCard({
 
       {article.content && (
         <CardContent className="px-4 pb-3 pt-0">
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {article.content}
-          </p>
+          <pre className="overflow-hidden whitespace-pre-wrap break-words rounded-md bg-muted/50 p-3 font-mono text-xs leading-relaxed text-muted-foreground line-clamp-5">{article.content}</pre>
         </CardContent>
       )}
 

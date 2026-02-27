@@ -3,25 +3,54 @@
 import { useState, useMemo } from "react";
 import { Search, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SnippetCard } from "@/components/snippet-card";
 import { SnippetCardSkeleton } from "@/components/skeletons";
 import { useSharedSnippets } from "@/hooks/use-shared-snippets";
+import { languages } from "@/config/languages";
+
+const languageLabelMap = Object.fromEntries(
+  languages.map((l) => [l.value, l.label])
+);
 
 export default function SharedSnippetsPage() {
-  const { snippets, loading, error, refetch } = useSharedSnippets();
+  const { snippets, loading, error, refetch, copyToMine } = useSharedSnippets();
   const [search, setSearch] = useState("");
+  const [language, setLanguage] = useState("all");
+
+  const availableLanguages = useMemo(() => {
+    const langs = [...new Set(snippets.map((s) => s.language))];
+    langs.sort((a, b) =>
+      (languageLabelMap[a] ?? a).localeCompare(languageLabelMap[b] ?? b)
+    );
+    return langs;
+  }, [snippets]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return snippets;
-    const q = search.toLowerCase();
-    return snippets.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.language.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.toLowerCase().includes(q))
-    );
-  }, [snippets, search]);
+    let result = snippets;
+    if (language !== "all") {
+      result = result.filter((s) => s.language === language);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.title.toLowerCase().includes(q) ||
+          s.description.toLowerCase().includes(q) ||
+          s.language.toLowerCase().includes(q) ||
+          s.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [snippets, search, language]);
+
+  const hasFilters = search.trim() || language !== "all";
 
   return (
     <div className="space-y-6">
@@ -32,14 +61,29 @@ export default function SharedSnippetsPage() {
         </p>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search shared snippets..."
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search shared snippets..."
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={language} onValueChange={setLanguage}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Languages" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Languages</SelectItem>
+            {availableLanguages.map((lang) => (
+              <SelectItem key={lang} value={lang}>
+                {languageLabelMap[lang] ?? lang}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {error && (
@@ -61,18 +105,18 @@ export default function SharedSnippetsPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Globe className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {search ? "No matching snippets" : "No shared snippets yet"}
+            {hasFilters ? "No matching snippets" : "No shared snippets yet"}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {search
-              ? "Try a different search term."
+            {hasFilters
+              ? "Try a different search term or language."
               : "Public snippets from other users will appear here."}
           </p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((snippet) => (
-            <SnippetCard key={snippet.id} snippet={snippet} readOnly />
+            <SnippetCard key={snippet.id} snippet={snippet} readOnly onCopy={(s) => copyToMine(s.id)} />
           ))}
         </div>
       )}

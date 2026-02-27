@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useState, useEffect, type FormEvent, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import {
   Dialog,
@@ -51,6 +51,23 @@ export function ArticleForm({
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setForm(
+        article
+          ? {
+              title: article.title,
+              content: article.content,
+              tags: article.tags,
+              is_favorite: article.is_favorite,
+            }
+          : defaultValues
+      );
+      setTagInput("");
+      setError(null);
+    }
+  }, [open, article]);
 
   const handleOpenChange = (value: boolean) => {
     if (value) {

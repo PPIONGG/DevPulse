@@ -98,6 +98,9 @@ export function useArticles() {
       );
       try {
         await updateArticleService(article.id, {
+          title: article.title,
+          content: article.content,
+          tags: article.tags,
           is_favorite: newValue,
         });
       } catch {

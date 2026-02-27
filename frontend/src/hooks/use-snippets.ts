@@ -98,6 +98,12 @@ export function useSnippets() {
       );
       try {
         await updateSnippetService(snippet.id, {
+          title: snippet.title,
+          code: snippet.code,
+          language: snippet.language,
+          description: snippet.description,
+          tags: snippet.tags,
+          is_public: snippet.is_public,
           is_favorite: newValue,
         });
       } catch {

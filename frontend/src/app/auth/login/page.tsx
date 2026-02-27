@@ -40,7 +40,7 @@ function LoginForm() {
 
     try {
       await api.post("/api/auth/login", { email, password });
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard?toast=login";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login failed");
     }
@@ -53,7 +53,7 @@ function LoginForm() {
 
     try {
       await api.post("/api/auth/register", { email, password });
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard?toast=register";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed");
     }

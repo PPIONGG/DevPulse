@@ -155,6 +155,41 @@ export function ArticleCardSkeleton() {
   );
 }
 
+export function CalculatorSkeleton() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <Card className="gap-0 overflow-hidden py-0">
+        <div className="border-b bg-muted/30 px-4 py-4">
+          <Skeleton className="ml-auto h-4 w-24" />
+          <Skeleton className="ml-auto mt-2 h-8 w-32" />
+        </div>
+        <div className="grid grid-cols-4 gap-1.5 p-3">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 rounded-md" />
+          ))}
+        </div>
+      </Card>
+      <Card className="gap-0 py-0">
+        <CardHeader className="flex-row items-center justify-between px-4 py-3">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-8 w-20 rounded-md" />
+        </CardHeader>
+        <CardContent className="space-y-2 px-4 pb-4 pt-0">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-2">
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+              <Skeleton className="size-8 rounded-md" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function BookmarkCardSkeleton() {
   return (
     <Card className="gap-0 py-0 overflow-hidden">

@@ -9,6 +9,7 @@ import {
   Trash2,
   Star,
   Globe,
+  CopyPlus,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ interface SnippetCardProps {
   onEdit?: (snippet: CodeSnippet) => void;
   onDelete?: (snippet: CodeSnippet) => void;
   onToggleFavorite?: (snippet: CodeSnippet) => void;
+  onCopy?: (snippet: CodeSnippet) => void;
 }
 
 export function SnippetCard({
@@ -36,6 +38,7 @@ export function SnippetCard({
   onEdit,
   onDelete,
   onToggleFavorite,
+  onCopy,
 }: SnippetCardProps) {
   const [copied, setCopied] = useState(false);
 
@@ -48,11 +51,24 @@ export function SnippetCard({
   return (
     <Card className="gap-0 py-0 overflow-hidden">
       <CardHeader className="flex-row items-center justify-between gap-2 px-4 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          {snippet.is_favorite && (
-            <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            {snippet.is_favorite && (
+              <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+            )}
+            <CardTitle className="truncate text-base">{snippet.title}</CardTitle>
+            {!readOnly && snippet.copied_from && (
+              <Badge variant="outline" className="shrink-0 gap-1 text-xs text-muted-foreground">
+                <CopyPlus className="size-3" />
+                Copied
+              </Badge>
+            )}
+          </div>
+          {readOnly && snippet.owner_name && (
+            <p className="truncate text-xs text-muted-foreground">
+              by {snippet.owner_name}
+            </p>
           )}
-          <CardTitle className="truncate text-base">{snippet.title}</CardTitle>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Badge variant="secondary" className="text-xs">
@@ -73,6 +89,17 @@ export function SnippetCard({
               <Copy className="size-4" />
             )}
           </Button>
+          {readOnly && onCopy && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              onClick={() => onCopy(snippet)}
+              title="Copy to My Snippets"
+            >
+              <CopyPlus className="size-4" />
+            </Button>
+          )}
           {!readOnly && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
