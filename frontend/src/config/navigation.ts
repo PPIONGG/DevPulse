@@ -1,12 +1,8 @@
 import {
   LayoutDashboard,
-  BookOpen,
   Code2,
-  ClipboardList,
   Calculator,
   Settings,
-  FileText,
-  Bookmark,
   FolderOpen,
   Share2,
   LucideIcon,
@@ -26,23 +22,6 @@ export const navigationItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Knowledge Base",
-    href: "/knowledge-base",
-    icon: BookOpen,
-    children: [
-      {
-        title: "Articles",
-        href: "/knowledge-base/articles",
-        icon: FileText,
-      },
-      {
-        title: "Bookmarks",
-        href: "/knowledge-base/bookmarks",
-        icon: Bookmark,
-      },
-    ],
-  },
-  {
     title: "Code Snippets",
     href: "/code-snippets",
     icon: Code2,
@@ -58,11 +37,6 @@ export const navigationItems: NavItem[] = [
         icon: Share2,
       },
     ],
-  },
-  {
-    title: "Work Log",
-    href: "/work-log",
-    icon: ClipboardList,
   },
   {
     title: "Calculator",

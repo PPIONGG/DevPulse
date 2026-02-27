@@ -7,20 +7,15 @@ import {
   type DashboardStats,
 } from "@/lib/services/dashboard";
 import { useAuth } from "@/providers/auth-provider";
-import type { CodeSnippet, WorkLog } from "@/lib/types/database";
+import type { CodeSnippet } from "@/lib/types/database";
 
 interface DashboardData {
   stats: DashboardStats;
   recentSnippets: CodeSnippet[];
-  recentWorkLogs: WorkLog[];
-  weeklyHours: number;
 }
 
 const defaultStats: DashboardStats = {
   snippets: 0,
-  workLogs: 0,
-  articles: 0,
-  bookmarks: 0,
 };
 
 export function useDashboard() {
@@ -28,8 +23,6 @@ export function useDashboard() {
   const [data, setData] = useState<DashboardData>({
     stats: defaultStats,
     recentSnippets: [],
-    recentWorkLogs: [],
-    weeklyHours: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,13 +61,11 @@ export function useDashboard() {
         const recent =
           results[1].status === "fulfilled"
             ? results[1].value
-            : { recentSnippets: [], recentWorkLogs: [], weeklyHours: 0 };
+            : { recentSnippets: [] };
 
         setData({
           stats,
           recentSnippets: recent.recentSnippets,
-          recentWorkLogs: recent.recentWorkLogs,
-          weeklyHours: recent.weeklyHours,
         });
 
         const hasPartialError = results.some((r) => r.status === "rejected");

@@ -12,9 +12,6 @@ func New(
 	auth *handlers.AuthHandler,
 	profile *handlers.ProfileHandler,
 	snippet *handlers.SnippetHandler,
-	workLog *handlers.WorkLogHandler,
-	article *handlers.ArticleHandler,
-	bookmark *handlers.BookmarkHandler,
 	dashboard *handlers.DashboardHandler,
 	calculation *handlers.CalculationHandler,
 	sessionRepo *repository.SessionRepo,
@@ -52,21 +49,6 @@ func New(
 	mux.Handle("POST /api/snippets/copy/{id}", authMW(http.HandlerFunc(snippet.Copy)))
 	mux.Handle("PUT /api/snippets/{id}", authMW(http.HandlerFunc(snippet.Update)))
 	mux.Handle("DELETE /api/snippets/{id}", authMW(http.HandlerFunc(snippet.Delete)))
-
-	mux.Handle("GET /api/work-logs", authMW(http.HandlerFunc(workLog.List)))
-	mux.Handle("POST /api/work-logs", authMW(http.HandlerFunc(workLog.Create)))
-	mux.Handle("PUT /api/work-logs/{id}", authMW(http.HandlerFunc(workLog.Update)))
-	mux.Handle("DELETE /api/work-logs/{id}", authMW(http.HandlerFunc(workLog.Delete)))
-
-	mux.Handle("GET /api/articles", authMW(http.HandlerFunc(article.List)))
-	mux.Handle("POST /api/articles", authMW(http.HandlerFunc(article.Create)))
-	mux.Handle("PUT /api/articles/{id}", authMW(http.HandlerFunc(article.Update)))
-	mux.Handle("DELETE /api/articles/{id}", authMW(http.HandlerFunc(article.Delete)))
-
-	mux.Handle("GET /api/bookmarks", authMW(http.HandlerFunc(bookmark.List)))
-	mux.Handle("POST /api/bookmarks", authMW(http.HandlerFunc(bookmark.Create)))
-	mux.Handle("PUT /api/bookmarks/{id}", authMW(http.HandlerFunc(bookmark.Update)))
-	mux.Handle("DELETE /api/bookmarks/{id}", authMW(http.HandlerFunc(bookmark.Delete)))
 
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))

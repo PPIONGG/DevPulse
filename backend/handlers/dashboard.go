@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/thammasornlueadtaharn/devpulse-backend/helpers"
 	"github.com/thammasornlueadtaharn/devpulse-backend/repository"
@@ -29,11 +28,7 @@ func (h *DashboardHandler) Stats(w http.ResponseWriter, r *http.Request) {
 func (h *DashboardHandler) Recent(w http.ResponseWriter, r *http.Request) {
 	userID := helpers.UserIDFromContext(r.Context())
 
-	now := time.Now()
-	weekStart := now.AddDate(0, 0, -int(now.Weekday()))
-	weekStartStr := weekStart.Format("2006-01-02")
-
-	recent, err := h.repo.Recent(r.Context(), userID, weekStartStr)
+	recent, err := h.repo.Recent(r.Context(), userID)
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "failed to fetch recent data")
 		return
