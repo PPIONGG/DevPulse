@@ -1,6 +1,6 @@
 # DevPulse
 
-Developer productivity hub — a personal dashboard for tracking work, managing knowledge, and storing code snippets.
+Developer productivity hub — a personal dashboard for storing code snippets and quick calculations.
 
 ## Tech Stack
 
@@ -28,15 +28,11 @@ DevPulse/
 │       │   │   ├── layout.tsx          # AuthGuard + sidebar + mobile nav
 │       │   │   ├── error.tsx / not-found.tsx
 │       │   │   ├── dashboard/
-│       │   │   ├── knowledge-base/
-│       │   │   │   ├── page.tsx        # Redirects to /articles
-│       │   │   │   ├── articles/       # CRUD articles with search & tag filter
-│       │   │   │   └── bookmarks/      # CRUD bookmarks with search & tag filter
 │       │   │   ├── code-snippets/
 │       │   │   │   ├── page.tsx        # Redirects to /my-snippets
 │       │   │   │   ├── my-snippets/    # CRUD personal snippets
 │       │   │   │   └── shared/         # Browse public snippets from others
-│       │   │   ├── work-log/
+│       │   │   ├── calculator/         # Calculator with history
 │       │   │   └── settings/           # Profile management + avatar upload/crop
 │       │   └── auth/
 │       │       └── login/              # Login + register + GitHub OAuth
@@ -46,18 +42,15 @@ DevPulse/
 │       │   ├── ui/           # shadcn/ui primitives (19 components — do not edit by hand)
 │       │   ├── skeletons.tsx         # All skeleton loading components
 │       │   ├── snippet-card.tsx / snippet-form.tsx
-│       │   ├── work-log-card.tsx / work-log-form.tsx
-│       │   ├── article-card.tsx / article-form.tsx
-│       │   ├── bookmark-card.tsx / bookmark-form.tsx
+│       │   ├── calculator-display.tsx  # Calculator UI + safe expression evaluator
 │       │   └── code-block.tsx       # Shiki syntax-highlighted code display
 │       ├── config/
 │       │   ├── navigation.ts # Sidebar nav items (hierarchical with NavGroups)
-│       │   ├── languages.ts  # 30+ programming languages for snippet selector
-│       │   └── categories.ts # Work log categories with color styling
-│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-work-logs, use-articles, use-bookmarks, use-dashboard, use-profile, use-avatar-upload)
+│       │   └── languages.ts  # 30+ programming languages for snippet selector
+│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload)
 │       ├── lib/
 │       │   ├── api/          # API client (fetch wrapper with credentials, 15s default timeout)
-│       │   ├── services/     # API service functions (snippets, work-logs, articles, bookmarks, dashboard, profiles, storage)
+│       │   ├── services/     # API service functions (snippets, calculations, dashboard, profiles, storage)
 │       │   ├── types/        # Shared TypeScript types (database.ts)
 │       │   └── utils/        # cn() class merger, withTimeout() helper
 │       └── providers/        # AuthProvider (wraps entire app)
@@ -67,7 +60,7 @@ DevPulse/
 │   ├── database/            # pgxpool connection + embedded SQL migrations (auto-run on startup)
 │   ├── models/              # Go structs (json tags match frontend types)
 │   ├── repository/          # DB queries (all include user_id WHERE for authz)
-│   ├── handlers/            # HTTP handlers (auth, profile, snippets, work-logs, articles, bookmarks, dashboard, health)
+│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health)
 │   ├── helpers/             # JSON response/request/context helpers
 │   ├── middleware/          # CORS, auth (session cookie), logger, JSON content-type
 │   ├── router/              # All route definitions
@@ -76,7 +69,7 @@ DevPulse/
 │   └── go.mod               # pgx/v5, google/uuid, x/crypto, x/oauth2
 ├── docs/                     # Project documentation
 │   ├── 2026-02-25-bug-log.md  # Phase 1 bug chronicle (12 bugs, all resolved)
-│   └── modules/             # 8 planned feature specs (calculator → kanban)
+│   └── modules/             # Planned feature specs
 └── docker-compose.yml        # PostgreSQL 16 + backend
 ```
 
@@ -88,7 +81,7 @@ DevPulse/
 - **Auth:** Session-based cookies via Go backend. `AuthProvider` calls `GET /api/auth/me` on mount. Use `useAuth()` to access user/profile.
 - **Routing:** App Router with `(app)` route group for authenticated pages. Proxy (`src/proxy.ts`) checks `session_token` cookie. Next.js `rewrites` proxy `/api/*` and `/uploads/*` to Go backend (localhost:8080).
 - **Error handling:** Custom error/not-found pages at root (`app/not-found.tsx`, `app/global-error.tsx`) and app level (`app/(app)/error.tsx`, `app/(app)/not-found.tsx`). Fetch errors show inline banners with "Try again" button on pages. Mutation errors use `toast.error()` from sonner.
-- **Hooks pattern:** All data hooks use `mountedRef` to guard `setState` after unmount. Mutations call `toast.success()` on success. `toggleFavorite` uses optimistic update with `toast.error()` on revert. Dashboard uses `Promise.allSettled` for partial failure resilience.
+- **Hooks pattern:** All data hooks use `mountedRef` to guard `setState` after unmount. Mutations call `toast.success()` on success. `toggleFavorite` (snippets) uses optimistic update with `toast.error()` on revert. Dashboard uses `Promise.allSettled` for partial failure resilience.
 - **Navigation:** Sidebar nav items are defined in `config/navigation.ts` — add new pages there.
 - **Loading states:** All list pages use skeleton card components from `components/skeletons.tsx` instead of text spinners. New skeletons should match the shape of their corresponding card component.
 - **Styling:** Tailwind CSS v4 with CSS variables for theming. Use `cn()` from `lib/utils` for conditional classes. Light/dark mode via `next-themes`.
@@ -153,15 +146,13 @@ NEXT_PUBLIC_API_URL=     # empty = use Next.js rewrites (default for dev)
 | POST | `/api/profile/avatar` | Upload avatar (multipart) |
 | GET/POST | `/api/snippets` | List/create snippets |
 | GET | `/api/snippets/shared` | List public snippets from others |
+| POST | `/api/snippets/copy/{id}` | Copy a shared snippet |
 | PUT/DELETE | `/api/snippets/{id}` | Update/delete snippet |
-| GET/POST | `/api/work-logs` | List/create work logs |
-| PUT/DELETE | `/api/work-logs/{id}` | Update/delete work log |
-| GET/POST | `/api/articles` | List/create articles |
-| PUT/DELETE | `/api/articles/{id}` | Update/delete article |
-| GET/POST | `/api/bookmarks` | List/create bookmarks |
-| PUT/DELETE | `/api/bookmarks/{id}` | Update/delete bookmark |
-| GET | `/api/dashboard/stats` | Dashboard counts |
-| GET | `/api/dashboard/recent` | Recent items + weekly hours |
+| GET/POST | `/api/calculations` | List/create calculations |
+| DELETE | `/api/calculations/{id}` | Delete single calculation |
+| DELETE | `/api/calculations` | Clear all calculations |
+| GET | `/api/dashboard/stats` | Dashboard snippet count |
+| GET | `/api/dashboard/recent` | Recent snippets |
 
 ## Architecture Rules
 
@@ -181,9 +172,7 @@ All IDs are UUID (`gen_random_uuid()`). All timestamps are `TIMESTAMPTZ`. Conten
 | `sessions` | Session tokens | token (PK, 64-hex), user_id, expires_at (30 days) |
 | `profiles` | User profiles | id (FK → users.id), display_name, avatar_url, email |
 | `snippets` | Code snippets | title, code, language, description, tags (TEXT[]), is_public, is_favorite |
-| `work_logs` | Daily work tracking | title, content, date (DATE), category, hours_spent (REAL) |
-| `articles` | Knowledge base articles | title, content, tags (TEXT[]), is_favorite |
-| `bookmarks` | Saved links | title, url, description, tags (TEXT[]), is_favorite |
+| `calculations` | Calculator history | expression, result |
 
 Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all queries. Migrations are embedded SQL files that run automatically on backend startup.
 
@@ -211,7 +200,17 @@ Applied in order (outermost → innermost): Logger → CORS → JSONContentType.
 
 ## Planned Features
 
-8 feature modules are spec'd in `docs/modules/` (ordered by difficulty):
-1. Calculator, 2. Expenses, 3. URL Shortener, 4. Blog, 5. Polls, 6. Habit Tracker, 7. Flashcards (SM-2), 8. Kanban Board
+Feature modules are spec'd in `docs/modules/` (ordered by difficulty):
+1. Expenses, 2. URL Shortener, 3. Blog, 4. Polls, 5. Habit Tracker, 6. Flashcards (SM-2), 7. Kanban Board
 
 Each spec includes DB schema, API endpoints, and UI patterns following existing architecture.
+
+## Calculator
+
+The calculator uses a **recursive descent parser** for safe expression evaluation (no `eval`/`new Function`). Key features:
+- Operators: `+`, `−`, `×`, `÷`, `%` (percentage = ÷100)
+- Auto-close unclosed parentheses, strip trailing operators
+- Implicit multiplication: `2(3)` = 6
+- Input validation: prevents consecutive operators, duplicate decimals, invalid leading operators
+- Keyboard support: 0-9, +, -, *, /, ., %, (, ), Enter, Escape, Backspace
+- Calculation history persisted to DB via `/api/calculations`
