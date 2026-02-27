@@ -7,7 +7,7 @@ import { useAuth } from "@/providers/auth-provider";
 import type { CodeSnippet } from "@/lib/types/database";
 
 export function useSharedSnippets() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [snippets, setSnippets] = useState<CodeSnippet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,13 +15,17 @@ export function useSharedSnippets() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   const fetchSnippets = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      if (!authLoading) setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await getSharedSnippets(supabase, user.id);
@@ -38,7 +42,7 @@ export function useSharedSnippets() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, authLoading, supabase]);
 
   useEffect(() => {
     fetchSnippets();

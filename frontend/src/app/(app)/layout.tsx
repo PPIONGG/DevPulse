@@ -1,6 +1,7 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { AuthGuard } from "@/components/layout/auth-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <MobileSidebar />
             <h1 className="text-lg font-semibold md:hidden">DevPulse</h1>
           </header>
-          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+          <main className="flex-1 overflow-auto p-4 md:p-6">
+            <AuthGuard>{children}</AuthGuard>
+          </main>
         </div>
       </div>
     </TooltipProvider>

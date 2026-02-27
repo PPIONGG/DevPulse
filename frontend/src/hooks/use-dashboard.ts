@@ -27,7 +27,7 @@ const defaultStats: DashboardStats = {
 };
 
 export function useDashboard() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [data, setData] = useState<DashboardData>({
     stats: defaultStats,
@@ -40,13 +40,17 @@ export function useDashboard() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   const fetchDashboard = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      if (!authLoading) setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const results = await Promise.allSettled([
@@ -92,7 +96,7 @@ export function useDashboard() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, authLoading, supabase]);
 
   useEffect(() => {
     fetchDashboard();

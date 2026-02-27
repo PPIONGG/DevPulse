@@ -6,13 +6,14 @@ export async function getProfile(
   supabase: SupabaseClient,
   userId: string
 ): Promise<Profile | null> {
-  const { data } = await withTimeout(
+  const { data, error } = await withTimeout(
     supabase
       .from("profiles")
       .select("id, display_name, avatar_url, email")
       .eq("id", userId)
       .single()
   );
+  if (error) throw error;
   return data;
 }
 

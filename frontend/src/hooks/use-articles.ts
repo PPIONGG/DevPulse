@@ -13,7 +13,7 @@ import { useAuth } from "@/providers/auth-provider";
 import type { Article, ArticleInput } from "@/lib/types/database";
 
 export function useArticles() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,13 +21,17 @@ export function useArticles() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   const fetchArticles = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      if (!authLoading) setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await getArticles(supabase, user.id);
@@ -42,7 +46,7 @@ export function useArticles() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, authLoading, supabase]);
 
   useEffect(() => {
     fetchArticles();

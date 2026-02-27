@@ -13,7 +13,7 @@ import { useAuth } from "@/providers/auth-provider";
 import type { WorkLog, WorkLogInput } from "@/lib/types/database";
 
 export function useWorkLogs() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,13 +21,17 @@ export function useWorkLogs() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   const fetchWorkLogs = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      if (!authLoading) setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await getWorkLogs(supabase, user.id);
@@ -42,7 +46,7 @@ export function useWorkLogs() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, authLoading, supabase]);
 
   useEffect(() => {
     fetchWorkLogs();

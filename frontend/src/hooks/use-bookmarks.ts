@@ -13,7 +13,7 @@ import { useAuth } from "@/providers/auth-provider";
 import type { Bookmark, BookmarkInput } from "@/lib/types/database";
 
 export function useBookmarks() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,13 +21,17 @@ export function useBookmarks() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   const fetchBookmarks = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      if (!authLoading) setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await getBookmarks(supabase, user.id);
@@ -42,7 +46,7 @@ export function useBookmarks() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, authLoading, supabase]);
 
   useEffect(() => {
     fetchBookmarks();

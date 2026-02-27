@@ -31,7 +31,10 @@ export function MobileSidebar() {
         <SheetHeader className="border-b p-4">
           <SheetTitle className="text-lg font-bold">DevPulse</SheetTitle>
         </SheetHeader>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3" onClick={() => setOpen(false)}>
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3" onClick={(e) => {
+          const target = (e.target as HTMLElement).closest("a");
+          if (target) setOpen(false);
+        }}>
           {navigationItems.map((item) =>
             item.children ? (
               <NavGroup key={item.href} item={item} />

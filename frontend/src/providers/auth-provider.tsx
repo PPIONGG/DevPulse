@@ -49,18 +49,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    let stale = false;
+
     const getUser = async () => {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        if (stale) return;
         setUser(user);
         if (user) await fetchProfile(user.id);
       } catch {
+        if (stale) return;
         setUser(null);
         setProfile(null);
       } finally {
-        setLoading(false);
+        if (!stale) setLoading(false);
       }
     };
 
@@ -69,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (stale) return;
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
@@ -79,7 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      stale = true;
+      subscription.unsubscribe();
+    };
   }, [supabase, fetchProfile]);
 
   const signOut = async () => {
