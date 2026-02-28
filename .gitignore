@@ -24,6 +24,7 @@ Thumbs.db
 backend/bin/
 backend/tmp/
 backend/server
+backend/devpulse-backend
 
 # Playwright
 frontend/playwright-report/
