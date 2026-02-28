@@ -1,6 +1,6 @@
 # DevPulse
 
-Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, and a calculator.
+Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, SQL practice, and a calculator.
 
 ## Tech Stack
 
@@ -38,6 +38,7 @@ DevPulse/
 │       │   │   ├── pomodoro/           # Pomodoro timer with stats
 │       │   │   ├── env-vault/          # Environment variable vault
 │       │   │   ├── json-tools/         # JSON/YAML formatter, converter, diff, tree
+│       │   │   ├── sql-practice/        # SQL Practice challenge list + [slug] detail
 │       │   │   ├── calculator/         # Calculator with history
 │       │   │   └── settings/           # Profile management + avatar upload/crop
 │       │   └── auth/
@@ -45,7 +46,7 @@ DevPulse/
 │       ├── proxy.ts          # Middleware — checks session_token cookie, redirects to /auth/login
 │       ├── components/
 │       │   ├── layout/       # AppSidebar, MobileSidebar, UserMenu, NavItem, NavGroup, AuthGuard
-│       │   ├── ui/           # shadcn/ui primitives (19 components — do not edit by hand)
+│       │   ├── ui/           # shadcn/ui primitives (20 components — do not edit by hand)
 │       │   ├── skeletons.tsx         # All skeleton loading components
 │       │   ├── snippet-card.tsx / snippet-form.tsx
 │       │   ├── expense-card.tsx / expense-form.tsx / expense-summary.tsx
@@ -54,6 +55,7 @@ DevPulse/
 │       │   ├── pomodoro-timer.tsx / pomodoro-stats.tsx / pomodoro-history.tsx / pomodoro-settings.tsx
 │       │   ├── vault-card.tsx / vault-form.tsx / vault-detail.tsx / vault-import-dialog.tsx / variable-row.tsx
 │       │   ├── json-formatter.tsx / json-converter.tsx / json-diff.tsx / json-tree-view.tsx / json-document-card.tsx / json-document-form.tsx
+│       │   ├── challenge-card.tsx / challenge-editor.tsx / challenge-result.tsx
 │       │   ├── calculator-display.tsx  # Calculator UI + safe expression evaluator
 │       │   └── code-block.tsx       # Shiki syntax-highlighted code display
 │       ├── config/
@@ -63,11 +65,12 @@ DevPulse/
 │       │   ├── habit-colors.ts        # Habit color palette
 │       │   ├── kanban-config.ts       # Kanban board configuration
 │       │   ├── pomodoro.ts            # Pomodoro timer defaults
-│       │   └── environments.ts        # Env vault environment types
-│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents)
+│       │   ├── environments.ts        # Env vault environment types
+│       │   └── sql-practice.ts        # SQL challenge difficulty/category/status configs
+│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents, use-sql-practice)
 │       ├── lib/
 │       │   ├── api/          # API client (fetch wrapper with credentials, 15s default timeout)
-│       │   ├── services/     # API service functions (snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents)
+│       │   ├── services/     # API service functions (snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents, sql-practice)
 │       │   ├── types/        # Shared TypeScript types (database.ts)
 │       │   └── utils/        # cn() class merger, withTimeout() helper
 │       └── providers/        # AuthProvider (wraps entire app)
@@ -77,7 +80,7 @@ DevPulse/
 │   ├── database/            # pgxpool connection + embedded SQL migrations (auto-run on startup)
 │   ├── models/              # Go structs (json tags match frontend types)
 │   ├── repository/          # DB queries (all include user_id WHERE for authz)
-│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health, expenses, habits, kanban, pomodoro, env_vault, json_document)
+│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health, expenses, habits, kanban, pomodoro, env_vault, json_document, sql_practice)
 │   ├── helpers/             # JSON response/request/context helpers
 │   ├── middleware/          # CORS, auth (session cookie), logger, JSON content-type
 │   ├── router/              # All route definitions
@@ -193,6 +196,11 @@ NEXT_PUBLIC_API_URL=     # empty = use Next.js rewrites (default for dev)
 | PUT/DELETE | `/api/env-variables/{id}` | Update/delete variable |
 | GET/POST | `/api/json-documents` | List/create JSON documents |
 | PUT/DELETE | `/api/json-documents/{id}` | Update/delete document |
+| GET | `/api/sql-practice/challenges` | List all challenges + user progress |
+| GET | `/api/sql-practice/challenges/{slug}` | Get challenge detail + submissions |
+| POST | `/api/sql-practice/submit` | Submit SQL answer (judge) |
+| GET | `/api/sql-practice/stats` | Get practice stats (solved/total per difficulty) |
+| GET | `/api/sql-practice/submissions/{challengeId}` | List submissions for a challenge |
 | GET | `/api/dashboard/stats` | Dashboard stats (snippets, expenses, habits, boards) |
 | GET | `/api/dashboard/recent` | Recent snippets |
 
@@ -225,6 +233,9 @@ All IDs are UUID (`gen_random_uuid()`). All timestamps are `TIMESTAMPTZ`. Conten
 | `env_vaults` | Environment variable vaults | name, environment, description, is_favorite |
 | `env_variables` | Vault key-value pairs | vault_id, key, value, is_secret, position (unique per vault/key) |
 | `json_documents` | JSON/YAML documents | title, content, format, description, tags (TEXT[]), is_favorite |
+| `sql_challenges` | SQL practice challenges (seeded, read-only) | slug (unique), title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order |
+| `sql_submissions` | User SQL submissions | user_id, challenge_id, query, status (correct/wrong/error), execution_time_ms, error_message |
+| `sql_challenge_progress` | Per-user challenge progress (composite PK) | user_id, challenge_id, is_solved, best_time_ms, attempts, first_solved_at |
 
 Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all queries. Migrations are embedded SQL files that run automatically on backend startup.
 
@@ -263,6 +274,7 @@ All implemented modules are spec'd in `docs/modules/`. Each follows the same arc
 | Pomodoro Timer | `/pomodoro` | ✅ Done |
 | Env Vault | `/env-vault` | ✅ Done |
 | JSON Tools | `/json-tools` | ✅ Done |
+| SQL Practice | `/sql-practice` | ✅ Done |
 
 ### Skipped / Not Implemented
 
@@ -283,3 +295,15 @@ The calculator uses a **recursive descent parser** for safe expression evaluatio
 - Input validation: prevents consecutive operators, duplicate decimals, invalid leading operators
 - Keyboard support: 0-9, +, -, *, /, ., %, (, ), Enter, Escape, Backspace
 - Calculation history persisted to DB via `/api/calculations`
+
+## SQL Practice
+
+Interactive SQL learning module (LeetCode-style) with 35 challenges across 7 categories. Key features:
+- **Categories:** SELECT basics, WHERE & filtering, JOINs, aggregation, subqueries, window functions, CTEs
+- **Difficulties:** Easy (14), Medium (14), Hard (7) — color-coded green/yellow/red
+- **Sandbox judge:** Go backend creates temp tables in a transaction, runs user query + reference solution, compares results, then always rolls back (full isolation)
+- **Result comparison:** Column names (case-insensitive) + row data. `order_sensitive` flag controls whether row order matters
+- **Query validation:** Only SELECT/WITH queries allowed (read-only enforcement)
+- **Progress tracking:** Per-user solve status, attempt count, best execution time
+- **Frontend:** Split layout with problem description + schema on left, SQL editor + results on right. Ctrl+Enter to submit. Submission history collapsible
+- **Challenges seeded via migration** (`022_create_sql_practice.up.sql`) using `ON CONFLICT DO NOTHING` — no admin UI needed
