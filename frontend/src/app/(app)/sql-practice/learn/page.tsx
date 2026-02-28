@@ -7,10 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSqlAcademy } from "@/hooks/use-sql-practice";
+import { useTranslation } from "@/providers/language-provider";
 
 export default function SqlAcademyPage() {
   const router = useRouter();
   const { modules, loading, error } = useSqlAcademy();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -40,10 +42,10 @@ export default function SqlAcademyPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <GraduationCap className="mb-4 size-12 text-muted-foreground/50" />
-        <h3 className="text-lg font-medium text-destructive">Failed to load academy</h3>
+        <h3 className="text-lg font-medium text-destructive">{t("sqlAcademy.loadFailed")}</h3>
         <p className="mt-1 text-sm text-muted-foreground">{error}</p>
         <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-          Try Again
+          {t("common.tryAgain")}
         </Button>
       </div>
     );
@@ -56,18 +58,18 @@ export default function SqlAcademyPage() {
           <GraduationCap className="size-10" />
         </div>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">SQL Academy</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t("sqlAcademy.title")}</h2>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Master the language of data. From your first query to complex joins, we'll guide you through every step with interactive lessons.
+            {t("sqlAcademy.subtitle")}
           </p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => router.push("/sql-practice")}>
-            View Challenges
+            {t("sqlAcademy.viewChallenges")}
           </Button>
           {modules.length > 0 && modules[0].lessons.length > 0 && (
             <Button onClick={() => router.push(`/sql-practice/learn/${modules[0].lessons[0].id}`)}>
-              Start Learning
+              {t("sqlAcademy.startLearning")}
             </Button>
           )}
         </div>
@@ -101,7 +103,7 @@ export default function SqlAcademyPage() {
                             </h4>
                             {lesson.is_completed && (
                               <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none h-4 px-1 text-[9px] font-bold uppercase tracking-wider">
-                                Completed
+                                {t("sqlAcademy.completed")}
                               </Badge>
                             )}
                           </div>
@@ -113,7 +115,7 @@ export default function SqlAcademyPage() {
                       <div className="flex items-center gap-4">
                         <div className="hidden sm:flex items-center gap-1.5">
                           <Badge variant="secondary" className="h-5 text-[10px] font-normal uppercase">
-                            5-10 min
+                            {t("sqlAcademy.duration")}
                           </Badge>
                         </div>
                         <Button
@@ -137,13 +139,13 @@ export default function SqlAcademyPage() {
       <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-6 flex items-center justify-between">
           <div className="space-y-1">
-            <h4 className="font-bold">Need a quick reference?</h4>
+            <h4 className="font-bold">{t("sqlAcademy.cheatSheetTitle")}</h4>
             <p className="text-sm text-muted-foreground">
-              Check out our SQL Cheat Sheet for syntax and common commands.
+              {t("sqlAcademy.cheatSheetDesc")}
             </p>
           </div>
           <Button variant="outline" className="gap-2" onClick={() => router.push("/sql-practice/cheat-sheet")}>
-            Open Cheat Sheet
+            {t("sqlAcademy.openCheatSheet")}
             <ArrowRight className="size-4" />
           </Button>
         </CardContent>

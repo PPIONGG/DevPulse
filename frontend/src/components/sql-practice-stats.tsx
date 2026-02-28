@@ -4,6 +4,7 @@ import { Trophy, Zap, Target, Flame, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getCategoryConfig } from "@/config/sql-practice";
+import { useTranslation } from "@/providers/language-provider";
 import type { SqlPracticeStats as SqlPracticeStatsType } from "@/lib/types/database";
 
 interface SqlPracticeStatsProps {
@@ -11,6 +12,8 @@ interface SqlPracticeStatsProps {
 }
 
 export function SqlPracticeStats({ stats }: SqlPracticeStatsProps) {
+  const { t } = useTranslation();
+
   if (!stats) return null;
 
   const totalPercent = stats.total_challenges > 0
@@ -21,14 +24,14 @@ export function SqlPracticeStats({ stats }: SqlPracticeStatsProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
-          title="Total Progress"
+          title={t("sqlPractice.totalProgress")}
           value={stats.solved}
-          subtitle={`/ ${stats.total_challenges} solved`}
+          subtitle={`/ ${stats.total_challenges} ${t("sqlPractice.solvedSuffix")}`}
           percent={totalPercent}
           icon={<Trophy className="size-4 text-muted-foreground" />}
         />
         <StatCard
-          title="Easy"
+          title={t("sqlPractice.easy")}
           value={stats.easy_solved}
           subtitle={`/ ${stats.easy_total}`}
           percent={stats.easy_total > 0 ? Math.round((stats.easy_solved / stats.easy_total) * 100) : 0}
@@ -36,7 +39,7 @@ export function SqlPracticeStats({ stats }: SqlPracticeStatsProps) {
           barColor="bg-green-500"
         />
         <StatCard
-          title="Medium"
+          title={t("sqlPractice.medium")}
           value={stats.medium_solved}
           subtitle={`/ ${stats.medium_total}`}
           percent={stats.medium_total > 0 ? Math.round((stats.medium_solved / stats.medium_total) * 100) : 0}
@@ -44,7 +47,7 @@ export function SqlPracticeStats({ stats }: SqlPracticeStatsProps) {
           barColor="bg-yellow-500"
         />
         <StatCard
-          title="Hard"
+          title={t("sqlPractice.hard")}
           value={stats.hard_solved}
           subtitle={`/ ${stats.hard_total}`}
           percent={stats.hard_total > 0 ? Math.round((stats.hard_solved / stats.hard_total) * 100) : 0}
@@ -57,14 +60,14 @@ export function SqlPracticeStats({ stats }: SqlPracticeStatsProps) {
         <Card className="gap-0 py-0">
           <CardHeader className="flex-row items-center justify-between px-4 py-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Categories
+              {t("sqlPractice.categories")}
             </CardTitle>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Flame className="size-3" /> {stats.practice_streak} day streak
+                <Flame className="size-3" /> {stats.practice_streak} {t("sqlPractice.dayStreak")}
               </span>
               <span className="flex items-center gap-1">
-                <Send className="size-3" /> {stats.total_submissions} submissions
+                <Send className="size-3" /> {stats.total_submissions} {t("sqlPractice.submissions")}
               </span>
             </div>
           </CardHeader>

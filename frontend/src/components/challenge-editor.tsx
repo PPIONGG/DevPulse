@@ -10,6 +10,7 @@ import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
 import { EditorView, keymap } from "@codemirror/view";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/providers/language-provider";
 import type { ChallengeMetadata } from "@/lib/types/database";
 
 interface ChallengeEditorProps {
@@ -34,6 +35,7 @@ export function ChallengeEditor({
   metadata,
 }: ChallengeEditorProps) {
   const { resolvedTheme } = useTheme();
+  const { t } = useTranslation();
   const busy = running || submitting;
 
   const isMac = typeof navigator !== "undefined" && navigator.userAgent.includes("Mac");
@@ -82,7 +84,7 @@ export function ChallengeEditor({
   return (
     <div className="flex flex-col rounded-lg border bg-background overflow-hidden">
       <div className="flex items-center justify-between border-b px-3 py-2 bg-muted/30">
-        <span className="text-xs font-medium text-muted-foreground">SQL Editor</span>
+        <span className="text-xs font-medium text-muted-foreground">{t("sqlPractice.editor")}</span>
         <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
@@ -92,7 +94,7 @@ export function ChallengeEditor({
             className="h-7 gap-1 text-xs text-muted-foreground"
           >
             <Layout className="size-3" />
-            Format
+            {t("sqlPractice.editorFormat")}
           </Button>
           {onReset && (
             <Button
@@ -103,7 +105,7 @@ export function ChallengeEditor({
               className="h-7 gap-1 text-xs text-muted-foreground"
             >
               <RotateCcw className="size-3" />
-              Reset
+              {t("sqlPractice.editorReset")}
             </Button>
           )}
           <Button
@@ -118,7 +120,7 @@ export function ChallengeEditor({
             ) : (
               <Play className="size-3" />
             )}
-            {running ? "Running..." : "Run"}
+            {running ? t("sqlPractice.running") : t("sqlPractice.run")}
             {!busy && (
               <kbd className="ml-0.5 rounded bg-muted px-1 py-0.5 text-[10px]">
                 {modKey}+↵
@@ -136,7 +138,7 @@ export function ChallengeEditor({
             ) : (
               <Send className="size-3" />
             )}
-            {submitting ? "Submitting..." : "Submit"}
+            {submitting ? t("sqlPractice.submitting") : t("sqlPractice.submit")}
             {!busy && (
               <kbd className="ml-0.5 rounded bg-primary-foreground/20 px-1 py-0.5 text-[10px]">
                 {modKey}+⇧+↵
@@ -172,7 +174,7 @@ export function ChallengeEditor({
       {metadata && metadata.tables.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 border-t bg-muted/30 px-3 py-2">
           <Info className="mr-1 size-3 text-muted-foreground" />
-          <span className="text-[10px] font-medium text-muted-foreground mr-1">Available:</span>
+          <span className="text-[10px] font-medium text-muted-foreground mr-1">{t("sqlPractice.available")}</span>
           {metadata.tables.map((table) => (
             <Badge
               key={table.name}
@@ -183,7 +185,7 @@ export function ChallengeEditor({
             </Badge>
           ))}
           <span className="ml-auto text-[10px] text-muted-foreground italic">
-            Press Ctrl+Space for autocomplete
+            {t("sqlPractice.autocompleteHint")}
           </span>
         </div>
       )}

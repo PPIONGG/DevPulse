@@ -30,6 +30,7 @@ import { VisualSchema } from "@/components/sql-visual-schema";
 import { CodeBlock } from "@/components/code-block";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSqlChallenge } from "@/hooks/use-sql-practice";
+import { useTranslation } from "@/providers/language-provider";
 import { getDifficultyConfig, getCategoryConfig, getStatusConfig } from "@/config/sql-practice";
 import type { SqlTopSolution } from "@/lib/types/database";
 
@@ -42,6 +43,7 @@ export default function ChallengeDetailPage({
 }) {
   const { slug } = use(params);
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     challenge,
     submissions,
@@ -137,8 +139,8 @@ export default function ChallengeDetailPage({
 
   const handleLoadQuery = useCallback((q: string) => {
     setQuery(q);
-    toast.success("Query loaded into editor");
-  }, []);
+    toast.success(t("sqlPractice.queryLoaded"));
+  }, [t]);
 
   if (loading) {
     return (
@@ -165,15 +167,15 @@ export default function ChallengeDetailPage({
     return (
       <div className="space-y-4">
         <Button variant="ghost" size="sm" onClick={() => router.push("/sql-practice")}>
-          <ArrowLeft className="mr-2 size-4" /> Back to challenges
+          <ArrowLeft className="mr-2 size-4" /> {t("sqlPractice.backToList")}
         </Button>
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <p>{error || "Challenge not found"}</p>
+          <p>{error || t("sqlPractice.notFound")}</p>
           <button
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       </div>
@@ -193,7 +195,7 @@ export default function ChallengeDetailPage({
             size="sm"
             onClick={() => router.push("/sql-practice")}
           >
-            <ArrowLeft className="mr-1 size-4" /> Back
+            <ArrowLeft className="mr-1 size-4" /> {t("common.back")}
           </Button>
           <div>
             <div className="flex items-center gap-2">
@@ -245,9 +247,9 @@ export default function ChallengeDetailPage({
         <div className="space-y-4">
           <Tabs defaultValue="problem" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="problem">Problem</TabsTrigger>
-              <TabsTrigger value="schema">Schema</TabsTrigger>
-              <TabsTrigger value="data">Sample Data</TabsTrigger>
+              <TabsTrigger value="problem">{t("sqlPractice.tabProblem")}</TabsTrigger>
+              <TabsTrigger value="schema">{t("sqlPractice.tabSchema")}</TabsTrigger>
+              <TabsTrigger value="data">{t("sqlPractice.tabSampleData")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="problem" className="mt-4 space-y-4">
@@ -266,7 +268,7 @@ export default function ChallengeDetailPage({
                     className="flex w-full items-center gap-2 rounded-lg border px-4 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
                   >
                     <Lightbulb className="size-3.5" />
-                    <span>{showHint ? "Hide Hint" : "Show Hint"}</span>
+                    <span>{showHint ? t("sqlPractice.hideHint") : t("sqlPractice.showHint")}</span>
                     {showHint ? (
                       <ChevronUp className="ml-auto size-3.5" />
                     ) : (
@@ -295,7 +297,7 @@ export default function ChallengeDetailPage({
                   }}
                   className="mb-2 text-[10px] text-muted-foreground hover:underline"
                 >
-                  Show Raw SQL Schema
+                  {t("sqlPractice.showRawSchema")}
                 </button>
                 <div id="raw-schema" className="hidden">
                   <CodeBlock code={challenge.table_schema} language="sql" />
@@ -320,7 +322,7 @@ export default function ChallengeDetailPage({
                 className="flex w-full items-center gap-2 rounded-lg border px-4 py-2.5 text-sm text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30 transition-colors"
               >
                 <Code2 className="size-4" />
-                <span>{showSolution ? "Hide Solution" : "View Solution"}</span>
+                <span>{showSolution ? t("sqlPractice.hideSolution") : t("sqlPractice.viewSolution")}</span>
                 {showSolution ? (
                   <ChevronUp className="ml-auto size-4" />
                 ) : (
@@ -353,11 +355,11 @@ export default function ChallengeDetailPage({
 
           <Tabs defaultValue="results" className="w-full">
             <TabsList className="grid w-full grid-cols-3 h-8">
-              <TabsTrigger value="results" className="text-[10px]">Results</TabsTrigger>
+              <TabsTrigger value="results" className="text-[10px]">{t("sqlPractice.tabResults")}</TabsTrigger>
               <TabsTrigger value="plan" className="text-[10px]" onClick={handleExplain}>
-                Query Plan
+                {t("sqlPractice.tabQueryPlan")}
               </TabsTrigger>
-              <TabsTrigger value="best" className="text-[10px]">Top Solutions</TabsTrigger>
+              <TabsTrigger value="best" className="text-[10px]">{t("sqlPractice.tabTopSolutions")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="results" className="mt-4">
@@ -366,9 +368,9 @@ export default function ChallengeDetailPage({
                   <div className="flex size-12 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/40">
                     <PartyPopper className="size-6" />
                   </div>
-                  <h3 className="mt-4 text-lg font-bold text-green-900 dark:text-green-100">Challenge Solved!</h3>
+                  <h3 className="mt-4 text-lg font-bold text-green-900 dark:text-green-100">{t("sqlPractice.challengeSolved")}</h3>
                   <p className="mt-1 text-sm text-green-700 dark:text-green-300">
-                    Great job! You've mastered this challenge.
+                    {t("sqlPractice.challengeSolvedDesc")}
                   </p>
                   <div className="mt-6 flex gap-2">
                     <Button
@@ -376,7 +378,7 @@ export default function ChallengeDetailPage({
                       size="sm"
                       onClick={() => setShowSuccess(false)}
                     >
-                      Keep Editing
+                      {t("sqlPractice.keepEditing")}
                     </Button>
                     {nextSlug && (
                       <Button
@@ -384,7 +386,7 @@ export default function ChallengeDetailPage({
                         onClick={() => router.push(`/sql-practice/${nextSlug}`)}
                         className="gap-2"
                       >
-                        Next Challenge
+                        {t("sqlPractice.nextChallenge")}
                         <ChevronRight className="size-4" />
                       </Button>
                     )}
@@ -400,7 +402,7 @@ export default function ChallengeDetailPage({
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2 text-xs font-medium">
                       <BarChart2 className="size-3.5 text-primary" />
-                      PostgreSQL Execution Plan
+                      {t("sqlPractice.queryPlanTitle")}
                     </CardTitle>
                     {explaining && <Loader2 className="size-3 animate-spin" />}
                   </div>
@@ -415,7 +417,7 @@ export default function ChallengeDetailPage({
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                       <BarChart2 className="mb-2 size-8 opacity-20" />
-                      <p className="text-xs">Run the plan to see execution details</p>
+                      <p className="text-xs">{t("sqlPractice.queryPlanPlaceholder")}</p>
                       <Button
                         variant="link"
                         size="sm"
@@ -423,7 +425,7 @@ export default function ChallengeDetailPage({
                         className="mt-1 h-auto p-0 text-xs"
                         disabled={explaining || !query.trim()}
                       >
-                        Analyze Query
+                        {t("sqlPractice.analyzeQuery")}
                       </Button>
                     </div>
                   )}
@@ -436,7 +438,7 @@ export default function ChallengeDetailPage({
                 <CardHeader className="px-4 py-3">
                   <CardTitle className="flex items-center gap-2 text-xs font-medium">
                     <Trophy className="size-3.5 text-yellow-500" />
-                    Top Efficient Solutions
+                    {t("sqlPractice.topSolutions")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -450,7 +452,7 @@ export default function ChallengeDetailPage({
                             </span>
                             <div className="flex flex-col">
                               <span className="font-medium">
-                                {sol.display_name || "Anonymous User"}
+                                {sol.display_name || t("sqlPractice.anonymousUser")}
                               </span>
                               <span className="text-[10px] text-muted-foreground">
                                 {new Date(sol.submitted_at).toLocaleDateString()}
@@ -464,7 +466,7 @@ export default function ChallengeDetailPage({
                                 {sol.execution_time_ms}ms
                               </span>
                               <span className="text-[10px] text-muted-foreground">
-                                {sol.query_length} chars
+                                {sol.query_length} {t("sqlPractice.chars")}
                               </span>
                             </div>
                             <Button
@@ -473,7 +475,7 @@ export default function ChallengeDetailPage({
                               className="size-7"
                               onClick={() => {
                                 setQuery(sol.query);
-                                toast.success("Solution loaded");
+                                toast.success(t("sqlPractice.solutionLoaded"));
                               }}
                             >
                               <RotateCcw className="size-3" />
@@ -483,7 +485,7 @@ export default function ChallengeDetailPage({
                       ))
                     ) : (
                       <div className="py-12 text-center text-xs text-muted-foreground">
-                        No solutions found yet. Be the first!
+                        {t("sqlPractice.noSolutions")}
                       </div>
                     )}
                   </div>
@@ -499,7 +501,7 @@ export default function ChallengeDetailPage({
                   className="flex w-full items-center justify-between text-sm"
                 >
                   <CardTitle className="text-xs font-medium text-muted-foreground">
-                    Submission History ({submissions.length})
+                    {t("sqlPractice.submissionHistory")} ({submissions.length})
                   </CardTitle>
                   {showHistory ? (
                     <ChevronUp className="size-4 text-muted-foreground" />
@@ -530,7 +532,7 @@ export default function ChallengeDetailPage({
                             <button
                               onClick={() => handleLoadQuery(sub.query)}
                               className="flex items-center gap-0.5 rounded px-1.5 py-0.5 hover:bg-muted transition-colors"
-                              title="Load query into editor"
+                              title={t("sqlPractice.loadQueryTitle")}
                             >
                               <RotateCcw className="size-3" />
                             </button>

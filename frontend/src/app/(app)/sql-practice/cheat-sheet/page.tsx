@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/providers/language-provider";
 
 interface CheatItem {
   title: string;
@@ -237,6 +238,7 @@ const cheatSheetData: CheatCategory[] = [
 
 export default function SqlCheatSheetPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   const filteredData = cheatSheetData.map(cat => ({
@@ -250,7 +252,7 @@ export default function SqlCheatSheetPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("คัดลอกคำสั่งไปยัง Clipboard แล้ว");
+    toast.success(t("sqlPractice.cheatSheetCopied"));
   };
 
   return (
@@ -259,16 +261,16 @@ export default function SqlCheatSheetPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => router.push("/sql-practice/learn")} className="-ml-2 h-8">
-              <ArrowLeft className="mr-1 size-4" /> SQL Academy
+              <ArrowLeft className="mr-1 size-4" /> {t("sqlPractice.academy")}
             </Button>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight">SQL Cheat Sheet</h2>
-          <p className="text-muted-foreground">สรุปคำสั่ง SQL พื้นฐานจนถึงระดับสูง ครบถ้วนทุกหมวดหมู่</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t("sqlPractice.cheatSheetTitle")}</h2>
+          <p className="text-muted-foreground">{t("sqlPractice.cheatSheetSubtitle")}</p>
         </div>
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input 
-            placeholder="ค้นหาคำสั่ง (เช่น JOIN, CREATE, CASE)..." 
+            placeholder={t("sqlPractice.cheatSheetSearchPlaceholder")} 
             className="pl-9 h-11"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -284,7 +286,7 @@ export default function SqlCheatSheetPage() {
                 <cat.icon className="size-4" />
               </div>
               <h3 className="text-xl font-bold">{cat.category}</h3>
-              <Badge variant="secondary" className="ml-auto">{cat.items.length} รายการ</Badge>
+              <Badge variant="secondary" className="ml-auto">{cat.items.length} {t("sqlPractice.cheatSheetItems")}</Badge>
             </div>
             <div className="grid gap-4">
               {cat.items.map((item) => (
@@ -327,8 +329,8 @@ export default function SqlCheatSheetPage() {
       {filteredData.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Search className="size-12 text-muted-foreground/20 mb-4" />
-          <h3 className="text-lg font-medium">ไม่พบข้อมูลที่ค้นหา</h3>
-          <p className="text-sm text-muted-foreground">ลองใช้คำค้นหาอื่น</p>
+          <h3 className="text-lg font-medium">{t("sqlPractice.cheatSheetNoResults")}</h3>
+          <p className="text-sm text-muted-foreground">{t("sqlPractice.cheatSheetNoResultsDesc")}</p>
         </div>
       )}
     </div>

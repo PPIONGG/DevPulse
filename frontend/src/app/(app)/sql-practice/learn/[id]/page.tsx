@@ -17,6 +17,7 @@ import { ChallengeEditor } from "@/components/challenge-editor";
 import { ChallengeResult } from "@/components/challenge-result";
 import { VisualSchema } from "@/components/sql-visual-schema";
 import { useSqlAcademyLesson, useSqlAcademy } from "@/hooks/use-sql-practice";
+import { useTranslation } from "@/providers/language-provider";
 import { previewTable } from "@/lib/services/sql-practice";
 
 export default function SqlLessonPage({
@@ -26,6 +27,7 @@ export default function SqlLessonPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { lesson, loading, error, running, result, run } = useSqlAcademyLesson(id);
   const { modules } = useSqlAcademy();
@@ -69,10 +71,10 @@ export default function SqlLessonPage({
   if (error || !lesson) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-medium text-destructive">Error loading lesson</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{error || "Lesson not found"}</p>
+        <h3 className="text-lg font-medium text-destructive">{t("sqlAcademy.lessonError")}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{error || t("sqlAcademy.lessonNotFound")}</p>
         <Button variant="outline" className="mt-4" onClick={() => router.push("/sql-practice/learn")}>
-          Back to Academy
+          {t("sqlAcademy.backToAcademy")}
         </Button>
       </div>
     );
@@ -88,7 +90,7 @@ export default function SqlLessonPage({
             size="sm"
             onClick={() => router.push("/sql-practice/learn")}
           >
-            <ArrowLeft className="mr-1 size-4" /> Academy
+            <ArrowLeft className="mr-1 size-4" /> {t("sqlAcademy.breadcrumbAcademy")}
           </Button>
           <div className="flex items-center gap-2">
             <BookOpen className="size-5 text-primary" />
@@ -105,7 +107,7 @@ export default function SqlLessonPage({
             className="h-8 gap-1"
           >
             <ChevronLeft className="size-4" />
-            Prev
+            {t("common.prev")}
           </Button>
           <Button
             variant={lesson.is_completed ? "default" : "outline"}
@@ -114,7 +116,7 @@ export default function SqlLessonPage({
             disabled={!nextLesson}
             className="h-8 gap-1"
           >
-            Next
+            {t("common.next")}
             <ChevronRight className="size-4" />
           </Button>
         </div>
@@ -133,11 +135,11 @@ export default function SqlLessonPage({
 
           <Card>
             <CardHeader className="px-4 py-3">
-              <CardTitle className="text-sm">Database Schema</CardTitle>
+              <CardTitle className="text-sm">{t("sqlAcademy.databaseSchema")}</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="rounded-md border bg-muted/20 p-4 text-xs font-mono">
-                <p className="text-muted-foreground mb-2">-- Available Tables</p>
+                <p className="text-muted-foreground mb-2">{t("sqlAcademy.availableTables")}</p>
                 <pre className="text-primary">{lesson.table_schema}</pre>
               </div>
             </CardContent>
@@ -160,14 +162,14 @@ export default function SqlLessonPage({
               {result.status === "correct" && (
                 <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-900/30 dark:bg-green-950/20 text-green-800 dark:text-green-200 text-sm font-medium flex items-center gap-2">
                   <CheckCircle2 className="size-4" />
-                  Correct! You've completed this lesson.
+                  {t("sqlAcademy.lessonComplete")}
                   {nextLesson && (
-                    <Button 
-                      variant="link" 
+                    <Button
+                      variant="link"
                       className="h-auto p-0 ml-auto text-green-700 dark:text-green-400 font-bold"
                       onClick={() => router.push(`/sql-practice/learn/${nextLesson.id}`)}
                     >
-                      Next Lesson →
+                      {t("sqlAcademy.nextLesson")}
                     </Button>
                   )}
                 </div>

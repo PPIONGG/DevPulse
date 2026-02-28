@@ -2,6 +2,8 @@
 
 import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import type { SqlSubmitResult, QueryResult } from "@/lib/types/database";
 
 interface ChallengeResultProps {
@@ -10,6 +12,7 @@ interface ChallengeResultProps {
 }
 
 export function ChallengeResult({ result, isPreview }: ChallengeResultProps) {
+  const { t } = useTranslation();
   const diffMap = result.status === "wrong" && result.user_result && result.expected_result
     ? computeDiffMap(result.user_result, result.expected_result)
     : null;
@@ -22,41 +25,49 @@ export function ChallengeResult({ result, isPreview }: ChallengeResultProps) {
         executionTimeMs={result.execution_time_ms}
         isPreview={isPreview}
         result={result}
+        t={t}
       />
       {result.user_result && (
         <ResultTable
-          title="Your Output"
+          title={t("sqlPractice.yourOutput")}
           data={result.user_result}
           diffCells={diffMap?.user}
+          isUserOutput
+          noRowsLabel={t("sqlPractice.noRows")}
         />
       )}
       {result.status === "wrong" && result.expected_result && (
         <ResultTable
-          title="Expected Output"
+          title={t("sqlPractice.expectedOutput")}
           data={result.expected_result}
           diffCells={diffMap?.expected}
+          noRowsLabel={t("sqlPractice.noRows")}
         />
       )}
     </div>
   );
 }
 
-function getWrongReason(user: QueryResult, expected: QueryResult): string {
+function getWrongReason(user: QueryResult, expected: QueryResult, t: (key: TranslationKey) => string): string {
   if (user.columns.length !== expected.columns.length) {
-    return `Column count mismatch: Expected ${expected.columns.length}, but got ${user.columns.length}.`;
+    return t("sqlPractice.columnCountMismatch")
+      .replace("{expected}", String(expected.columns.length))
+      .replace("{actual}", String(user.columns.length));
   }
-  
+
   const userCols = user.columns.map(c => c.toLowerCase()).sort();
   const expCols = expected.columns.map(c => c.toLowerCase()).sort();
   if (userCols.join(",") !== expCols.join(",")) {
-    return "Column names do not match the expected result.";
+    return t("sqlPractice.columnNamesMismatch");
   }
 
   if (user.rows.length !== expected.rows.length) {
-    return `Row count mismatch: Expected ${expected.rows.length} rows, but got ${user.rows.length}.`;
+    return t("sqlPractice.rowCountMismatch")
+      .replace("{expected}", String(expected.rows.length))
+      .replace("{actual}", String(user.rows.length));
   }
 
-  return "The data in your result doesn't match the expected output.";
+  return t("sqlPractice.dataMismatch");
 }
 
 function ResultBanner({
@@ -65,12 +76,14 @@ function ResultBanner({
   executionTimeMs,
   isPreview,
   result,
+  t,
 }: {
   status: string;
   errorMessage: string;
   executionTimeMs: number;
   isPreview?: boolean;
   result: SqlSubmitResult;
+  t: (key: TranslationKey) => string;
 }) {
   if (status === "correct") {
     return (
@@ -78,16 +91,16 @@ function ResultBanner({
         <CheckCircle2 className="size-5 shrink-0 text-green-600 dark:text-green-400" />
         <div className="flex-1">
           <p className="text-sm font-medium text-green-800 dark:text-green-200">
-            Correct!
+            {t("sqlPractice.correct")}
           </p>
           <p className="text-xs text-green-600 dark:text-green-400">
-            Executed in {executionTimeMs}ms
-            {isPreview && " — This is a preview. Press Submit to record your solution."}
+            {t("sqlPractice.executedIn")} {executionTimeMs}ms
+            {isPreview && ` — ${t("sqlPractice.previewNote")}`}
           </p>
         </div>
         {isPreview && (
           <span className="shrink-0 rounded-full bg-green-200 px-2 py-0.5 text-[10px] font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
-            Preview
+            {t("sqlPractice.preview")}
           </span>
         )}
       </div>
@@ -100,7 +113,7 @@ function ResultBanner({
         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-orange-600 dark:text-orange-400" />
         <div>
           <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
-            Error
+            {t("sqlPractice.error")}
           </p>
           <p className="mt-1 text-xs font-mono text-orange-700 dark:text-orange-300 break-all">
             {errorMessage}
@@ -110,8 +123,8 @@ function ResultBanner({
     );
   }
 
-  const wrongReason = result.user_result && result.expected_result 
-    ? getWrongReason(result.user_result, result.expected_result)
+  const wrongReason = result.user_result && result.expected_result
+    ? getWrongReason(result.user_result, result.expected_result, t)
     : "";
 
   return (
@@ -119,18 +132,18 @@ function ResultBanner({
       <XCircle className="mt-0.5 size-5 shrink-0 text-red-600 dark:text-red-400" />
       <div className="flex-1">
         <p className="text-sm font-medium text-red-800 dark:text-red-200">
-          Wrong Answer
+          {t("sqlPractice.wrongAnswer")}
         </p>
         <p className="mt-0.5 text-xs font-medium text-red-700 dark:text-red-300">
           {wrongReason}
         </p>
         <p className="mt-1 text-[10px] text-red-600 dark:text-red-400">
-          Executed in {executionTimeMs}ms &mdash; Compare outputs below.
+          {t("sqlPractice.executedIn")} {executionTimeMs}ms &mdash; {t("sqlPractice.compareOutputs")}
         </p>
       </div>
       {isPreview && (
         <span className="shrink-0 rounded-full bg-red-200 px-2 py-0.5 text-[10px] font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
-          Preview
+          {t("sqlPractice.preview")}
         </span>
       )}
     </div>
@@ -181,18 +194,23 @@ function ResultTable({
   title,
   data,
   diffCells,
+  isUserOutput,
+  noRowsLabel,
 }: {
   title: string;
   data: QueryResult;
   diffCells?: DiffCellSet;
+  isUserOutput?: boolean;
+  noRowsLabel?: string;
 }) {
-  const isUserDiff = title.startsWith("Your");
+  const { t } = useTranslation();
+  const isUserDiff = isUserOutput ?? false;
 
   return (
     <Card className="gap-0 py-0 overflow-hidden">
       <CardHeader className="px-4 py-2">
         <CardTitle className="text-xs font-medium text-muted-foreground">
-          {title} ({data.row_count} row{data.row_count !== 1 ? "s" : ""})
+          {title} ({data.row_count} {data.row_count !== 1 ? t("sqlPractice.rows") : t("sqlPractice.row")})
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -254,7 +272,7 @@ function ResultTable({
                     colSpan={data.columns.length + 1}
                     className="px-3 py-4 text-center text-muted-foreground"
                   >
-                    No rows returned
+                    {noRowsLabel || "No rows returned"}
                   </td>
                 </tr>
               )}

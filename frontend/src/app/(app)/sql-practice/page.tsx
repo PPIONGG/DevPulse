@@ -16,6 +16,7 @@ import { SqlPracticeStats } from "@/components/sql-practice-stats";
 import { SqlPracticeDaily } from "@/components/sql-practice-daily";
 import { ChallengeCardSkeleton } from "@/components/skeletons";
 import { useSqlPractice } from "@/hooks/use-sql-practice";
+import { useTranslation } from "@/providers/language-provider";
 import { challengeDifficulties, challengeCategories } from "@/config/sql-practice";
 
 export default function SqlPracticePage() {
@@ -35,6 +36,7 @@ export default function SqlPracticePage() {
     setSearch,
     refetch,
   } = useSqlPractice();
+  const { t } = useTranslation();
 
   const handleCardClick = (slug: string) => {
     router.push(`/sql-practice/${slug}`);
@@ -44,18 +46,18 @@ export default function SqlPracticePage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">SQL Practice</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("sqlPractice.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Practice SQL queries with interactive challenges.
+            {t("sqlPractice.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => router.push("/sql-practice/cheat-sheet")}>
-            Cheat Sheet
+            {t("sqlPractice.cheatSheet")}
           </Button>
           <Button size="sm" onClick={() => router.push("/sql-practice/learn")} className="gap-2">
             <GraduationCap className="size-4" />
-            SQL Academy
+            {t("sqlPractice.academy")}
           </Button>
         </div>
       </div>
@@ -68,7 +70,7 @@ export default function SqlPracticePage() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search challenges..."
+            placeholder={t("sqlPractice.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -76,10 +78,10 @@ export default function SqlPracticePage() {
         </div>
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
           <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder="Difficulty" />
+            <SelectValue placeholder={t("sqlPractice.difficulty")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
+            <SelectItem value="all">{t("sqlPractice.allLevels")}</SelectItem>
             {challengeDifficulties.map((d) => (
               <SelectItem key={d.value} value={d.value}>
                 {d.label}
@@ -89,10 +91,10 @@ export default function SqlPracticePage() {
         </Select>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[170px]">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t("sqlPractice.category")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t("sqlPractice.allCategories")}</SelectItem>
             {challengeCategories.map((c) => (
               <SelectItem key={c.value} value={c.value}>
                 {c.label}
@@ -102,12 +104,12 @@ export default function SqlPracticePage() {
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("sqlPractice.statusLabel")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="solved">Solved</SelectItem>
-            <SelectItem value="unsolved">Unsolved</SelectItem>
+            <SelectItem value="all">{t("sqlPractice.allStatus")}</SelectItem>
+            <SelectItem value="solved">{t("sqlPractice.solved")}</SelectItem>
+            <SelectItem value="unsolved">{t("sqlPractice.unsolved")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -119,7 +121,7 @@ export default function SqlPracticePage() {
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -133,11 +135,11 @@ export default function SqlPracticePage() {
       ) : challenges.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <GraduationCap className="mb-4 size-12 text-muted-foreground/50" />
-          <h3 className="text-lg font-medium">No challenges found</h3>
+          <h3 className="text-lg font-medium">{t("sqlPractice.noMatch")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {search.trim() || difficultyFilter !== "all" || categoryFilter !== "all" || statusFilter !== "all"
-              ? "Try adjusting your filters."
-              : "No challenges are available yet."}
+              ? t("sqlPractice.noMatchDesc")
+              : t("sqlPractice.empty")}
           </p>
         </div>
       ) : (

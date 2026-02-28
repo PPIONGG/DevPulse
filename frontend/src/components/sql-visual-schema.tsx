@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "@/providers/language-provider";
 import type { ChallengeMetadata, QueryResult } from "@/lib/types/database";
 
 interface VisualSchemaProps {
@@ -14,6 +15,7 @@ interface VisualSchemaProps {
 }
 
 export function VisualSchema({ metadata, onPreview }: VisualSchemaProps) {
+  const { t } = useTranslation();
   const [activeTable, setActiveTable] = useState<string | null>(
     metadata?.tables[0]?.name || null
   );
@@ -43,7 +45,7 @@ export function VisualSchema({ metadata, onPreview }: VisualSchemaProps) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
         <Database className="mb-2 size-8 opacity-20" />
-        <p className="text-sm">No schema information available</p>
+        <p className="text-sm">{t("sqlPractice.noSchemaInfo")}</p>
       </div>
     );
   }
@@ -70,11 +72,11 @@ export function VisualSchema({ metadata, onPreview }: VisualSchemaProps) {
           <Card className="md:col-span-2">
             <CardContent className="p-0">
               <div className="border-b bg-muted/50 px-3 py-2 text-xs font-semibold">
-                Columns
+                {t("sqlPractice.columns")}
               </div>
               <div className="divide-y">
                 {metadata.tables
-                  .find((t) => t.name === activeTable)
+                  .find((tbl) => tbl.name === activeTable)
                   ?.columns.map((col) => (
                     <div
                       key={col.name}
@@ -95,7 +97,7 @@ export function VisualSchema({ metadata, onPreview }: VisualSchemaProps) {
           <Card className="md:col-span-3">
             <CardContent className="p-0">
               <div className="flex items-center justify-between border-b bg-muted/50 px-3 py-2 text-xs font-semibold">
-                <span>Data Preview (First 50 rows)</span>
+                <span>{t("sqlPractice.dataPreview")}</span>
                 {loading && <Loader2 className="size-3 animate-spin" />}
               </div>
               <div className="max-h-[300px] overflow-auto">
@@ -142,7 +144,7 @@ export function VisualSchema({ metadata, onPreview }: VisualSchemaProps) {
                             colSpan={previewData.columns.length}
                             className="py-8 text-center text-muted-foreground"
                           >
-                            No data available
+                            {t("sqlPractice.noDataAvailable")}
                           </td>
                         </tr>
                       )}
@@ -151,14 +153,14 @@ export function VisualSchema({ metadata, onPreview }: VisualSchemaProps) {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                     <Eye className="mb-2 size-8 opacity-20" />
-                    <p className="text-xs">Select a table to preview data</p>
+                    <p className="text-xs">{t("sqlPractice.selectTable")}</p>
                     <Button
                       variant="link"
                       size="sm"
                       onClick={() => handlePreview(activeTable)}
                       className="mt-1 h-auto p-0 text-xs"
                     >
-                      Fetch Preview
+                      {t("sqlPractice.fetchPreview")}
                     </Button>
                   </div>
                 )}

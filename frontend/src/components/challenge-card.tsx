@@ -4,6 +4,7 @@ import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getDifficultyConfig, getCategoryConfig } from "@/config/sql-practice";
+import { useTranslation } from "@/providers/language-provider";
 import type { SqlChallengeWithProgress } from "@/lib/types/database";
 
 interface ChallengeCardProps {
@@ -13,6 +14,7 @@ interface ChallengeCardProps {
 }
 
 export function ChallengeCard({ challenge, index, onClick }: ChallengeCardProps) {
+  const { t } = useTranslation();
   const difficulty = getDifficultyConfig(challenge.difficulty);
   const category = getCategoryConfig(challenge.category);
   const isSolved = challenge.progress?.is_solved ?? false;
@@ -55,7 +57,7 @@ export function ChallengeCard({ challenge, index, onClick }: ChallengeCardProps)
             )}
             {challenge.progress && challenge.progress.attempts > 0 && (
               <span className="text-[10px] text-muted-foreground">
-                {challenge.progress.attempts} attempt{challenge.progress.attempts !== 1 ? "s" : ""}
+                {challenge.progress.attempts} {challenge.progress.attempts !== 1 ? t("sqlPractice.attempts") : t("sqlPractice.attempt")}
               </span>
             )}
           </div>
