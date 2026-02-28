@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { POMODORO_LIMITS } from "@/config/pomodoro";
+import { useTranslation } from "@/providers/language-provider";
 import type { PomodoroConfig } from "@/hooks/use-pomodoro";
 
 interface PomodoroSettingsProps {
@@ -18,18 +19,19 @@ export function PomodoroSettings({
   onUpdateConfig,
   disabled = false,
 }: PomodoroSettingsProps) {
+  const { t } = useTranslation();
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(max, value));
 
   return (
     <Card className="gap-0 py-0">
       <CardHeader className="px-4 py-3">
-        <CardTitle className="text-base">Timer Settings</CardTitle>
+        <CardTitle className="text-base">{t("pomodoro.timerSettings")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-4 pb-4 pt-0">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="workMinutes">Work (minutes)</Label>
+            <Label htmlFor="workMinutes">{t("pomodoro.workMinutes")}</Label>
             <Input
               id="workMinutes"
               type="number"
@@ -49,7 +51,7 @@ export function PomodoroSettings({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="breakMinutes">Break (minutes)</Label>
+            <Label htmlFor="breakMinutes">{t("pomodoro.breakMinutes")}</Label>
             <Input
               id="breakMinutes"
               type="number"
@@ -72,7 +74,7 @@ export function PomodoroSettings({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="longBreakMinutes">Long Break (minutes)</Label>
+            <Label htmlFor="longBreakMinutes">{t("pomodoro.longBreakMinutes")}</Label>
             <Input
               id="longBreakMinutes"
               type="number"
@@ -92,7 +94,7 @@ export function PomodoroSettings({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="sessionsBeforeLong">Sessions before long break</Label>
+            <Label htmlFor="sessionsBeforeLong">{t("pomodoro.sessionsBeforeLong")}</Label>
             <Input
               id="sessionsBeforeLong"
               type="number"
@@ -124,7 +126,7 @@ export function PomodoroSettings({
               disabled={disabled}
             />
             <Label htmlFor="autoStartBreaks" className="font-normal">
-              Auto-start breaks
+              {t("pomodoro.autoBreaks")}
             </Label>
           </div>
           <div className="flex items-center gap-2">
@@ -137,7 +139,7 @@ export function PomodoroSettings({
               disabled={disabled}
             />
             <Label htmlFor="autoStartWork" className="font-normal">
-              Auto-start work sessions
+              {t("pomodoro.autoWork")}
             </Label>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { PomodoroStats } from "@/components/pomodoro-stats";
 import { PomodoroHistory } from "@/components/pomodoro-history";
 import { PomodoroSettings } from "@/components/pomodoro-settings";
 import { usePomodoro } from "@/hooks/use-pomodoro";
+import { useTranslation } from "@/providers/language-provider";
 
 export default function PomodoroPage() {
   const {
@@ -34,6 +35,7 @@ export default function PomodoroPage() {
     refetch,
   } = usePomodoro();
 
+  const { t } = useTranslation();
   const [showSettings, setShowSettings] = useState(false);
 
   const isTimerActive = timerState !== "idle";
@@ -42,9 +44,9 @@ export default function PomodoroPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Pomodoro Timer</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("pomodoro.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Focus with the Pomodoro Technique.
+            {t("pomodoro.subtitle")}
           </p>
         </div>
         <Button
@@ -53,7 +55,7 @@ export default function PomodoroPage() {
           onClick={() => setShowSettings(!showSettings)}
         >
           <Settings className="mr-2 size-4" />
-          Settings
+          {t("pomodoro.settings")}
         </Button>
       </div>
 
@@ -64,7 +66,7 @@ export default function PomodoroPage() {
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}

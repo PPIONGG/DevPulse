@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import type { TimerState } from "@/hooks/use-pomodoro";
 
 interface PomodoroTimerProps {
@@ -29,16 +31,16 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-function getStateLabel(state: TimerState): string {
+function getStateLabel(state: TimerState, t: (key: TranslationKey) => string): string {
   switch (state) {
     case "work":
-      return "Focus";
+      return t("pomodoro.focus");
     case "break":
-      return "Break";
+      return t("pomodoro.break");
     case "longBreak":
-      return "Long Break";
+      return t("pomodoro.longBreak");
     default:
-      return "Ready";
+      return t("pomodoro.ready");
   }
 }
 
@@ -83,6 +85,7 @@ export function PomodoroTimer({
   onReset,
   onSkip,
 }: PomodoroTimerProps) {
+  const { t } = useTranslation();
   const radius = 120;
   const strokeWidth = 8;
   const normalizedRadius = radius - strokeWidth / 2;
@@ -145,7 +148,7 @@ export function PomodoroTimer({
                 getStateColor(timerState)
               )}
             >
-              {getStateLabel(timerState)}
+              {getStateLabel(timerState, t)}
             </span>
           </div>
         </div>
@@ -173,7 +176,7 @@ export function PomodoroTimer({
         {/* Task label input */}
         <div className="mb-6 w-full max-w-xs">
           <Input
-            placeholder="What are you working on?"
+            placeholder={t("pomodoro.taskPlaceholder")}
             value={taskLabel}
             onChange={(e) => onTaskLabelChange(e.target.value)}
             className="text-center"
@@ -186,28 +189,28 @@ export function PomodoroTimer({
           {isIdle ? (
             <Button size="lg" onClick={onStart}>
               <Play className="mr-2 size-4" />
-              Start
+              {t("pomodoro.start")}
             </Button>
           ) : (
             <>
               {isRunning ? (
                 <Button size="lg" onClick={onPause}>
                   <Pause className="mr-2 size-4" />
-                  Pause
+                  {t("pomodoro.pause")}
                 </Button>
               ) : (
                 <Button size="lg" onClick={onResume}>
                   <Play className="mr-2 size-4" />
-                  Resume
+                  {t("pomodoro.resume")}
                 </Button>
               )}
               <Button size="lg" variant="outline" onClick={onSkip}>
                 <SkipForward className="mr-2 size-4" />
-                Skip
+                {t("pomodoro.skip")}
               </Button>
               <Button size="lg" variant="outline" onClick={onReset}>
                 <RotateCcw className="mr-2 size-4" />
-                Reset
+                {t("pomodoro.reset")}
               </Button>
             </>
           )}

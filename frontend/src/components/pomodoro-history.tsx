@@ -15,6 +15,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { useTranslation } from "@/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import type { PomodoroSession } from "@/lib/types/database";
 
 interface PomodoroHistoryProps {
@@ -28,10 +30,10 @@ interface GroupedSessions {
   sessions: PomodoroSession[];
 }
 
-function formatDuration(seconds: number): string {
+function formatDuration(seconds: number, t: (key: TranslationKey) => string): string {
   const minutes = Math.round(seconds / 60);
-  if (minutes < 1) return "<1 min";
-  return `${minutes} min`;
+  if (minutes < 1) return t("pomodoro.lessThanMin");
+  return `${minutes} ${t("pomodoro.min")}`;
 }
 
 function formatTime(dateStr: string): string {
@@ -43,15 +45,15 @@ function formatTime(dateStr: string): string {
   });
 }
 
-function getDateLabel(dateStr: string): string {
+function getDateLabel(dateStr: string, t: (key: TranslationKey) => string): string {
   const date = new Date(dateStr);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
 
   const dateOnly = date.toDateString();
-  if (dateOnly === today.toDateString()) return "Today";
-  if (dateOnly === yesterday.toDateString()) return "Yesterday";
+  if (dateOnly === today.toDateString()) return t("pomodoro.todayLabel");
+  if (dateOnly === yesterday.toDateString()) return t("pomodoro.yesterdayLabel");
 
   return date.toLocaleDateString("en-US", {
     month: "short",
@@ -61,11 +63,11 @@ function getDateLabel(dateStr: string): string {
   });
 }
 
-function groupByDate(sessions: PomodoroSession[]): GroupedSessions[] {
+function groupByDate(sessions: PomodoroSession[], t: (key: TranslationKey) => string): GroupedSessions[] {
   const groups = new Map<string, PomodoroSession[]>();
 
   for (const session of sessions) {
-    const label = getDateLabel(session.completed_at);
+    const label = getDateLabel(session.completed_at, t);
     const existing = groups.get(label);
     if (existing) {
       existing.push(session);
@@ -85,10 +87,11 @@ export function PomodoroHistory({
   onDelete,
   onClearAll,
 }: PomodoroHistoryProps) {
+  const { t } = useTranslation();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const grouped = useMemo(() => groupByDate(sessions), [sessions]);
+  const grouped = useMemo(() => groupByDate(sessions, t), [sessions, t]);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);
@@ -96,7 +99,7 @@ export function PomodoroHistory({
       await onDelete(id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete session"
+        err instanceof Error ? err.message : t("pomodoro.deleteFailed")
       );
     } finally {
       setDeletingId(null);
@@ -108,7 +111,7 @@ export function PomodoroHistory({
       await onClearAll();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to clear sessions"
+        err instanceof Error ? err.message : t("pomodoro.clearFailed")
       );
     } finally {
       setClearDialogOpen(false);
@@ -119,14 +122,14 @@ export function PomodoroHistory({
     <>
       <Card className="gap-0 py-0">
         <CardHeader className="flex-row items-center justify-between px-4 py-3">
-          <CardTitle className="text-base">Session History</CardTitle>
+          <CardTitle className="text-base">{t("pomodoro.history")}</CardTitle>
           {sessions.length > 0 && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setClearDialogOpen(true)}
             >
-              Clear All
+              {t("pomodoro.clearAll")}
             </Button>
           )}
         </CardHeader>
@@ -135,7 +138,7 @@ export function PomodoroHistory({
             <div className="flex flex-col items-center py-8 text-center">
               <History className="mb-3 size-10 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                No sessions yet. Start your first focus session!
+                {t("pomodoro.noSessions")}
               </p>
             </div>
           ) : (
@@ -153,13 +156,13 @@ export function PomodoroHistory({
                       >
                         <div className="flex min-w-0 flex-1 items-center gap-2">
                           <span className="truncate text-sm">
-                            {session.task_label || "Focus session"}
+                            {session.task_label || t("pomodoro.focusSession")}
                           </span>
                         </div>
                         <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="size-3" />
-                            {formatDuration(session.duration)}
+                            {formatDuration(session.duration, t)}
                           </span>
                           <span>{formatTime(session.completed_at)}</span>
                           <Button
@@ -185,16 +188,15 @@ export function PomodoroHistory({
       <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear all sessions?</AlertDialogTitle>
+            <AlertDialogTitle>{t("pomodoro.clearTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete all your pomodoro session history.
-              This action cannot be undone.
+              {t("pomodoro.clearDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleClearAll}>
-              Clear All
+              {t("pomodoro.clearAll")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
