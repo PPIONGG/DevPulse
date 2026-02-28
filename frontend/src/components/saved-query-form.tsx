@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { useTranslation } from "@/providers/language-provider";
 import type { SavedQuery, SavedQueryInput } from "@/lib/types/database";
 
 interface SavedQueryFormProps {
@@ -43,6 +44,7 @@ export function SavedQueryForm({
   connectionId,
   onSubmit,
 }: SavedQueryFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!savedQuery;
   const [form, setForm] = useState<SavedQueryInput>(defaultValues);
   const [tagInput, setTagInput] = useState("");
@@ -114,7 +116,7 @@ export function SavedQueryForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save query");
+      setError(err instanceof Error ? err.message : t("dbExplorer.saveQueryFailed"));
     } finally {
       setSaving(false);
     }
@@ -125,7 +127,7 @@ export function SavedQueryForm({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Saved Query" : "Save Query"}
+            {isEditing ? t("dbExplorer.editSavedQuery") : t("dbExplorer.saveQuery")}
           </DialogTitle>
         </DialogHeader>
 
@@ -137,10 +139,10 @@ export function SavedQueryForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="sq-title">Title</Label>
+            <Label htmlFor="sq-title">{t("dbExplorer.queryTitle")}</Label>
             <Input
               id="sq-title"
-              placeholder="e.g. Active Users Query"
+              placeholder={t("dbExplorer.queryTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -150,10 +152,10 @@ export function SavedQueryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sq-description">Description</Label>
+            <Label htmlFor="sq-description">{t("dbExplorer.queryDescription")}</Label>
             <Textarea
               id="sq-description"
-              placeholder="Optional description"
+              placeholder={t("dbExplorer.queryDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -163,10 +165,10 @@ export function SavedQueryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sq-query">Query</Label>
+            <Label htmlFor="sq-query">{t("dbExplorer.queryLabel")}</Label>
             <Textarea
               id="sq-query"
-              placeholder="SELECT * FROM ..."
+              placeholder={t("dbExplorer.queryPlaceholder")}
               className="min-h-[80px] font-mono text-sm"
               value={form.query}
               onChange={(e) =>
@@ -177,17 +179,17 @@ export function SavedQueryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sq-tags">Tags</Label>
+            <Label htmlFor="sq-tags">{t("dbExplorer.tags")}</Label>
             <div className="flex gap-2">
               <Input
                 id="sq-tags"
-                placeholder="Add tag and press Enter"
+                placeholder={t("dbExplorer.tagsPlaceholder")}
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
               />
               <Button type="button" variant="outline" size="sm" onClick={handleAddTag}>
-                Add
+                {t("common.add")}
               </Button>
             </div>
             {form.tags.length > 0 && (
@@ -217,7 +219,7 @@ export function SavedQueryForm({
               }
             />
             <Label htmlFor="sq-favorite" className="text-sm font-normal">
-              Add to favorites
+              {t("dbExplorer.addToFavorites")}
             </Label>
           </div>
 
@@ -227,10 +229,10 @@ export function SavedQueryForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Save Query"}
+              {saving ? t("dbExplorer.savingQuery") : isEditing ? t("dbExplorer.saveChanges") : t("dbExplorer.saveQueryBtn")}
             </Button>
           </DialogFooter>
         </form>

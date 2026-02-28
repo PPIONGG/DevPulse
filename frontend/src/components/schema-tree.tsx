@@ -20,6 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "@/providers/language-provider";
 import type { TableInfo, TableDetail } from "@/lib/types/database";
 
 interface SchemaTreeProps {
@@ -39,6 +40,7 @@ export function SchemaTree({
   onInsertTable,
   onRefresh,
 }: SchemaTreeProps) {
+  const { t } = useTranslation();
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
 
   const handleToggle = (tableName: string) => {
@@ -67,7 +69,7 @@ export function SchemaTree({
   if (tables.length === 0) {
     return (
       <div className="py-4 text-center text-sm text-muted-foreground">
-        No tables found
+        {t("dbExplorer.noTablesFound")}
       </div>
     );
   }
@@ -76,7 +78,7 @@ export function SchemaTree({
     <div className="space-y-0.5">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium uppercase text-muted-foreground">
-          Tables ({tables.length})
+          {t("dbExplorer.tables")} ({tables.length})
         </span>
         <Button variant="ghost" size="icon" className="size-6" onClick={onRefresh}>
           <RefreshCw className="size-3" />
@@ -108,7 +110,7 @@ export function SchemaTree({
                 </span>
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Click to insert into query</p>
+                <p>{t("dbExplorer.clickToInsert")}</p>
                 <p className="text-xs text-muted-foreground">
                   ~{table.row_estimate} rows, {formatSize(table.size_bytes)}
                 </p>

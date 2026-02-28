@@ -43,6 +43,7 @@ import { QueryEditor } from "@/components/query-editor";
 import { ResultsTable } from "@/components/results-table";
 import { useDatabaseExplorer } from "@/hooks/use-database-explorer";
 import { isDangerousQuery } from "@/config/database-explorer";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type {
   DBConnection,
@@ -52,6 +53,7 @@ import type {
 } from "@/lib/types/database";
 
 export default function DatabaseExplorerPage() {
+  const { t } = useTranslation();
   const {
     connections,
     activeConnection,
@@ -133,7 +135,7 @@ export default function DatabaseExplorerPage() {
     try {
       await deleteConnection(deletingConnection.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete connection");
+      toast.error(err instanceof Error ? err.message : t("dbExplorer.deleteConnectionFailed"));
     } finally {
       setDeletingConnection(null);
     }
@@ -183,7 +185,7 @@ export default function DatabaseExplorerPage() {
     try {
       await deleteSavedQuery(deletingSavedQuery.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete saved query");
+      toast.error(err instanceof Error ? err.message : t("dbExplorer.deleteSavedQueryFailed"));
     } finally {
       setDeletingSavedQuery(null);
     }
@@ -208,7 +210,7 @@ export default function DatabaseExplorerPage() {
     try {
       await clearHistory();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to clear history");
+      toast.error(err instanceof Error ? err.message : t("dbExplorer.clearHistoryFailed"));
     } finally {
       setClearHistoryConfirm(false);
     }
@@ -219,14 +221,14 @@ export default function DatabaseExplorerPage() {
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Database Explorer</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("dbExplorer.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Connect to PostgreSQL databases, explore schemas, and run queries.
+            {t("dbExplorer.subtitle")}
           </p>
         </div>
         <Button onClick={() => setConnFormOpen(true)}>
           <Plus className="mr-2 size-4" />
-          New Connection
+          {t("dbExplorer.newConnection")}
         </Button>
       </div>
 
@@ -234,7 +236,7 @@ export default function DatabaseExplorerPage() {
         <div className="shrink-0 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <p>{error}</p>
           <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -273,12 +275,12 @@ export default function DatabaseExplorerPage() {
                         <SelectValue />
                       </>
                     ) : (
-                      <SelectValue placeholder="Select connection..." />
+                      <SelectValue placeholder={t("dbExplorer.selectConnection")} />
                     )}
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No connection</SelectItem>
+                  <SelectItem value="none">{t("dbExplorer.noConnection")}</SelectItem>
                   {connections.map((conn) => (
                     <SelectItem key={conn.id} value={conn.id}>
                       <div className="flex items-center gap-2">
@@ -300,7 +302,7 @@ export default function DatabaseExplorerPage() {
                     className="h-7 flex-1 text-xs"
                     onClick={() => handleEditConnection(activeConnection)}
                   >
-                    Edit
+                    {t("common.edit")}
                   </Button>
                   <Button
                     variant="ghost"
@@ -308,7 +310,7 @@ export default function DatabaseExplorerPage() {
                     className="h-7 flex-1 text-xs text-destructive"
                     onClick={() => setDeletingConnection(activeConnection)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </div>
               )}
@@ -322,21 +324,21 @@ export default function DatabaseExplorerPage() {
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none"
                 >
                   <Database className="mr-1 size-3.5" />
-                  Schema
+                  {t("dbExplorer.tabSchema")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="saved"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none"
                 >
                   <Bookmark className="mr-1 size-3.5" />
-                  Saved
+                  {t("dbExplorer.tabSaved")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="history"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none"
                 >
                   <History className="mr-1 size-3.5" />
-                  History
+                  {t("dbExplorer.tabHistory")}
                 </TabsTrigger>
               </TabsList>
 
@@ -345,7 +347,7 @@ export default function DatabaseExplorerPage() {
                   <div className="relative">
                     <Search className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Search..."
+                      placeholder={t("dbExplorer.searchPlaceholder")}
                       className="h-7 pl-7 text-xs"
                       value={sidebarSearch}
                       onChange={(e) => setSidebarSearch(e.target.value)}
@@ -367,7 +369,7 @@ export default function DatabaseExplorerPage() {
                     />
                   ) : (
                     <div className="py-8 text-center text-sm text-muted-foreground">
-                      Select a connection to view schema
+                      {t("dbExplorer.selectConnectionToView")}
                     </div>
                   )}
                 </TabsContent>
@@ -375,7 +377,7 @@ export default function DatabaseExplorerPage() {
                 <TabsContent value="saved" className="m-0 p-2">
                   {filteredSavedQueries.length === 0 ? (
                     <div className="py-8 text-center text-sm text-muted-foreground">
-                      {sidebarSearch.trim() ? "No matching queries" : "No saved queries yet"}
+                      {sidebarSearch.trim() ? t("dbExplorer.noMatchingQueries") : t("dbExplorer.noSavedQueries")}
                     </div>
                   ) : (
                     <div className="space-y-1">
@@ -441,7 +443,7 @@ export default function DatabaseExplorerPage() {
                 <TabsContent value="history" className="m-0 p-2">
                   {filteredHistory.length === 0 ? (
                     <div className="py-8 text-center text-sm text-muted-foreground">
-                      {sidebarSearch.trim() ? "No matching history" : "No query history yet"}
+                      {sidebarSearch.trim() ? t("dbExplorer.noMatchingHistory") : t("dbExplorer.noQueryHistory")}
                     </div>
                   ) : (
                     <>
@@ -452,7 +454,7 @@ export default function DatabaseExplorerPage() {
                           className="h-6 text-xs text-destructive"
                           onClick={() => setClearHistoryConfirm(true)}
                         >
-                          Clear all
+                          {t("dbExplorer.clearAll")}
                         </Button>
                       </div>
                       <div className="space-y-1">
@@ -480,7 +482,7 @@ export default function DatabaseExplorerPage() {
                                 <span>{entry.execution_time_ms}ms</span>
                               )}
                               {entry.row_count != null && (
-                                <span>{entry.row_count} rows</span>
+                                <span>{entry.row_count} {t("dbExplorer.rows")}</span>
                               )}
                             </div>
                             {entry.error_message && (
@@ -548,15 +550,14 @@ export default function DatabaseExplorerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete connection?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dbExplorer.deleteConnectionTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingConnection?.name}&quot; and
-              all its saved queries and history. This action cannot be undone.
+              {t("dbExplorer.deleteConnectionDesc").replace("{name}", deletingConnection?.name ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConnection}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConnection}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -568,15 +569,14 @@ export default function DatabaseExplorerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete saved query?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dbExplorer.deleteSavedQueryTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingSavedQuery?.title}&quot;.
-              This action cannot be undone.
+              {t("dbExplorer.deleteSavedQueryDesc").replace("{name}", deletingSavedQuery?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSavedQuery}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSavedQuery}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -588,14 +588,14 @@ export default function DatabaseExplorerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear query history?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dbExplorer.clearHistoryTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete all query history entries. This action cannot be undone.
+              {t("dbExplorer.clearHistoryDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearHistory}>Clear</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearHistory}>{t("dbExplorer.clearAction")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -610,18 +610,17 @@ export default function DatabaseExplorerPage() {
             <AlertDialogTitle>
               <span className="flex items-center gap-2">
                 <AlertTriangle className="size-5 text-destructive" />
-                Potentially destructive query
+                {t("dbExplorer.dangerousQueryTitle")}
               </span>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This query appears to be a destructive operation (DROP, TRUNCATE, DELETE).
-              Are you sure you want to execute it?
+              {t("dbExplorer.dangerousQueryDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDangerousQuery}>
-              Execute anyway
+              {t("dbExplorer.executeAnyway")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

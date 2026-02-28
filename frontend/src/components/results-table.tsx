@@ -1,6 +1,7 @@
 "use client";
 
 import { Table2 } from "lucide-react";
+import { useTranslation } from "@/providers/language-provider";
 import type { QueryResult } from "@/lib/types/database";
 
 interface ResultsTableProps {
@@ -8,11 +9,13 @@ interface ResultsTableProps {
 }
 
 export function ResultsTable({ result }: ResultsTableProps) {
+  const { t } = useTranslation();
+
   if (!result) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
         <Table2 className="mb-2 size-8 opacity-50" />
-        <p className="text-sm">Run a query to see results</p>
+        <p className="text-sm">{t("dbExplorer.runQueryToSee")}</p>
       </div>
     );
   }
@@ -20,8 +23,8 @@ export function ResultsTable({ result }: ResultsTableProps) {
   if (result.columns.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
-        <p className="text-sm">Query executed successfully</p>
-        <p className="text-xs">{result.row_count} row{result.row_count !== 1 ? "s" : ""} affected in {result.execution_time_ms}ms</p>
+        <p className="text-sm">{t("dbExplorer.querySuccess")}</p>
+        <p className="text-xs">{result.row_count} {t("dbExplorer.rows")} {t("dbExplorer.affected")} {result.execution_time_ms}ms</p>
       </div>
     );
   }
@@ -29,10 +32,10 @@ export function ResultsTable({ result }: ResultsTableProps) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b px-3 py-2">
-        <span className="text-sm font-medium">Results</span>
+        <span className="text-sm font-medium">{t("dbExplorer.results")}</span>
         <span className="text-xs text-muted-foreground">
-          {result.row_count} row{result.row_count !== 1 ? "s" : ""}
-          {result.truncated && " (results truncated)"}
+          {result.row_count} {t("dbExplorer.rows")}
+          {result.truncated && ` ${t("dbExplorer.resultsTruncated")}`}
           {" - "}
           {result.execution_time_ms}ms
         </span>

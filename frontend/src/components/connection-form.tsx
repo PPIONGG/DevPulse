@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { sslModes, connectionColors } from "@/config/database-explorer";
+import { useTranslation } from "@/providers/language-provider";
 import type { DBConnection, DBConnectionInput } from "@/lib/types/database";
 
 interface ConnectionFormProps {
@@ -49,6 +50,7 @@ export function ConnectionForm({
   onSubmit,
   onTestConnection,
 }: ConnectionFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!connection;
   const [form, setForm] = useState<DBConnectionInput>(defaultValues);
   const [saving, setSaving] = useState(false);
@@ -104,11 +106,11 @@ export function ConnectionForm({
     setTestResult(null);
     try {
       await onTestConnection(form);
-      setTestResult({ ok: true, message: "Connection successful" });
+      setTestResult({ ok: true, message: t("dbExplorer.connectionSuccessful") });
     } catch (err) {
       setTestResult({
         ok: false,
-        message: err instanceof Error ? err.message : "Connection failed",
+        message: err instanceof Error ? err.message : t("dbExplorer.connectionFailed"),
       });
     } finally {
       setTesting(false);
@@ -125,7 +127,7 @@ export function ConnectionForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save connection");
+      setError(err instanceof Error ? err.message : t("dbExplorer.saveConnectionFailed"));
     } finally {
       setSaving(false);
     }
@@ -136,7 +138,7 @@ export function ConnectionForm({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Connection" : "New Connection"}
+            {isEditing ? t("dbExplorer.editConnection") : t("dbExplorer.newConnectionTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -148,10 +150,10 @@ export function ConnectionForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="conn-name">Connection Name</Label>
+            <Label htmlFor="conn-name">{t("dbExplorer.connectionName")}</Label>
             <Input
               id="conn-name"
-              placeholder="e.g. Production DB"
+              placeholder={t("dbExplorer.connectionNamePlaceholder")}
               value={form.name}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, name: e.target.value }))
@@ -162,7 +164,7 @@ export function ConnectionForm({
 
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="conn-host">Host</Label>
+              <Label htmlFor="conn-host">{t("dbExplorer.host")}</Label>
               <Input
                 id="conn-host"
                 placeholder="localhost"
@@ -174,7 +176,7 @@ export function ConnectionForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="conn-port">Port</Label>
+              <Label htmlFor="conn-port">{t("dbExplorer.port")}</Label>
               <Input
                 id="conn-port"
                 type="number"
@@ -188,10 +190,10 @@ export function ConnectionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="conn-database">Database Name</Label>
+            <Label htmlFor="conn-database">{t("dbExplorer.databaseName")}</Label>
             <Input
               id="conn-database"
-              placeholder="mydb"
+              placeholder={t("dbExplorer.databaseNamePlaceholder")}
               value={form.database_name}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, database_name: e.target.value }))
@@ -202,7 +204,7 @@ export function ConnectionForm({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="conn-username">Username</Label>
+              <Label htmlFor="conn-username">{t("dbExplorer.username")}</Label>
               <Input
                 id="conn-username"
                 placeholder="postgres"
@@ -215,12 +217,12 @@ export function ConnectionForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="conn-password">
-                Password{isEditing ? " (leave blank to keep)" : ""}
+                {isEditing ? t("dbExplorer.passwordKeep") : t("dbExplorer.password")}
               </Label>
               <Input
                 id="conn-password"
                 type="password"
-                placeholder={isEditing ? "unchanged" : "password"}
+                placeholder={isEditing ? t("dbExplorer.passwordUnchanged") : t("dbExplorer.passwordPlaceholder")}
                 value={form.password}
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, password: e.target.value }))
@@ -231,7 +233,7 @@ export function ConnectionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="conn-ssl">SSL Mode</Label>
+            <Label htmlFor="conn-ssl">{t("dbExplorer.sslMode")}</Label>
             <Select
               value={form.ssl_mode}
               onValueChange={(value) =>
@@ -252,7 +254,7 @@ export function ConnectionForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Color</Label>
+            <Label>{t("dbExplorer.color")}</Label>
             <div className="flex flex-wrap gap-2">
               {connectionColors.map((color) => (
                 <button
@@ -279,7 +281,7 @@ export function ConnectionForm({
               }
             />
             <Label htmlFor="conn-readonly" className="text-sm font-normal">
-              Read-only mode (only SELECT queries allowed)
+              {t("dbExplorer.readOnly")}
             </Label>
           </div>
 
@@ -302,17 +304,17 @@ export function ConnectionForm({
               onClick={handleTest}
               disabled={testing || !form.host || !form.database_name || !form.username || (!isEditing && !form.password)}
             >
-              {testing ? "Testing..." : "Test Connection"}
+              {testing ? t("dbExplorer.testing") : t("dbExplorer.testConnection")}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("dbExplorer.saving") : isEditing ? t("dbExplorer.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>
