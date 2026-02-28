@@ -90,7 +90,7 @@ func main() {
 	marketplaceHandler := handlers.NewMarketplaceHandler(marketplaceRepo)
 	workflowHandler := handlers.NewWorkflowHandler(workflowRepo, workflowEngine)
 	dbExplorerHandler := handlers.NewDatabaseExplorerHandler(dbConnRepo, savedQueryRepo, queryHistoryRepo, connManager)
-	sqlPracticeHandler := handlers.NewSqlPracticeHandler(sqlPracticeRepo, pool)
+	sqlPracticeHandler := handlers.NewSqlPracticeHandler(sqlPracticeRepo, profileRepo, pool)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardRepo)
 	adminHandler := handlers.NewAdminHandler(navRepo, userRepo, sessionRepo, snippetRepo, sqlPracticeRepo, statsRepo, auditRepo, systemRepo, pool)
 

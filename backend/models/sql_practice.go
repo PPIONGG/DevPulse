@@ -7,19 +7,22 @@ import (
 )
 
 type SqlChallenge struct {
-	ID             uuid.UUID        `json:"id"`
-	Slug           string           `json:"slug"`
-	Title          string           `json:"title"`
-	Difficulty     string           `json:"difficulty"`
-	Category       string           `json:"category"`
-	Description    string           `json:"description"`
-	TableSchema    string           `json:"table_schema"`
-	SeedData       string           `json:"seed_data"`
-	SolutionSQL    string           `json:"-"`
-	Hint           string           `json:"hint"`
-	OrderSensitive bool             `json:"order_sensitive"`
-	SortOrder      int              `json:"sort_order"`
-	CreatedAt      time.Time        `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	Slug           string             `json:"slug"`
+	Title          string             `json:"title"`
+	TitleTH        *string            `json:"title_th,omitempty"`
+	Difficulty     string             `json:"difficulty"`
+	Category       string             `json:"category"`
+	Description    string             `json:"description"`
+	DescriptionTH  *string            `json:"description_th,omitempty"`
+	TableSchema    string             `json:"table_schema"`
+	SeedData       string             `json:"seed_data"`
+	SolutionSQL    string             `json:"-"`
+	Hint           string             `json:"hint"`
+	HintTH         *string            `json:"hint_th,omitempty"`
+	OrderSensitive bool               `json:"order_sensitive"`
+	SortOrder      int                `json:"sort_order"`
+	CreatedAt      time.Time          `json:"created_at"`
 	Metadata       *ChallengeMetadata `json:"metadata,omitempty"`
 }
 
@@ -120,9 +123,13 @@ type SqlLesson struct {
 	ID                 string    `json:"id"`
 	ModuleID           string    `json:"module_id"`
 	ModuleTitle        string    `json:"module_title"`
+	ModuleTitleTH      *string   `json:"module_title_th,omitempty"`
 	Title              string    `json:"title"`
+	TitleTH            *string   `json:"title_th,omitempty"`
 	Description        string    `json:"description"`
+	DescriptionTH      *string   `json:"description_th,omitempty"`
 	Content            string    `json:"content"`
+	ContentTH          *string   `json:"content_th,omitempty"`
 	PracticeQuery      string    `json:"practice_query"`
 	ExpectedOutputJSON *string   `json:"expected_output_json"`
 	TableSchema        string    `json:"table_schema"`
@@ -149,13 +156,16 @@ type SqlModuleWithLessons struct {
 type SqlChallengeInput struct {
 	Slug           string `json:"slug"`
 	Title          string `json:"title"`
+	TitleTH        string `json:"title_th"`
 	Difficulty     string `json:"difficulty"`
 	Category       string `json:"category"`
 	Description    string `json:"description"`
+	DescriptionTH  string `json:"description_th"`
 	TableSchema    string `json:"table_schema"`
 	SeedData       string `json:"seed_data"`
 	SolutionSQL    string `json:"solution_sql"`
 	Hint           string `json:"hint"`
+	HintTH         string `json:"hint_th"`
 	OrderSensitive bool   `json:"order_sensitive"`
 	SortOrder      int    `json:"sort_order"`
 }

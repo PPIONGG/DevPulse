@@ -19,7 +19,7 @@ func NewSqlPracticeRepo(pool *pgxpool.Pool) *SqlPracticeRepo {
 
 func (r *SqlPracticeRepo) ListChallenges(ctx context.Context) ([]models.SqlChallenge, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at
+		`SELECT id, slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, hint, hint_th, order_sensitive, sort_order, created_at
 		 FROM sql_challenges ORDER BY sort_order`)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (r *SqlPracticeRepo) ListChallenges(ctx context.Context) ([]models.SqlChall
 	var challenges []models.SqlChallenge
 	for rows.Next() {
 		var c models.SqlChallenge
-		if err := rows.Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.Slug, &c.Title, &c.TitleTH, &c.Difficulty, &c.Category, &c.Description, &c.DescriptionTH, &c.TableSchema, &c.SeedData, &c.Hint, &c.HintTH, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt); err != nil {
 			return nil, err
 		}
 		challenges = append(challenges, c)
@@ -43,9 +43,9 @@ func (r *SqlPracticeRepo) ListChallenges(ctx context.Context) ([]models.SqlChall
 func (r *SqlPracticeRepo) GetBySlug(ctx context.Context, slug string) (*models.SqlChallenge, error) {
 	var c models.SqlChallenge
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, slug, title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order, created_at
+		`SELECT id, slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, solution_sql, hint, hint_th, order_sensitive, sort_order, created_at
 		 FROM sql_challenges WHERE slug = $1`, slug,
-	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.SolutionSQL, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.TitleTH, &c.Difficulty, &c.Category, &c.Description, &c.DescriptionTH, &c.TableSchema, &c.SeedData, &c.SolutionSQL, &c.Hint, &c.HintTH, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -55,9 +55,9 @@ func (r *SqlPracticeRepo) GetBySlug(ctx context.Context, slug string) (*models.S
 func (r *SqlPracticeRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.SqlChallenge, error) {
 	var c models.SqlChallenge
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, slug, title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order, created_at
+		`SELECT id, slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, solution_sql, hint, hint_th, order_sensitive, sort_order, created_at
 		 FROM sql_challenges WHERE id = $1`, id,
-	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.SolutionSQL, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.TitleTH, &c.Difficulty, &c.Category, &c.Description, &c.DescriptionTH, &c.TableSchema, &c.SeedData, &c.SolutionSQL, &c.Hint, &c.HintTH, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -296,9 +296,9 @@ func (r *SqlPracticeRepo) GetChallengeByDay(ctx context.Context) (*models.SqlCha
 	offset := dayOfYear % count
 	var c models.SqlChallenge
 	err = r.pool.QueryRow(ctx,
-		`SELECT id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at
+		`SELECT id, slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, hint, hint_th, order_sensitive, sort_order, created_at
 		 FROM sql_challenges ORDER BY id OFFSET $1 LIMIT 1`, offset,
-	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.TitleTH, &c.Difficulty, &c.Category, &c.Description, &c.DescriptionTH, &c.TableSchema, &c.SeedData, &c.Hint, &c.HintTH, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
 	
 	if err != nil {
 		return nil, err
@@ -336,7 +336,7 @@ func (r *SqlPracticeRepo) ListSubmissions(ctx context.Context, userID, challenge
 
 func (r *SqlPracticeRepo) ListLessons(ctx context.Context, userID uuid.UUID) ([]models.SqlLesson, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT l.id, l.module_id, l.module_title, l.title, l.description, l.content, l.practice_query, l.expected_output_json, l.table_schema, l.seed_data, l.sort_order, l.created_at,
+		`SELECT l.id, l.module_id, l.module_title, l.module_title_th, l.title, l.title_th, l.description, l.description_th, l.content, l.content_th, l.practice_query, l.expected_output_json, l.table_schema, l.seed_data, l.sort_order, l.created_at,
 		        COALESCE(p.is_completed, false) as is_completed
 		 FROM sql_lessons l
 		 LEFT JOIN sql_lesson_progress p ON l.id = p.lesson_id AND p.user_id = $1
@@ -349,7 +349,7 @@ func (r *SqlPracticeRepo) ListLessons(ctx context.Context, userID uuid.UUID) ([]
 	var lessons []models.SqlLesson
 	for rows.Next() {
 		var l models.SqlLesson
-		if err := rows.Scan(&l.ID, &l.ModuleID, &l.ModuleTitle, &l.Title, &l.Description, &l.Content, &l.PracticeQuery, &l.ExpectedOutputJSON, &l.TableSchema, &l.SeedData, &l.SortOrder, &l.CreatedAt, &l.IsCompleted); err != nil {
+		if err := rows.Scan(&l.ID, &l.ModuleID, &l.ModuleTitle, &l.ModuleTitleTH, &l.Title, &l.TitleTH, &l.Description, &l.DescriptionTH, &l.Content, &l.ContentTH, &l.PracticeQuery, &l.ExpectedOutputJSON, &l.TableSchema, &l.SeedData, &l.SortOrder, &l.CreatedAt, &l.IsCompleted); err != nil {
 			return nil, err
 		}
 		lessons = append(lessons, l)
@@ -368,7 +368,7 @@ func (r *SqlPracticeRepo) GetLessonByID(ctx context.Context, id string, userID u
 		 FROM sql_lessons l
 		 LEFT JOIN sql_lesson_progress p ON l.id = p.lesson_id AND p.user_id = $1
 		 WHERE l.id = $2`, userID, id,
-	).Scan(&l.ID, &l.ModuleID, &l.ModuleTitle, &l.Title, &l.Description, &l.Content, &l.PracticeQuery, &l.ExpectedOutputJSON, &l.TableSchema, &l.SeedData, &l.SortOrder, &l.CreatedAt, &l.IsCompleted)
+	).Scan(&l.ID, &l.ModuleID, &l.ModuleTitle, &l.ModuleTitleTH, &l.Title, &l.TitleTH, &l.Description, &l.DescriptionTH, &l.Content, &l.ContentTH, &l.PracticeQuery, &l.ExpectedOutputJSON, &l.TableSchema, &l.SeedData, &l.SortOrder, &l.CreatedAt, &l.IsCompleted)
 	if err != nil {
 		return nil, err
 	}
@@ -399,11 +399,11 @@ func (r *SqlPracticeRepo) UpsertLessonProgress(ctx context.Context, userID uuid.
 func (r *SqlPracticeRepo) CreateChallenge(ctx context.Context, input models.SqlChallengeInput) (*models.SqlChallenge, error) {
 	var c models.SqlChallenge
 	err := r.pool.QueryRow(ctx,
-		`INSERT INTO sql_challenges (slug, title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		 RETURNING id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at`,
-		input.Slug, input.Title, input.Difficulty, input.Category, input.Description, input.TableSchema, input.SeedData, input.SolutionSQL, input.Hint, input.OrderSensitive, input.SortOrder,
-	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+		`INSERT INTO sql_challenges (slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, solution_sql, hint, hint_th, order_sensitive, sort_order)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		 RETURNING id, slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, hint, hint_th, order_sensitive, sort_order, created_at`,
+		input.Slug, input.Title, input.TitleTH, input.Difficulty, input.Category, input.Description, input.DescriptionTH, input.TableSchema, input.SeedData, input.SolutionSQL, input.Hint, input.HintTH, input.OrderSensitive, input.SortOrder,
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.TitleTH, &c.Difficulty, &c.Category, &c.Description, &c.DescriptionTH, &c.TableSchema, &c.SeedData, &c.Hint, &c.HintTH, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -413,11 +413,11 @@ func (r *SqlPracticeRepo) CreateChallenge(ctx context.Context, input models.SqlC
 func (r *SqlPracticeRepo) UpdateChallenge(ctx context.Context, id uuid.UUID, input models.SqlChallengeInput) (*models.SqlChallenge, error) {
 	var c models.SqlChallenge
 	err := r.pool.QueryRow(ctx,
-		`UPDATE sql_challenges SET slug=$2, title=$3, difficulty=$4, category=$5, description=$6, table_schema=$7, seed_data=$8, solution_sql=$9, hint=$10, order_sensitive=$11, sort_order=$12
+		`UPDATE sql_challenges SET slug=$2, title=$3, title_th=$4, difficulty=$5, category=$6, description=$7, description_th=$8, table_schema=$9, seed_data=$10, solution_sql=$11, hint=$12, hint_th=$13, order_sensitive=$14, sort_order=$15
 		 WHERE id = $1
-		 RETURNING id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at`,
-		id, input.Slug, input.Title, input.Difficulty, input.Category, input.Description, input.TableSchema, input.SeedData, input.SolutionSQL, input.Hint, input.OrderSensitive, input.SortOrder,
-	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+		 RETURNING id, slug, title, title_th, difficulty, category, description, description_th, table_schema, seed_data, hint, hint_th, order_sensitive, sort_order, created_at`,
+		id, input.Slug, input.Title, input.TitleTH, input.Difficulty, input.Category, input.Description, input.DescriptionTH, input.TableSchema, input.SeedData, input.SolutionSQL, input.Hint, input.HintTH, input.OrderSensitive, input.SortOrder,
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.TitleTH, &c.Difficulty, &c.Category, &c.Description, &c.DescriptionTH, &c.TableSchema, &c.SeedData, &c.Hint, &c.HintTH, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}

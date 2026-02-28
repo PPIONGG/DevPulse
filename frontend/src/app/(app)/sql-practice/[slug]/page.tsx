@@ -211,10 +211,10 @@ export default function ChallengeDetailPage({
                 variant="outline"
                 className={`text-[10px] ${difficulty.textColor}`}
               >
-                {difficulty.label}
+                {t(`sqlPractice.${challenge.difficulty}`)}
               </Badge>
               <Badge variant="secondary" className="text-[10px]">
-                {category.label}
+                {t(`sqlPractice.cat${challenge.category.charAt(0).toUpperCase() + challenge.category.slice(1)}`)}
               </Badge>
             </div>
           </div>

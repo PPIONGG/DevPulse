@@ -84,7 +84,7 @@ export default function SqlPracticePage() {
             <SelectItem value="all">{t("sqlPractice.allLevels")}</SelectItem>
             {challengeDifficulties.map((d) => (
               <SelectItem key={d.value} value={d.value}>
-                {d.label}
+                {t(`sqlPractice.${d.value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -97,7 +97,7 @@ export default function SqlPracticePage() {
             <SelectItem value="all">{t("sqlPractice.allCategories")}</SelectItem>
             {challengeCategories.map((c) => (
               <SelectItem key={c.value} value={c.value}>
-                {c.label}
+                {t(`sqlPractice.cat${c.value.charAt(0).toUpperCase() + c.value.slice(1)}`)}
               </SelectItem>
             ))}
           </SelectContent>
