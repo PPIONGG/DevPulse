@@ -644,3 +644,75 @@ export interface QueryHistoryEntry {
   error_message: string;
   created_at: string;
 }
+
+// --- SQL Practice ---
+
+export interface SqlChallenge {
+  id: string;
+  slug: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  category: "select" | "filtering" | "joins" | "aggregate" | "subquery" | "window" | "cte";
+  description: string;
+  table_schema: string;
+  seed_data: string;
+  hint: string;
+  order_sensitive: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface SqlChallengeProgress {
+  user_id: string;
+  challenge_id: string;
+  is_solved: boolean;
+  best_time_ms: number | null;
+  attempts: number;
+  first_solved_at: string | null;
+  last_attempted_at: string;
+}
+
+export interface SqlChallengeWithProgress extends SqlChallenge {
+  progress: SqlChallengeProgress | null;
+}
+
+export interface SqlSubmission {
+  id: string;
+  user_id: string;
+  challenge_id: string;
+  query: string;
+  status: "correct" | "wrong" | "error";
+  execution_time_ms: number | null;
+  error_message: string;
+  submitted_at: string;
+}
+
+export interface SqlSubmitRequest {
+  challenge_id: string;
+  query: string;
+}
+
+export interface SqlSubmitResult {
+  status: "correct" | "wrong" | "error";
+  user_result: QueryResult | null;
+  expected_result: QueryResult | null;
+  execution_time_ms: number;
+  error_message: string;
+}
+
+export interface SqlPracticeStats {
+  total_challenges: number;
+  solved: number;
+  easy_total: number;
+  easy_solved: number;
+  medium_total: number;
+  medium_solved: number;
+  hard_total: number;
+  hard_solved: number;
+}
+
+export interface SqlChallengeDetail {
+  challenge: SqlChallenge;
+  submissions: SqlSubmission[];
+  progress: SqlChallengeProgress | null;
+}

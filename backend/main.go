@@ -60,6 +60,7 @@ func main() {
 	dbConnRepo := repository.NewDBConnectionRepo(pool)
 	savedQueryRepo := repository.NewSavedQueryRepo(pool)
 	queryHistoryRepo := repository.NewQueryHistoryRepo(pool)
+	sqlPracticeRepo := repository.NewSqlPracticeRepo(pool)
 	dashboardRepo := repository.NewDashboardRepo(snippetRepo, expenseRepo, habitRepo, kanbanRepo)
 
 	// Create engines
@@ -85,6 +86,7 @@ func main() {
 	marketplaceHandler := handlers.NewMarketplaceHandler(marketplaceRepo)
 	workflowHandler := handlers.NewWorkflowHandler(workflowRepo, workflowEngine)
 	dbExplorerHandler := handlers.NewDatabaseExplorerHandler(dbConnRepo, savedQueryRepo, queryHistoryRepo, connManager)
+	sqlPracticeHandler := handlers.NewSqlPracticeHandler(sqlPracticeRepo, pool)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardRepo)
 
 	// Create router
@@ -96,6 +98,7 @@ func main() {
 		jsonDocumentHandler, apiPlaygroundHandler,
 		timeTrackerHandler,
 		marketplaceHandler, workflowHandler, dbExplorerHandler,
+		sqlPracticeHandler,
 		dashboardHandler, calculationHandler,
 		sessionRepo, cfg.FrontendURL, cfg.UploadsDir,
 	)

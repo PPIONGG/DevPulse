@@ -23,6 +23,7 @@ func New(
 	marketplace *handlers.MarketplaceHandler,
 	workflow *handlers.WorkflowHandler,
 	dbExplorer *handlers.DatabaseExplorerHandler,
+	sqlPractice *handlers.SqlPracticeHandler,
 	dashboard *handlers.DashboardHandler,
 	calculation *handlers.CalculationHandler,
 	sessionRepo *repository.SessionRepo,
@@ -197,6 +198,13 @@ func New(
 	mux.Handle("DELETE /api/db-explorer/saved-queries/{id}", authMW(http.HandlerFunc(dbExplorer.DeleteSavedQuery)))
 	mux.Handle("GET /api/db-explorer/history", authMW(http.HandlerFunc(dbExplorer.GetHistory)))
 	mux.Handle("DELETE /api/db-explorer/history", authMW(http.HandlerFunc(dbExplorer.ClearHistory)))
+
+	// SQL Practice
+	mux.Handle("GET /api/sql-practice/challenges", authMW(http.HandlerFunc(sqlPractice.ListChallenges)))
+	mux.Handle("GET /api/sql-practice/challenges/{slug}", authMW(http.HandlerFunc(sqlPractice.GetChallenge)))
+	mux.Handle("POST /api/sql-practice/submit", authMW(http.HandlerFunc(sqlPractice.SubmitAnswer)))
+	mux.Handle("GET /api/sql-practice/stats", authMW(http.HandlerFunc(sqlPractice.GetStats)))
+	mux.Handle("GET /api/sql-practice/submissions/{challengeId}", authMW(http.HandlerFunc(sqlPractice.ListSubmissions)))
 
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))

@@ -436,6 +436,60 @@ export function DBExplorerSkeleton() {
   );
 }
 
+export function ChallengeCardSkeleton() {
+  return (
+    <Card className="gap-0 py-0">
+      <CardHeader className="flex-row items-center gap-3 px-4 py-3">
+        <Skeleton className="size-5 shrink-0 rounded-full" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-6" />
+            <Skeleton className="h-4 w-3/5" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-4 w-12 rounded-full" />
+            <Skeleton className="h-4 w-20 rounded-full" />
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  );
+}
+
+export function SqlPracticeSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="mt-2 h-4 w-64" />
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-8" />
+        </div>
+        <Skeleton className="h-2 w-full rounded-full" />
+        <div className="flex gap-4">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="h-9 flex-1 rounded-md" />
+        <Skeleton className="h-9 w-[130px] rounded-md" />
+        <Skeleton className="h-9 w-[170px] rounded-md" />
+        <Skeleton className="h-9 w-[130px] rounded-md" />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <ChallengeCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CalculatorSkeleton() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">

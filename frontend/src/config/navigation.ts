@@ -13,6 +13,7 @@ import {
   Store,
   Workflow,
   Database,
+  GraduationCap,
   Settings,
   FolderOpen,
   Share2,
@@ -103,6 +104,11 @@ export const navigationItems: NavItem[] = [
     title: "DB Explorer",
     href: "/db-explorer",
     icon: Database,
+  },
+  {
+    title: "SQL Practice",
+    href: "/sql-practice",
+    icon: GraduationCap,
   },
   {
     title: "Calculator",

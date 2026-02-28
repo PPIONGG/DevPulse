@@ -1,0 +1,68 @@
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type SqlChallenge struct {
+	ID             uuid.UUID `json:"id"`
+	Slug           string    `json:"slug"`
+	Title          string    `json:"title"`
+	Difficulty     string    `json:"difficulty"`
+	Category       string    `json:"category"`
+	Description    string    `json:"description"`
+	TableSchema    string    `json:"table_schema"`
+	SeedData       string    `json:"seed_data"`
+	SolutionSQL    string    `json:"-"`
+	Hint           string    `json:"hint"`
+	OrderSensitive bool      `json:"order_sensitive"`
+	SortOrder      int       `json:"sort_order"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type SqlSubmission struct {
+	ID              uuid.UUID `json:"id"`
+	UserID          uuid.UUID `json:"user_id"`
+	ChallengeID     uuid.UUID `json:"challenge_id"`
+	Query           string    `json:"query"`
+	Status          string    `json:"status"`
+	ExecutionTimeMs *int      `json:"execution_time_ms"`
+	ErrorMessage    string    `json:"error_message"`
+	SubmittedAt     time.Time `json:"submitted_at"`
+}
+
+type SqlChallengeProgress struct {
+	UserID         uuid.UUID  `json:"user_id"`
+	ChallengeID    uuid.UUID  `json:"challenge_id"`
+	IsSolved       bool       `json:"is_solved"`
+	BestTimeMs     *int       `json:"best_time_ms"`
+	Attempts       int        `json:"attempts"`
+	FirstSolvedAt  *time.Time `json:"first_solved_at"`
+	LastAttemptedAt time.Time `json:"last_attempted_at"`
+}
+
+type SqlSubmitRequest struct {
+	ChallengeID string `json:"challenge_id"`
+	Query       string `json:"query"`
+}
+
+type SqlSubmitResult struct {
+	Status          string       `json:"status"`
+	UserResult      *QueryResult `json:"user_result"`
+	ExpectedResult  *QueryResult `json:"expected_result"`
+	ExecutionTimeMs int          `json:"execution_time_ms"`
+	ErrorMessage    string       `json:"error_message"`
+}
+
+type SqlPracticeStats struct {
+	TotalChallenges int `json:"total_challenges"`
+	Solved          int `json:"solved"`
+	EasyTotal       int `json:"easy_total"`
+	EasySolved      int `json:"easy_solved"`
+	MediumTotal     int `json:"medium_total"`
+	MediumSolved    int `json:"medium_solved"`
+	HardTotal       int `json:"hard_total"`
+	HardSolved      int `json:"hard_solved"`
+}
