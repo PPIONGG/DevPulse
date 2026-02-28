@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/language-provider";
 import type { WorkflowRun, WorkflowStepLog } from "@/lib/types/database";
 
 interface WorkflowRunListProps {
@@ -24,33 +25,33 @@ interface WorkflowRunListProps {
   onFetchStepLogs: (runId: string) => Promise<WorkflowStepLog[]>;
 }
 
-function getStatusBadge(status: string) {
+function getStatusBadge(status: string, t: (key: any) => string) {
   switch (status) {
     case "success":
       return (
         <Badge variant="default" className="gap-1 bg-green-600 text-xs hover:bg-green-700">
           <CheckCircle2 className="size-3" />
-          Success
+          {t("workflows.statusSuccess")}
         </Badge>
       );
     case "failed":
       return (
         <Badge variant="destructive" className="gap-1 text-xs">
           <XCircle className="size-3" />
-          Failed
+          {t("workflows.statusFailed")}
         </Badge>
       );
     case "running":
       return (
         <Badge variant="secondary" className="gap-1 text-xs">
           <Loader2 className="size-3 animate-spin" />
-          Running
+          {t("workflows.statusRunning")}
         </Badge>
       );
     case "cancelled":
       return (
         <Badge variant="outline" className="gap-1 text-xs">
-          Cancelled
+          {t("workflows.statusCancelled")}
         </Badge>
       );
     default:
@@ -108,6 +109,7 @@ function formatDuration(ms: number | null): string {
 }
 
 export function WorkflowRunList({ runs, onFetchStepLogs }: WorkflowRunListProps) {
+  const { t } = useTranslation();
   const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
   const [stepLogs, setStepLogs] = useState<Record<string, WorkflowStepLog[]>>({});
   const [loadingLogs, setLoadingLogs] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export function WorkflowRunList({ runs, onFetchStepLogs }: WorkflowRunListProps)
   if (runs.length === 0) {
     return (
       <div className="rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-        No runs yet. Click &quot;Run Now&quot; to execute this workflow.
+        {t("workflows.noRuns")}
       </div>
     );
   }
@@ -158,7 +160,7 @@ export function WorkflowRunList({ runs, onFetchStepLogs }: WorkflowRunListProps)
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
               )}
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                {getStatusBadge(run.status)}
+                {getStatusBadge(run.status, t)}
                 <Badge variant="outline" className="text-xs">
                   {run.trigger_type}
                 </Badge>
@@ -181,11 +183,11 @@ export function WorkflowRunList({ runs, onFetchStepLogs }: WorkflowRunListProps)
                 {isLoading ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                    <span className="ml-2 text-sm text-muted-foreground">Loading steps...</span>
+                    <span className="ml-2 text-sm text-muted-foreground">{t("workflows.loadingSteps")}</span>
                   </div>
                 ) : logs.length === 0 ? (
                   <div className="px-4 py-3 text-sm text-muted-foreground">
-                    No step logs for this run.
+                    {t("workflows.noStepLogs")}
                   </div>
                 ) : (
                   <div className="px-4 py-2">

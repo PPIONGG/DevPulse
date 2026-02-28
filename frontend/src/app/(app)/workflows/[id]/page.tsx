@@ -29,6 +29,7 @@ import {
 import { WorkflowNodeEditor } from "@/components/workflow-node-editor";
 import { WorkflowRunList } from "@/components/workflow-run-list";
 import { useWorkflowDetail } from "@/hooks/use-workflows";
+import { useTranslation } from "@/providers/language-provider";
 import { triggerTypes } from "@/config/workflow-nodes";
 import { toast } from "sonner";
 import type { WorkflowNodeData } from "@/config/workflow-nodes";
@@ -40,6 +41,7 @@ export default function WorkflowDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     workflow,
@@ -82,7 +84,7 @@ export default function WorkflowDetailPage({
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error(t("workflows.titleRequired"));
       return;
     }
     setSaving(true);
@@ -98,7 +100,7 @@ export default function WorkflowDetailPage({
       };
       await updateWorkflow(input);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save");
+      toast.error(err instanceof Error ? err.message : t("workflows.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -109,7 +111,7 @@ export default function WorkflowDetailPage({
     try {
       await runManual();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to run workflow");
+      toast.error(err instanceof Error ? err.message : t("workflows.runFailed"));
     } finally {
       setRunning(false);
     }
@@ -139,7 +141,7 @@ export default function WorkflowDetailPage({
           <Button variant="ghost" size="icon" onClick={() => router.push("/workflows")}>
             <ArrowLeft className="size-4" />
           </Button>
-          <h2 className="text-xl font-bold tracking-tight">Workflow</h2>
+          <h2 className="text-xl font-bold tracking-tight">{t("workflows.workflowLabel")}</h2>
         </div>
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <p>{error}</p>
@@ -147,7 +149,7 @@ export default function WorkflowDetailPage({
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       </div>
@@ -176,13 +178,13 @@ export default function WorkflowDetailPage({
                 {workflow.title}
               </h2>
               <Badge variant={workflow.is_enabled ? "default" : "secondary"}>
-                {workflow.is_enabled ? "Enabled" : "Disabled"}
+                {workflow.is_enabled ? t("workflows.enabled") : t("workflows.disabled")}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {workflow.run_count} run{workflow.run_count !== 1 ? "s" : ""}
+              {workflow.run_count} {workflow.run_count !== 1 ? t("workflows.runs") : t("workflows.run")}
               {workflow.last_run_status && (
-                <> &middot; Last: {workflow.last_run_status}</>
+                <> &middot; {t("workflows.lastRun")} {workflow.last_run_status}</>
               )}
             </p>
           </div>
@@ -198,7 +200,7 @@ export default function WorkflowDetailPage({
             ) : (
               <Play className="mr-2 size-4" />
             )}
-            Run Now
+            {t("workflows.runNow")}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (
@@ -206,7 +208,7 @@ export default function WorkflowDetailPage({
             ) : (
               <Save className="mr-2 size-4" />
             )}
-            Save
+            {t("common.save")}
           </Button>
         </div>
       </div>
@@ -216,32 +218,32 @@ export default function WorkflowDetailPage({
       {/* Workflow settings */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="detail-title">Title</Label>
+          <Label htmlFor="detail-title">{t("workflows.formTitle")}</Label>
           <Input
             id="detail-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Workflow title"
+            placeholder={t("workflows.workflowTitlePlaceholder")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="detail-trigger">Trigger Type</Label>
+          <Label htmlFor="detail-trigger">{t("workflows.formTriggerType")}</Label>
           <Select value={triggerType} onValueChange={setTriggerType}>
             <SelectTrigger id="detail-trigger">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {triggerTypes.map((t) => (
+              {triggerTypes.map((tr) => (
                 <SelectItem
-                  key={t.value}
-                  value={t.value}
-                  disabled={t.disabled}
+                  key={tr.value}
+                  value={tr.value}
+                  disabled={tr.disabled}
                 >
                   <span className="flex items-center gap-2">
-                    {t.value === "manual" && <Hand className="size-3.5" />}
-                    {t.value === "webhook" && <Webhook className="size-3.5" />}
-                    {t.value === "cron" && <Clock className="size-3.5" />}
-                    {t.label}
+                    {tr.value === "manual" && <Hand className="size-3.5" />}
+                    {tr.value === "webhook" && <Webhook className="size-3.5" />}
+                    {tr.value === "cron" && <Clock className="size-3.5" />}
+                    {tr.label}
                   </span>
                 </SelectItem>
               ))}
@@ -249,18 +251,18 @@ export default function WorkflowDetailPage({
           </Select>
         </div>
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="detail-description">Description</Label>
+          <Label htmlFor="detail-description">{t("workflows.formDescription")}</Label>
           <Textarea
             id="detail-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder={t("workflows.formDescPlaceholder")}
             className="min-h-[60px]"
           />
         </div>
         {triggerType === "cron" && (
           <div className="space-y-2">
-            <Label htmlFor="detail-cron">Cron Expression</Label>
+            <Label htmlFor="detail-cron">{t("workflows.formCronExpression")}</Label>
             <Input
               id="detail-cron"
               value={cronExpression}
@@ -271,7 +273,7 @@ export default function WorkflowDetailPage({
         )}
         {triggerType === "webhook" && workflow.webhook_token && (
           <div className="space-y-2 md:col-span-2">
-            <Label>Webhook URL</Label>
+            <Label>{t("workflows.webhookUrl")}</Label>
             <Input
               readOnly
               value={`${typeof window !== "undefined" ? window.location.origin : ""}/api/webhooks/${workflow.webhook_token}`}
@@ -281,7 +283,7 @@ export default function WorkflowDetailPage({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Send a POST request to this URL to trigger the workflow.
+              {t("workflows.webhookHelp")}
             </p>
           </div>
         )}
@@ -293,7 +295,7 @@ export default function WorkflowDetailPage({
       <div>
         <div className="mb-3 flex items-center gap-2">
           <Zap className="size-4 text-primary" />
-          <h3 className="text-lg font-semibold">Workflow Steps</h3>
+          <h3 className="text-lg font-semibold">{t("workflows.workflowSteps")}</h3>
         </div>
         <WorkflowNodeEditor nodes={nodes} onChange={setNodes} />
       </div>
@@ -302,7 +304,7 @@ export default function WorkflowDetailPage({
 
       {/* Run history */}
       <div>
-        <h3 className="mb-3 text-lg font-semibold">Run History</h3>
+        <h3 className="mb-3 text-lg font-semibold">{t("workflows.runHistory")}</h3>
         <WorkflowRunList runs={runs} onFetchStepLogs={fetchStepLogs} />
       </div>
     </div>

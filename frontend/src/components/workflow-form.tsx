@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { triggerTypes } from "@/config/workflow-nodes";
+import { useTranslation } from "@/providers/language-provider";
 import type { Workflow, WorkflowInput } from "@/lib/types/database";
 
 interface WorkflowFormProps {
@@ -45,6 +46,7 @@ export function WorkflowForm({
   workflow,
   onSubmit,
 }: WorkflowFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!workflow;
   const [form, setForm] = useState<WorkflowInput>({ ...defaultValues });
   const [saving, setSaving] = useState(false);
@@ -97,7 +99,7 @@ export function WorkflowForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save workflow");
+      setError(err instanceof Error ? err.message : t("workflows.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -108,7 +110,7 @@ export function WorkflowForm({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Workflow" : "New Workflow"}
+            {isEditing ? t("workflows.editTitle") : t("workflows.newTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -120,10 +122,10 @@ export function WorkflowForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="wf-title">Title</Label>
+            <Label htmlFor="wf-title">{t("workflows.formTitle")}</Label>
             <Input
               id="wf-title"
-              placeholder="e.g. Deploy Notification"
+              placeholder={t("workflows.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -133,10 +135,10 @@ export function WorkflowForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="wf-description">Description</Label>
+            <Label htmlFor="wf-description">{t("workflows.formDescription")}</Label>
             <Textarea
               id="wf-description"
-              placeholder="Optional description"
+              placeholder={t("workflows.formDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -146,7 +148,7 @@ export function WorkflowForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="wf-trigger">Trigger Type</Label>
+            <Label htmlFor="wf-trigger">{t("workflows.formTriggerType")}</Label>
             <Select
               value={form.trigger_type}
               onValueChange={(value) =>
@@ -157,25 +159,25 @@ export function WorkflowForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {triggerTypes.map((t) => (
+                {triggerTypes.map((tr) => (
                   <SelectItem
-                    key={t.value}
-                    value={t.value}
-                    disabled={t.disabled}
+                    key={tr.value}
+                    value={tr.value}
+                    disabled={tr.disabled}
                   >
-                    {t.label}
+                    {tr.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              {triggerTypes.find((t) => t.value === form.trigger_type)?.description}
+              {triggerTypes.find((tr) => tr.value === form.trigger_type)?.description}
             </p>
           </div>
 
           {form.trigger_type === "cron" && (
             <div className="space-y-2">
-              <Label htmlFor="wf-cron">Cron Expression</Label>
+              <Label htmlFor="wf-cron">{t("workflows.formCronExpression")}</Label>
               <Input
                 id="wf-cron"
                 placeholder="*/5 * * * *"
@@ -185,14 +187,14 @@ export function WorkflowForm({
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Standard cron format (minute hour day month weekday)
+                {t("workflows.cronHelp")}
               </p>
             </div>
           )}
 
           {isEditing && workflow?.trigger_type === "webhook" && workflow?.webhook_token && (
             <div className="space-y-2">
-              <Label>Webhook URL</Label>
+              <Label>{t("workflows.webhookUrl")}</Label>
               <Input
                 readOnly
                 value={`${typeof window !== "undefined" ? window.location.origin : ""}/api/webhooks/${workflow.webhook_token}`}
@@ -202,7 +204,7 @@ export function WorkflowForm({
                 }}
               />
               <p className="text-xs text-muted-foreground">
-                Send a POST request to this URL to trigger the workflow.
+                {t("workflows.webhookHelp")}
               </p>
             </div>
           )}
@@ -213,10 +215,10 @@ export function WorkflowForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("workflows.saving") : isEditing ? t("workflows.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

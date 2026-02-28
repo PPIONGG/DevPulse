@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WorkflowCard } from "@/components/workflow-card";
 import { WorkflowForm } from "@/components/workflow-form";
 import { useWorkflows } from "@/hooks/use-workflows";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type { Workflow, WorkflowInput } from "@/lib/types/database";
 
@@ -48,6 +49,7 @@ function WorkflowCardSkeleton() {
 }
 
 export default function WorkflowsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     workflows,
@@ -104,7 +106,7 @@ export default function WorkflowsPage() {
       await deleteWorkflow(deletingWorkflow.id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete workflow"
+        err instanceof Error ? err.message : t("workflows.deleteFailed")
       );
     } finally {
       setDeletingWorkflow(null);
@@ -116,7 +118,7 @@ export default function WorkflowsPage() {
       await toggleEnabled(workflow.id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to toggle workflow"
+        err instanceof Error ? err.message : t("workflows.toggleFailed")
       );
     }
   };
@@ -127,7 +129,7 @@ export default function WorkflowsPage() {
       await runManual(workflow.id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to run workflow"
+        err instanceof Error ? err.message : t("workflows.runFailed")
       );
     } finally {
       setRunningId(null);
@@ -143,14 +145,14 @@ export default function WorkflowsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Workflows</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("workflows.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Build and run automated workflows.
+            {t("workflows.subtitle")}
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 size-4" />
-          New Workflow
+          {t("workflows.new")}
         </Button>
       </div>
 
@@ -158,7 +160,7 @@ export default function WorkflowsPage() {
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search workflows..."
+            placeholder={t("workflows.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -166,12 +168,12 @@ export default function WorkflowsPage() {
         </div>
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Workflows" />
+            <SelectValue placeholder={t("workflows.allWorkflows")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Workflows</SelectItem>
-            <SelectItem value="enabled">Enabled</SelectItem>
-            <SelectItem value="disabled">Disabled</SelectItem>
+            <SelectItem value="all">{t("workflows.allWorkflows")}</SelectItem>
+            <SelectItem value="enabled">{t("workflows.enabled")}</SelectItem>
+            <SelectItem value="disabled">{t("workflows.disabled")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -183,7 +185,7 @@ export default function WorkflowsPage() {
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -198,17 +200,17 @@ export default function WorkflowsPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Zap className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {hasFilters ? "No matching workflows" : "No workflows yet"}
+            {hasFilters ? t("workflows.noMatch") : t("workflows.empty")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFilters
-              ? "Try a different search term or filter."
-              : "Create your first workflow to automate tasks."}
+              ? t("workflows.noMatchDesc")
+              : t("workflows.emptyDesc")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" onClick={() => setFormOpen(true)}>
               <Plus className="mr-2 size-4" />
-              New Workflow
+              {t("workflows.new")}
             </Button>
           )}
         </div>
@@ -242,15 +244,14 @@ export default function WorkflowsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete workflow?</AlertDialogTitle>
+            <AlertDialogTitle>{t("workflows.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingWorkflow?.title}&quot; and
-              all its run history. This action cannot be undone.
+              {t("workflows.deleteDesc").replace("{name}", deletingWorkflow?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -41,6 +41,7 @@ import {
   type NodeType,
 } from "@/config/workflow-nodes";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/language-provider";
 
 interface WorkflowNodeEditorProps {
   nodes: WorkflowNodeData[];
@@ -70,6 +71,7 @@ function getNodeColor(type: string) {
 }
 
 export function WorkflowNodeEditor({ nodes, onChange }: WorkflowNodeEditorProps) {
+  const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const addNode = (type: NodeType) => {
@@ -119,13 +121,13 @@ export function WorkflowNodeEditor({ nodes, onChange }: WorkflowNodeEditorProps)
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium">
-          Nodes ({nodes.length})
+          {t("workflows.nodesLabel")} ({nodes.length})
         </Label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
               <Plus className="mr-1 size-3.5" />
-              Add Node
+              {t("workflows.addNode")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -144,7 +146,7 @@ export function WorkflowNodeEditor({ nodes, onChange }: WorkflowNodeEditorProps)
 
       {nodes.length === 0 && (
         <div className="rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-          No nodes yet. Add a node to start building your workflow.
+          {t("workflows.noNodes")}
         </div>
       )}
 
@@ -216,13 +218,13 @@ export function WorkflowNodeEditor({ nodes, onChange }: WorkflowNodeEditorProps)
               {isExpanded && (
                 <div className="space-y-3 border-t px-3 py-3">
                   <div className="space-y-2">
-                    <Label className="text-xs">Label</Label>
+                    <Label className="text-xs">{t("workflows.nodeLabel")}</Label>
                     <Input
                       value={node.label}
                       onChange={(e) =>
                         updateNode(node.id, { label: e.target.value })
                       }
-                      placeholder="Step name"
+                      placeholder={t("workflows.stepNamePlaceholder")}
                       className="h-8 text-sm"
                     />
                   </div>
@@ -259,14 +261,19 @@ function NodeConfigEditor({ node, onUpdateConfig }: NodeConfigEditorProps) {
     case "notify":
       return <NotifyConfigEditor config={node.config} onUpdate={onUpdateConfig} />;
     case "transform":
-      return (
-        <p className="text-xs text-muted-foreground">
-          This node passes through data from the previous step without modification.
-        </p>
-      );
+      return <TransformConfigDisplay />;
     default:
       return null;
   }
+}
+
+function TransformConfigDisplay() {
+  const { t } = useTranslation();
+  return (
+    <p className="text-xs text-muted-foreground">
+      {t("workflows.transformDesc")}
+    </p>
+  );
 }
 
 function HTTPRequestConfigEditor({
@@ -276,11 +283,12 @@ function HTTPRequestConfigEditor({
   config: Record<string, unknown>;
   onUpdate: (key: string, value: unknown) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="w-[120px] space-y-1">
-          <Label className="text-xs">Method</Label>
+          <Label className="text-xs">{t("workflows.httpMethod")}</Label>
           <Select
             value={(config.method as string) || "GET"}
             onValueChange={(v) => onUpdate("method", v)}
@@ -298,7 +306,7 @@ function HTTPRequestConfigEditor({
           </Select>
         </div>
         <div className="flex-1 space-y-1">
-          <Label className="text-xs">URL</Label>
+          <Label className="text-xs">{t("workflows.httpUrl")}</Label>
           <Input
             value={(config.url as string) || ""}
             onChange={(e) => onUpdate("url", e.target.value)}
@@ -308,7 +316,7 @@ function HTTPRequestConfigEditor({
         </div>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">Headers (JSON)</Label>
+        <Label className="text-xs">{t("workflows.httpHeaders")}</Label>
         <Textarea
           value={
             typeof config.headers === "object" && config.headers !== null
@@ -329,7 +337,7 @@ function HTTPRequestConfigEditor({
       </div>
       {((config.method as string) || "GET") !== "GET" && (
         <div className="space-y-1">
-          <Label className="text-xs">Body</Label>
+          <Label className="text-xs">{t("workflows.httpBody")}</Label>
           <Textarea
             value={(config.body as string) || ""}
             onChange={(e) => onUpdate("body", e.target.value)}
@@ -349,9 +357,10 @@ function DelayConfigEditor({
   config: Record<string, unknown>;
   onUpdate: (key: string, value: unknown) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1">
-      <Label className="text-xs">Delay (seconds, max 30)</Label>
+      <Label className="text-xs">{t("workflows.delayLabel")}</Label>
       <Input
         type="number"
         min={1}
@@ -371,10 +380,11 @@ function ConditionConfigEditor({
   config: Record<string, unknown>;
   onUpdate: (key: string, value: unknown) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label className="text-xs">Field name (from previous step output)</Label>
+        <Label className="text-xs">{t("workflows.conditionField")}</Label>
         <Input
           value={(config.field as string) || ""}
           onChange={(e) => onUpdate("field", e.target.value)}
@@ -383,7 +393,7 @@ function ConditionConfigEditor({
         />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">Operator</Label>
+        <Label className="text-xs">{t("workflows.conditionOperator")}</Label>
         <Select
           value={(config.operator as string) || "equals"}
           onValueChange={(v) => onUpdate("operator", v)}
@@ -401,7 +411,7 @@ function ConditionConfigEditor({
         </Select>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">Expected value</Label>
+        <Label className="text-xs">{t("workflows.conditionValue")}</Label>
         <Input
           value={(config.value as string) || ""}
           onChange={(e) => onUpdate("value", e.target.value)}
@@ -420,13 +430,14 @@ function NotifyConfigEditor({
   config: Record<string, unknown>;
   onUpdate: (key: string, value: unknown) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1">
-      <Label className="text-xs">Message</Label>
+      <Label className="text-xs">{t("workflows.notifyMessage")}</Label>
       <Textarea
         value={(config.message as string) || ""}
         onChange={(e) => onUpdate("message", e.target.value)}
-        placeholder="Notification message..."
+        placeholder={t("workflows.notifyPlaceholder")}
         className="min-h-[60px] text-sm"
       />
     </div>

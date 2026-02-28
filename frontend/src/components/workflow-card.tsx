@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/language-provider";
 import type { Workflow } from "@/lib/types/database";
 
 interface WorkflowCardProps {
@@ -61,8 +62,8 @@ function getStatusIcon(status: string | null) {
   }
 }
 
-function formatTimeAgo(dateStr: string | null): string {
-  if (!dateStr) return "Never";
+function formatTimeAgo(dateStr: string | null, neverText: string): string {
+  if (!dateStr) return neverText;
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -85,6 +86,7 @@ export function WorkflowCard({
   onClick,
   running,
 }: WorkflowCardProps) {
+  const { t } = useTranslation();
   const nodes = (() => {
     try {
       return JSON.parse(typeof workflow.nodes === "string" ? workflow.nodes : JSON.stringify(workflow.nodes));
@@ -117,7 +119,7 @@ export function WorkflowCard({
                 variant={workflow.is_enabled ? "default" : "secondary"}
                 className="shrink-0 text-xs"
               >
-                {workflow.is_enabled ? "Enabled" : "Disabled"}
+                {workflow.is_enabled ? t("workflows.enabled") : t("workflows.disabled")}
               </Badge>
               <Badge variant="outline" className="shrink-0 gap-1 text-xs">
                 {getTriggerIcon(workflow.trigger_type)}
@@ -125,15 +127,15 @@ export function WorkflowCard({
               </Badge>
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{nodes.length} node{nodes.length !== 1 ? "s" : ""}</span>
+              <span>{nodes.length} {nodes.length !== 1 ? t("workflows.nodes") : t("workflows.node")}</span>
               <span className="text-border">|</span>
-              <span>{workflow.run_count} run{workflow.run_count !== 1 ? "s" : ""}</span>
+              <span>{workflow.run_count} {workflow.run_count !== 1 ? t("workflows.runs") : t("workflows.run")}</span>
               {workflow.last_run_status && (
                 <>
                   <span className="text-border">|</span>
                   <span className="flex items-center gap-1">
                     {getStatusIcon(workflow.last_run_status)}
-                    {formatTimeAgo(workflow.last_run_at)}
+                    {formatTimeAgo(workflow.last_run_at, t("workflows.never"))}
                   </span>
                 </>
               )}
@@ -156,7 +158,7 @@ export function WorkflowCard({
               e.stopPropagation();
               onRun(workflow);
             }}
-            title="Run now"
+            title={t("workflows.runNow")}
           >
             {running ? (
               <Loader2 className="size-4 animate-spin" />
@@ -183,7 +185,7 @@ export function WorkflowCard({
                 }}
               >
                 <Zap className="mr-2 size-4" />
-                {workflow.is_enabled ? "Disable" : "Enable"}
+                {workflow.is_enabled ? t("workflows.disable") : t("workflows.enable")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {
@@ -192,7 +194,7 @@ export function WorkflowCard({
                 }}
               >
                 <Pencil className="mr-2 size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
@@ -202,7 +204,7 @@ export function WorkflowCard({
                 }}
               >
                 <Trash2 className="mr-2 size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
