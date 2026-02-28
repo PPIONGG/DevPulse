@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/providers/language-provider";
 import type { ApiCollection, ApiCollectionInput } from "@/lib/types/database";
 
 interface ApiCollectionFormProps {
@@ -33,6 +34,7 @@ export function ApiCollectionForm({
   collection,
   onSubmit,
 }: ApiCollectionFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!collection;
   const [form, setForm] = useState<ApiCollectionInput>(defaultValues);
   const [saving, setSaving] = useState(false);
@@ -62,7 +64,7 @@ export function ApiCollectionForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save");
+      setError(err instanceof Error ? err.message : t("apiPlayground.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -73,7 +75,7 @@ export function ApiCollectionForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Collection" : "New Collection"}
+            {isEditing ? t("apiPlayground.editCollection") : t("apiPlayground.newCollection")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,20 +85,20 @@ export function ApiCollectionForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="col-title">Name</Label>
+            <Label htmlFor="col-title">{t("apiPlayground.collectionName")}</Label>
             <Input
               id="col-title"
-              placeholder="e.g. My API"
+              placeholder={t("apiPlayground.collectionNamePlaceholder")}
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="col-desc">Description</Label>
+            <Label htmlFor="col-desc">{t("apiPlayground.collectionDescription")}</Label>
             <Textarea
               id="col-desc"
-              placeholder="Optional description"
+              placeholder={t("apiPlayground.collectionDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -104,10 +106,10 @@ export function ApiCollectionForm({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

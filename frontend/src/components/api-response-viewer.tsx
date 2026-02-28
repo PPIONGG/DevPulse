@@ -13,6 +13,7 @@ import {
   formatDuration,
   getMethodStyle,
 } from "@/config/api-playground";
+import { useTranslation } from "@/providers/language-provider";
 import { cn } from "@/lib/utils";
 import type { ApiProxyResponse, ApiRequestHistory } from "@/lib/types/database";
 
@@ -35,6 +36,7 @@ export function ApiResponseViewer({
   onDeleteHistory,
   onClearHistory,
 }: ApiResponseViewerProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     onFetchHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,7 +73,7 @@ export function ApiResponseViewer({
       <div className="flex flex-1 items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="size-5 animate-spin" />
-          <span className="text-sm">Sending request...</span>
+          <span className="text-sm">{t("apiPlayground.sending")}</span>
         </div>
       </div>
     );
@@ -81,12 +83,12 @@ export function ApiResponseViewer({
     return (
       <Tabs defaultValue="history" className="flex flex-1 flex-col">
         <TabsList>
-          <TabsTrigger value="response">Response</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="response">{t("apiPlayground.tabResponse")}</TabsTrigger>
+          <TabsTrigger value="history">{t("apiPlayground.tabHistory")}</TabsTrigger>
         </TabsList>
         <TabsContent value="response" className="flex flex-1 items-center justify-center">
           <p className="text-sm text-muted-foreground">
-            Send a request to see the response here.
+            {t("apiPlayground.sendToSeeResponse")}
           </p>
         </TabsContent>
         <TabsContent value="history" className="mt-3 flex-1 overflow-y-auto">
@@ -125,17 +127,17 @@ export function ApiResponseViewer({
 
       <Tabs defaultValue="body" className="flex flex-1 flex-col">
         <TabsList>
-          <TabsTrigger value="body">Body</TabsTrigger>
+          <TabsTrigger value="body">{t("apiPlayground.tabBody")}</TabsTrigger>
           <TabsTrigger value="headers">
-            Headers ({headerEntries.length})
+            {t("apiPlayground.tabHeaders")} ({headerEntries.length})
           </TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="history">{t("apiPlayground.tabHistory")}</TabsTrigger>
         </TabsList>
         <TabsContent value="body" className="mt-3 flex-1 overflow-auto">
           {response.body ? (
             <CodeBlock code={formattedBody} language={lang} />
           ) : (
-            <p className="text-sm text-muted-foreground">Empty response body</p>
+            <p className="text-sm text-muted-foreground">{t("apiPlayground.emptyResponseBody")}</p>
           )}
         </TabsContent>
         <TabsContent value="headers" className="mt-3">
@@ -172,6 +174,7 @@ function HistoryList({
   onDelete: (id: string) => void;
   onClear: () => void;
 }) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -184,7 +187,7 @@ function HistoryList({
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <Clock className="mb-2 size-8 text-muted-foreground/50" />
-        <p className="text-xs text-muted-foreground">No history yet</p>
+        <p className="text-xs text-muted-foreground">{t("apiPlayground.noHistoryYet")}</p>
       </div>
     );
   }
@@ -193,7 +196,9 @@ function HistoryList({
     <div className="space-y-1">
       <div className="flex items-center justify-between pb-2">
         <span className="text-xs font-medium text-muted-foreground">
-          {history.length} request{history.length !== 1 ? "s" : ""}
+          {history.length !== 1
+            ? t("apiPlayground.requestsCount").replace("{count}", String(history.length))
+            : t("apiPlayground.requestCount").replace("{count}", String(history.length))}
         </span>
         <Button
           variant="ghost"
@@ -201,7 +206,7 @@ function HistoryList({
           className="h-6 text-xs text-destructive hover:text-destructive"
           onClick={onClear}
         >
-          Clear All
+          {t("apiPlayground.clearAll")}
         </Button>
       </div>
       {history.map((item) => {

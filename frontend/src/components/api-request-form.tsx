@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { httpMethods } from "@/config/api-playground";
+import { useTranslation } from "@/providers/language-provider";
 import type { ApiCollection, ApiRequestInput } from "@/lib/types/database";
 
 interface ApiRequestFormProps {
@@ -34,6 +35,7 @@ export function ApiRequestForm({
   collections,
   onSubmit,
 }: ApiRequestFormProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [method, setMethod] = useState("GET");
   const [collectionId, setCollectionId] = useState<string>("none");
@@ -69,7 +71,7 @@ export function ApiRequestForm({
       });
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create request");
+      setError(err instanceof Error ? err.message : t("apiPlayground.createRequestFailed"));
     } finally {
       setSaving(false);
     }
@@ -79,7 +81,7 @@ export function ApiRequestForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New Request</DialogTitle>
+          <DialogTitle>{t("apiPlayground.newRequest")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -88,17 +90,17 @@ export function ApiRequestForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="req-title">Name</Label>
+            <Label htmlFor="req-title">{t("apiPlayground.requestName")}</Label>
             <Input
               id="req-title"
-              placeholder="e.g. Get Users"
+              placeholder={t("apiPlayground.requestNamePlaceholder")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="req-method">Method</Label>
+            <Label htmlFor="req-method">{t("apiPlayground.requestMethod")}</Label>
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger id="req-method">
                 <SelectValue />
@@ -113,13 +115,13 @@ export function ApiRequestForm({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="req-collection">Collection</Label>
+            <Label htmlFor="req-collection">{t("apiPlayground.requestCollection")}</Label>
             <Select value={collectionId} onValueChange={setCollectionId}>
               <SelectTrigger id="req-collection">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No Collection</SelectItem>
+                <SelectItem value="none">{t("apiPlayground.noCollection")}</SelectItem>
                 {collections.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.title}
@@ -130,10 +132,10 @@ export function ApiRequestForm({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Creating..." : "Create"}
+              {saving ? t("apiPlayground.creating") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

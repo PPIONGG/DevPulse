@@ -21,10 +21,12 @@ import { ApiRequestForm } from "@/components/api-request-form";
 import { ApiPlaygroundSkeleton } from "@/components/skeletons";
 import { useApiPlayground } from "@/hooks/use-api-playground";
 import { useEnvVaults } from "@/hooks/use-env-vaults";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type { ApiCollection, ApiRequest, ApiCollectionInput } from "@/lib/types/database";
 
 export default function ApiPlaygroundPage() {
+  const { t } = useTranslation();
   const {
     collections,
     uncollected,
@@ -85,7 +87,7 @@ export default function ApiPlaygroundPage() {
     try {
       await deleteCollection(deletingCollection.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete collection");
+      toast.error(err instanceof Error ? err.message : t("apiPlayground.deleteCollectionFailed"));
     } finally {
       setDeletingCollection(null);
     }
@@ -96,7 +98,7 @@ export default function ApiPlaygroundPage() {
     try {
       await deleteRequest(deletingRequest.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete request");
+      toast.error(err instanceof Error ? err.message : t("apiPlayground.deleteRequestFailed"));
     } finally {
       setDeletingRequest(null);
     }
@@ -127,7 +129,7 @@ export default function ApiPlaygroundPage() {
           <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <p>{error}</p>
             <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
-              Try again
+              {t("common.tryAgain")}
             </button>
           </div>
         )}
@@ -167,9 +169,9 @@ export default function ApiPlaygroundPage() {
             <div className="flex flex-col items-center gap-3 text-center">
               <Globe className="size-12 text-muted-foreground/50" />
               <div>
-                <h3 className="text-lg font-medium">API Playground</h3>
+                <h3 className="text-lg font-medium">{t("apiPlayground.title")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Select or create a request to get started.
+                  {t("apiPlayground.subtitle")}
                 </p>
               </div>
             </div>
@@ -198,15 +200,14 @@ export default function ApiPlaygroundPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete collection?</AlertDialogTitle>
+            <AlertDialogTitle>{t("apiPlayground.deleteCollectionTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete &quot;{deletingCollection?.title}&quot;. Requests in this
-              collection will become uncollected. This action cannot be undone.
+              {t("apiPlayground.deleteCollectionDesc").replace("{name}", deletingCollection?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteCollection}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCollection}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -217,15 +218,14 @@ export default function ApiPlaygroundPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete request?</AlertDialogTitle>
+            <AlertDialogTitle>{t("apiPlayground.deleteRequestTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingRequest?.title}&quot;.
-              This action cannot be undone.
+              {t("apiPlayground.deleteRequestDesc").replace("{name}", deletingRequest?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteRequest}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteRequest}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

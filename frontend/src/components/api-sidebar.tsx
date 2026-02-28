@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getMethodStyle } from "@/config/api-playground";
+import { useTranslation } from "@/providers/language-provider";
 import { cn } from "@/lib/utils";
 import type { ApiCollection, ApiRequest } from "@/lib/types/database";
 
@@ -51,6 +52,7 @@ export function ApiSidebar({
   onDeleteCollection,
   onDeleteRequest,
 }: ApiSidebarProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [openCollections, setOpenCollections] = useState<Set<string>>(
     new Set(collections.map((c) => c.id))
@@ -99,7 +101,7 @@ export function ApiSidebar({
             onClick={onNewRequest}
           >
             <Plus className="mr-1 size-3" />
-            Request
+            {t("apiPlayground.request")}
           </Button>
           <Button
             variant="outline"
@@ -108,13 +110,13 @@ export function ApiSidebar({
             onClick={onNewCollection}
           >
             <FolderOpen className="mr-1 size-3" />
-            Collection
+            {t("apiPlayground.collection")}
           </Button>
         </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search requests..."
+            placeholder={t("apiPlayground.searchPlaceholder")}
             className="h-7 pl-8 text-xs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -158,14 +160,14 @@ export function ApiSidebar({
                 <DropdownMenuContent align="end" className="w-36">
                   <DropdownMenuItem onClick={() => onEditCollection(col)}>
                     <Pencil className="mr-2 size-3.5" />
-                    Edit
+                    {t("common.edit")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => onDeleteCollection(col)}
                   >
                     <Trash2 className="mr-2 size-3.5" />
-                    Delete
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -190,7 +192,7 @@ export function ApiSidebar({
           <div className="mt-2">
             {filteredCollections.length > 0 && (
               <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Uncollected
+                {t("apiPlayground.uncollected")}
               </div>
             )}
             {filteredUncollected.map((req) => (
@@ -209,7 +211,7 @@ export function ApiSidebar({
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <FileText className="mb-2 size-8 text-muted-foreground/50" />
             <p className="text-xs text-muted-foreground">
-              {search.trim() ? "No matching requests" : "No requests yet"}
+              {search.trim() ? t("apiPlayground.noMatchingRequests") : t("apiPlayground.noRequestsYet")}
             </p>
           </div>
         )}

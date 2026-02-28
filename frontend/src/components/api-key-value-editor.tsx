@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslation } from "@/providers/language-provider";
 import type { KeyValuePair } from "@/lib/types/database";
 
 interface ApiKeyValueEditorProps {
@@ -16,9 +17,12 @@ interface ApiKeyValueEditorProps {
 export function ApiKeyValueEditor({
   pairs,
   onChange,
-  keyPlaceholder = "Key",
-  valuePlaceholder = "Value",
+  keyPlaceholder,
+  valuePlaceholder,
 }: ApiKeyValueEditorProps) {
+  const { t } = useTranslation();
+  const resolvedKeyPlaceholder = keyPlaceholder ?? t("apiPlayground.keyPlaceholder");
+  const resolvedValuePlaceholder = valuePlaceholder ?? t("apiPlayground.valuePlaceholder");
   const updatePair = (index: number, field: keyof KeyValuePair, value: string | boolean) => {
     const updated = pairs.map((p, i) =>
       i === index ? { ...p, [field]: value } : p
@@ -45,13 +49,13 @@ export function ApiKeyValueEditor({
             }
           />
           <Input
-            placeholder={keyPlaceholder}
+            placeholder={resolvedKeyPlaceholder}
             value={pair.key}
             onChange={(e) => updatePair(index, "key", e.target.value)}
             className="h-8 text-sm"
           />
           <Input
-            placeholder={valuePlaceholder}
+            placeholder={resolvedValuePlaceholder}
             value={pair.value}
             onChange={(e) => updatePair(index, "value", e.target.value)}
             className="h-8 text-sm"
@@ -75,7 +79,7 @@ export function ApiKeyValueEditor({
         onClick={addPair}
       >
         <Plus className="mr-1 size-3" />
-        Add
+        {t("common.add")}
       </Button>
     </div>
   );

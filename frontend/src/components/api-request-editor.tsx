@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { ApiKeyValueEditor } from "@/components/api-key-value-editor";
 import { httpMethods, bodyTypes, getMethodStyle } from "@/config/api-playground";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type { ApiRequest, ApiRequestInput, KeyValuePair, EnvVault, ApiProxyRequest } from "@/lib/types/database";
 
@@ -33,6 +34,7 @@ export function ApiRequestEditor({
   onUpdate,
   onSend,
 }: ApiRequestEditorProps) {
+  const { t } = useTranslation();
   const [method, setMethod] = useState(request.method);
   const [url, setUrl] = useState(request.url);
   const [headers, setHeaders] = useState<KeyValuePair[]>(request.headers ?? []);
@@ -119,7 +121,7 @@ export function ApiRequestEditor({
 
   const handleSend = () => {
     if (!url.trim()) {
-      toast.error("URL is required");
+      toast.error(t("apiPlayground.urlRequired"));
       return;
     }
     const enabledHeaders = headers.filter((h) => h.enabled && h.key);
@@ -156,7 +158,7 @@ export function ApiRequestEditor({
 
   const copyCurl = () => {
     navigator.clipboard.writeText(curlCommand);
-    toast.success("cURL copied to clipboard");
+    toast.success(t("apiPlayground.curlCopied"));
   };
 
   const enabledParamCount = queryParams.filter((p) => p.enabled && p.key).length;
@@ -179,7 +181,7 @@ export function ApiRequestEditor({
           </SelectContent>
         </Select>
         <Input
-          placeholder="https://api.example.com/endpoint"
+          placeholder={t("apiPlayground.urlPlaceholder")}
           value={url}
           onChange={(e) => handleUrlChange(e.target.value)}
           className="h-9 flex-1 font-mono text-sm"
@@ -197,14 +199,14 @@ export function ApiRequestEditor({
           ) : (
             <Send className="size-4" />
           )}
-          Send
+          {t("apiPlayground.send")}
         </Button>
         <Button
           variant="outline"
           size="icon"
           className="size-9 shrink-0"
           onClick={copyCurl}
-          title="Copy as cURL"
+          title={t("apiPlayground.copyAsCurl")}
         >
           <Copy className="size-4" />
         </Button>
@@ -212,13 +214,13 @@ export function ApiRequestEditor({
 
       {/* Env Vault selector */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">Environment:</span>
+        <span className="text-xs text-muted-foreground">{t("apiPlayground.environment")}</span>
         <Select value={envVaultId} onValueChange={handleEnvVaultChange}>
           <SelectTrigger className="h-7 w-48 text-xs">
-            <SelectValue placeholder="No environment" />
+            <SelectValue placeholder={t("apiPlayground.noEnvironment")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No environment</SelectItem>
+            <SelectItem value="none">{t("apiPlayground.noEnvironment")}</SelectItem>
             {envVaults.map((v) => (
               <SelectItem key={v.id} value={v.id}>
                 {v.name}
@@ -232,19 +234,19 @@ export function ApiRequestEditor({
       <Tabs defaultValue="params" className="flex-1">
         <TabsList>
           <TabsTrigger value="params">
-            Params{enabledParamCount > 0 && ` (${enabledParamCount})`}
+            {t("apiPlayground.tabParams")}{enabledParamCount > 0 && ` (${enabledParamCount})`}
           </TabsTrigger>
           <TabsTrigger value="headers">
-            Headers{enabledHeaderCount > 0 && ` (${enabledHeaderCount})`}
+            {t("apiPlayground.tabHeaders")}{enabledHeaderCount > 0 && ` (${enabledHeaderCount})`}
           </TabsTrigger>
-          <TabsTrigger value="body">Body</TabsTrigger>
+          <TabsTrigger value="body">{t("apiPlayground.tabBody")}</TabsTrigger>
         </TabsList>
         <TabsContent value="params" className="mt-3">
           <ApiKeyValueEditor
             pairs={queryParams}
             onChange={handleQueryParamsChange}
-            keyPlaceholder="Parameter"
-            valuePlaceholder="Value"
+            keyPlaceholder={t("apiPlayground.parameterPlaceholder")}
+            valuePlaceholder={t("apiPlayground.valuePlaceholder")}
           />
         </TabsContent>
         <TabsContent value="headers" className="mt-3">
@@ -270,8 +272,8 @@ export function ApiRequestEditor({
             <Textarea
               placeholder={
                 bodyType === "json"
-                  ? '{\n  "key": "value"\n}'
-                  : "Request body..."
+                  ? t("apiPlayground.bodyPlaceholderJson")
+                  : t("apiPlayground.bodyPlaceholderRaw")
               }
               value={body}
               onChange={(e) => handleBodyChange(e.target.value)}
