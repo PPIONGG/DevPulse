@@ -16,6 +16,9 @@ interface DashboardData {
 
 const defaultStats: DashboardStats = {
   snippets: 0,
+  expenses: 0,
+  habits: 0,
+  boards: 0,
 };
 
 export function useDashboard() {

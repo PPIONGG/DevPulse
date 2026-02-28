@@ -3,6 +3,9 @@ import type { CodeSnippet } from "@/lib/types/database";
 
 export interface DashboardStats {
   snippets: number;
+  expenses: number;
+  habits: number;
+  boards: number;
 }
 
 export interface DashboardRecent {

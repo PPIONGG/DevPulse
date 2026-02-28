@@ -6,6 +6,9 @@ import Link from "next/link";
 import { toast } from "sonner";
 import {
   Code2,
+  DollarSign,
+  Target,
+  Kanban,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,19 +73,60 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <Link href="/code-snippets/my-snippets" className="group block">
-        <Card className="gap-0 py-0 transition-colors group-hover:border-primary/50 group-hover:shadow-md">
-          <CardHeader className="flex-row items-center justify-between px-4 py-3">
-            <p className="text-sm font-medium text-muted-foreground">
-              Code Snippets
-            </p>
-            <Code2 className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4 pt-0">
-            <p className="text-2xl font-bold">{stats.snippets}</p>
-          </CardContent>
-        </Card>
-      </Link>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link href="/code-snippets/my-snippets" className="group block">
+          <Card className="gap-0 py-0 transition-colors group-hover:border-primary/50 group-hover:shadow-md">
+            <CardHeader className="flex-row items-center justify-between px-4 py-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                Code Snippets
+              </p>
+              <Code2 className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-0">
+              <p className="text-2xl font-bold">{stats.snippets}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/expenses" className="group block">
+          <Card className="gap-0 py-0 transition-colors group-hover:border-primary/50 group-hover:shadow-md">
+            <CardHeader className="flex-row items-center justify-between px-4 py-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                Expenses
+              </p>
+              <DollarSign className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-0">
+              <p className="text-2xl font-bold">{stats.expenses}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/habits" className="group block">
+          <Card className="gap-0 py-0 transition-colors group-hover:border-primary/50 group-hover:shadow-md">
+            <CardHeader className="flex-row items-center justify-between px-4 py-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                Active Habits
+              </p>
+              <Target className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-0">
+              <p className="text-2xl font-bold">{stats.habits}</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/kanban" className="group block">
+          <Card className="gap-0 py-0 transition-colors group-hover:border-primary/50 group-hover:shadow-md">
+            <CardHeader className="flex-row items-center justify-between px-4 py-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                Kanban Boards
+              </p>
+              <Kanban className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-0">
+              <p className="text-2xl font-bold">{stats.boards}</p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
 
       <Card className="gap-0 py-0">
         <CardHeader className="flex-row items-center justify-between px-4 py-3">

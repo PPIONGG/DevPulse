@@ -12,6 +12,12 @@ func New(
 	auth *handlers.AuthHandler,
 	profile *handlers.ProfileHandler,
 	snippet *handlers.SnippetHandler,
+	expense *handlers.ExpenseHandler,
+	habit *handlers.HabitHandler,
+	kanban *handlers.KanbanHandler,
+	pomodoro *handlers.PomodoroHandler,
+	envVault *handlers.EnvVaultHandler,
+	jsonDoc *handlers.JsonDocumentHandler,
 	dashboard *handlers.DashboardHandler,
 	calculation *handlers.CalculationHandler,
 	sessionRepo *repository.SessionRepo,
@@ -49,6 +55,53 @@ func New(
 	mux.Handle("POST /api/snippets/copy/{id}", authMW(http.HandlerFunc(snippet.Copy)))
 	mux.Handle("PUT /api/snippets/{id}", authMW(http.HandlerFunc(snippet.Update)))
 	mux.Handle("DELETE /api/snippets/{id}", authMW(http.HandlerFunc(snippet.Delete)))
+
+	mux.Handle("GET /api/expenses", authMW(http.HandlerFunc(expense.List)))
+	mux.Handle("POST /api/expenses", authMW(http.HandlerFunc(expense.Create)))
+	mux.Handle("PUT /api/expenses/{id}", authMW(http.HandlerFunc(expense.Update)))
+	mux.Handle("DELETE /api/expenses/{id}", authMW(http.HandlerFunc(expense.Delete)))
+
+	mux.Handle("GET /api/habits", authMW(http.HandlerFunc(habit.List)))
+	mux.Handle("POST /api/habits", authMW(http.HandlerFunc(habit.Create)))
+	mux.Handle("PUT /api/habits/{id}", authMW(http.HandlerFunc(habit.Update)))
+	mux.Handle("PATCH /api/habits/{id}/archive", authMW(http.HandlerFunc(habit.Archive)))
+	mux.Handle("DELETE /api/habits/{id}", authMW(http.HandlerFunc(habit.Delete)))
+	mux.Handle("GET /api/habits/completions", authMW(http.HandlerFunc(habit.GetCompletions)))
+	mux.Handle("POST /api/habits/{id}/toggle", authMW(http.HandlerFunc(habit.ToggleCompletion)))
+
+	mux.Handle("GET /api/kanban/boards", authMW(http.HandlerFunc(kanban.ListBoards)))
+	mux.Handle("POST /api/kanban/boards", authMW(http.HandlerFunc(kanban.CreateBoard)))
+	mux.Handle("GET /api/kanban/boards/{id}", authMW(http.HandlerFunc(kanban.GetBoard)))
+	mux.Handle("PUT /api/kanban/boards/{id}", authMW(http.HandlerFunc(kanban.UpdateBoard)))
+	mux.Handle("DELETE /api/kanban/boards/{id}", authMW(http.HandlerFunc(kanban.DeleteBoard)))
+	mux.Handle("POST /api/kanban/boards/{boardId}/columns", authMW(http.HandlerFunc(kanban.CreateColumn)))
+	mux.Handle("PUT /api/kanban/columns/{colId}", authMW(http.HandlerFunc(kanban.UpdateColumn)))
+	mux.Handle("DELETE /api/kanban/columns/{colId}", authMW(http.HandlerFunc(kanban.DeleteColumn)))
+	mux.Handle("POST /api/kanban/columns/{colId}/cards", authMW(http.HandlerFunc(kanban.CreateCard)))
+	mux.Handle("PUT /api/kanban/cards/{cardId}", authMW(http.HandlerFunc(kanban.UpdateCard)))
+	mux.Handle("DELETE /api/kanban/cards/{cardId}", authMW(http.HandlerFunc(kanban.DeleteCard)))
+	mux.Handle("PUT /api/kanban/cards/reorder", authMW(http.HandlerFunc(kanban.ReorderCards)))
+
+	mux.Handle("GET /api/pomodoro/sessions", authMW(http.HandlerFunc(pomodoro.List)))
+	mux.Handle("POST /api/pomodoro/sessions", authMW(http.HandlerFunc(pomodoro.Create)))
+	mux.Handle("DELETE /api/pomodoro/sessions/{id}", authMW(http.HandlerFunc(pomodoro.Delete)))
+	mux.Handle("DELETE /api/pomodoro/sessions", authMW(http.HandlerFunc(pomodoro.ClearAll)))
+	mux.Handle("GET /api/pomodoro/stats", authMW(http.HandlerFunc(pomodoro.Stats)))
+
+	mux.Handle("GET /api/env-vaults", authMW(http.HandlerFunc(envVault.List)))
+	mux.Handle("GET /api/env-vaults/{id}", authMW(http.HandlerFunc(envVault.Get)))
+	mux.Handle("POST /api/env-vaults", authMW(http.HandlerFunc(envVault.Create)))
+	mux.Handle("PUT /api/env-vaults/{id}", authMW(http.HandlerFunc(envVault.Update)))
+	mux.Handle("DELETE /api/env-vaults/{id}", authMW(http.HandlerFunc(envVault.Delete)))
+	mux.Handle("POST /api/env-vaults/{id}/variables", authMW(http.HandlerFunc(envVault.AddVariable)))
+	mux.Handle("PUT /api/env-variables/{id}", authMW(http.HandlerFunc(envVault.UpdateVariable)))
+	mux.Handle("DELETE /api/env-variables/{id}", authMW(http.HandlerFunc(envVault.DeleteVariable)))
+	mux.Handle("POST /api/env-vaults/{id}/import", authMW(http.HandlerFunc(envVault.Import)))
+
+	mux.Handle("GET /api/json-documents", authMW(http.HandlerFunc(jsonDoc.List)))
+	mux.Handle("POST /api/json-documents", authMW(http.HandlerFunc(jsonDoc.Create)))
+	mux.Handle("PUT /api/json-documents/{id}", authMW(http.HandlerFunc(jsonDoc.Update)))
+	mux.Handle("DELETE /api/json-documents/{id}", authMW(http.HandlerFunc(jsonDoc.Delete)))
 
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))

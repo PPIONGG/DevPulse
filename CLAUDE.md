@@ -1,6 +1,6 @@
 # DevPulse
 
-Developer productivity hub — a personal dashboard for storing code snippets and quick calculations.
+Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, and a calculator.
 
 ## Tech Stack
 
@@ -32,6 +32,12 @@ DevPulse/
 │       │   │   │   ├── page.tsx        # Redirects to /my-snippets
 │       │   │   │   ├── my-snippets/    # CRUD personal snippets
 │       │   │   │   └── shared/         # Browse public snippets from others
+│       │   │   ├── expenses/           # Expense tracker with categories
+│       │   │   ├── habits/             # Habit tracker with streaks
+│       │   │   ├── kanban/             # Kanban boards with columns & cards
+│       │   │   ├── pomodoro/           # Pomodoro timer with stats
+│       │   │   ├── env-vault/          # Environment variable vault
+│       │   │   ├── json-tools/         # JSON/YAML formatter, converter, diff, tree
 │       │   │   ├── calculator/         # Calculator with history
 │       │   │   └── settings/           # Profile management + avatar upload/crop
 │       │   └── auth/
@@ -42,15 +48,26 @@ DevPulse/
 │       │   ├── ui/           # shadcn/ui primitives (19 components — do not edit by hand)
 │       │   ├── skeletons.tsx         # All skeleton loading components
 │       │   ├── snippet-card.tsx / snippet-form.tsx
+│       │   ├── expense-card.tsx / expense-form.tsx / expense-summary.tsx
+│       │   ├── habit-card.tsx / habit-form.tsx
+│       │   ├── kanban-board-card.tsx / kanban-board-form.tsx / kanban-board-view.tsx / kanban-card-form.tsx
+│       │   ├── pomodoro-timer.tsx / pomodoro-stats.tsx / pomodoro-history.tsx / pomodoro-settings.tsx
+│       │   ├── vault-card.tsx / vault-form.tsx / vault-detail.tsx / vault-import-dialog.tsx / variable-row.tsx
+│       │   ├── json-formatter.tsx / json-converter.tsx / json-diff.tsx / json-tree-view.tsx / json-document-card.tsx / json-document-form.tsx
 │       │   ├── calculator-display.tsx  # Calculator UI + safe expression evaluator
 │       │   └── code-block.tsx       # Shiki syntax-highlighted code display
 │       ├── config/
 │       │   ├── navigation.ts # Sidebar nav items (hierarchical with NavGroups)
-│       │   └── languages.ts  # 30+ programming languages for snippet selector
-│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload)
+│       │   ├── languages.ts  # 30+ programming languages for snippet selector
+│       │   ├── expense-categories.ts  # Expense category definitions
+│       │   ├── habit-colors.ts        # Habit color palette
+│       │   ├── kanban-config.ts       # Kanban board configuration
+│       │   ├── pomodoro.ts            # Pomodoro timer defaults
+│       │   └── environments.ts        # Env vault environment types
+│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents)
 │       ├── lib/
 │       │   ├── api/          # API client (fetch wrapper with credentials, 15s default timeout)
-│       │   ├── services/     # API service functions (snippets, calculations, dashboard, profiles, storage)
+│       │   ├── services/     # API service functions (snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents)
 │       │   ├── types/        # Shared TypeScript types (database.ts)
 │       │   └── utils/        # cn() class merger, withTimeout() helper
 │       └── providers/        # AuthProvider (wraps entire app)
@@ -60,7 +77,7 @@ DevPulse/
 │   ├── database/            # pgxpool connection + embedded SQL migrations (auto-run on startup)
 │   ├── models/              # Go structs (json tags match frontend types)
 │   ├── repository/          # DB queries (all include user_id WHERE for authz)
-│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health)
+│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health, expenses, habits, kanban, pomodoro, env_vault, json_document)
 │   ├── helpers/             # JSON response/request/context helpers
 │   ├── middleware/          # CORS, auth (session cookie), logger, JSON content-type
 │   ├── router/              # All route definitions
@@ -151,7 +168,32 @@ NEXT_PUBLIC_API_URL=     # empty = use Next.js rewrites (default for dev)
 | GET/POST | `/api/calculations` | List/create calculations |
 | DELETE | `/api/calculations/{id}` | Delete single calculation |
 | DELETE | `/api/calculations` | Clear all calculations |
-| GET | `/api/dashboard/stats` | Dashboard snippet count |
+| GET/POST | `/api/expenses` | List/create expenses |
+| PUT/DELETE | `/api/expenses/{id}` | Update/delete expense |
+| GET/POST | `/api/habits` | List/create habits |
+| PUT/DELETE | `/api/habits/{id}` | Update/delete habit |
+| PATCH | `/api/habits/{id}/archive` | Archive/unarchive habit |
+| POST | `/api/habits/{id}/toggle` | Toggle today's completion |
+| GET | `/api/habits/completions` | Get completions for date range |
+| GET/POST | `/api/kanban/boards` | List/create boards |
+| GET/PUT/DELETE | `/api/kanban/boards/{id}` | Get/update/delete board (with columns & cards) |
+| POST | `/api/kanban/boards/{boardId}/columns` | Create column |
+| PUT/DELETE | `/api/kanban/columns/{id}` | Update/delete column |
+| POST | `/api/kanban/columns/{colId}/cards` | Create card |
+| PUT/DELETE | `/api/kanban/cards/{id}` | Update/delete card |
+| PUT | `/api/kanban/cards/reorder` | Reorder cards (drag & drop) |
+| GET/POST | `/api/pomodoro/sessions` | List/create sessions |
+| DELETE | `/api/pomodoro/sessions/{id}` | Delete session |
+| DELETE | `/api/pomodoro/sessions` | Clear all sessions |
+| GET | `/api/pomodoro/stats` | Get pomodoro stats (today/week/total/streak) |
+| GET/POST | `/api/env-vaults` | List/create vaults |
+| GET/PUT/DELETE | `/api/env-vaults/{id}` | Get/update/delete vault |
+| POST | `/api/env-vaults/{id}/variables` | Add variable to vault |
+| POST | `/api/env-vaults/{id}/import` | Import variables from .env format |
+| PUT/DELETE | `/api/env-variables/{id}` | Update/delete variable |
+| GET/POST | `/api/json-documents` | List/create JSON documents |
+| PUT/DELETE | `/api/json-documents/{id}` | Update/delete document |
+| GET | `/api/dashboard/stats` | Dashboard stats (snippets, expenses, habits, boards) |
 | GET | `/api/dashboard/recent` | Recent snippets |
 
 ## Architecture Rules
@@ -173,6 +215,16 @@ All IDs are UUID (`gen_random_uuid()`). All timestamps are `TIMESTAMPTZ`. Conten
 | `profiles` | User profiles | id (FK → users.id), display_name, avatar_url, email |
 | `snippets` | Code snippets | title, code, language, description, tags (TEXT[]), is_public, is_favorite |
 | `calculations` | Calculator history | expression, result |
+| `expenses` | Expense tracking | title, amount (NUMERIC 10,2), currency, category, date, notes, is_recurring |
+| `habits` | Habit definitions | title, description, color, frequency, target_days, is_archived |
+| `habit_completions` | Habit completion records | habit_id, completed_date (unique per habit/date) |
+| `kanban_boards` | Kanban boards | title, description, is_favorite |
+| `kanban_columns` | Board columns | board_id, title, color, position |
+| `kanban_cards` | Column cards | column_id, title, description, priority, labels (TEXT[]), due_date, position |
+| `pomodoro_sessions` | Pomodoro timer sessions | duration, target_duration, task_label, completed_at |
+| `env_vaults` | Environment variable vaults | name, environment, description, is_favorite |
+| `env_variables` | Vault key-value pairs | vault_id, key, value, is_secret, position (unique per vault/key) |
+| `json_documents` | JSON/YAML documents | title, content, format, description, tags (TEXT[]), is_favorite |
 
 Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all queries. Migrations are embedded SQL files that run automatically on backend startup.
 
@@ -198,12 +250,29 @@ Applied in order (outermost → innermost): Logger → CORS → JSONContentType.
 - Do not `setState` in hooks without checking `mountedRef.current` — prevents React warnings on unmount.
 - Do not add API calls without going through `lib/api/client.ts` — it handles credentials, timeouts, and error parsing.
 
-## Planned Features
+## Implemented Feature Modules
 
-Feature modules are spec'd in `docs/modules/` (ordered by difficulty):
-1. Expenses, 2. URL Shortener, 3. Blog, 4. Polls, 5. Habit Tracker, 6. Flashcards (SM-2), 7. Kanban Board
+All implemented modules are spec'd in `docs/modules/`. Each follows the same architecture (migration → model → repo → handler → route + type → service → hook → page).
 
-Each spec includes DB schema, API endpoints, and UI patterns following existing architecture.
+| Module | Route | Status |
+|--------|-------|--------|
+| Calculator | `/calculator` | ✅ Done |
+| Expense Tracker | `/expenses` | ✅ Done |
+| Habit Tracker | `/habits` | ✅ Done |
+| Kanban Board | `/kanban` | ✅ Done |
+| Pomodoro Timer | `/pomodoro` | ✅ Done |
+| Env Vault | `/env-vault` | ✅ Done |
+| JSON Tools | `/json-tools` | ✅ Done |
+
+### Skipped / Not Implemented
+
+| Module | Status |
+|--------|--------|
+| URL Shortener | ⏭️ Skipped |
+| Markdown Blog | ⏭️ Skipped |
+| Polls / Voting | ⏭️ Skipped |
+| Flashcards (SM-2) | ⏭️ Skipped |
+| Regex Playground | 📝 Draft only |
 
 ## Calculator
 

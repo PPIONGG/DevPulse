@@ -42,8 +42,14 @@ func main() {
 	sessionRepo := repository.NewSessionRepo(pool)
 	profileRepo := repository.NewProfileRepo(pool)
 	snippetRepo := repository.NewSnippetRepo(pool)
+	expenseRepo := repository.NewExpenseRepo(pool)
+	habitRepo := repository.NewHabitRepo(pool)
+	kanbanRepo := repository.NewKanbanRepo(pool)
 	calculationRepo := repository.NewCalculationRepo(pool)
-	dashboardRepo := repository.NewDashboardRepo(snippetRepo)
+	pomodoroRepo := repository.NewPomodoroRepo(pool)
+	envVaultRepo := repository.NewEnvVaultRepo(pool)
+	jsonDocumentRepo := repository.NewJsonDocumentRepo(pool)
+	dashboardRepo := repository.NewDashboardRepo(snippetRepo, expenseRepo, habitRepo, kanbanRepo)
 
 	// Create handlers
 	authHandler := handlers.NewAuthHandler(
@@ -52,13 +58,22 @@ func main() {
 	)
 	profileHandler := handlers.NewProfileHandler(profileRepo, cfg.UploadsDir)
 	snippetHandler := handlers.NewSnippetHandler(snippetRepo)
+	expenseHandler := handlers.NewExpenseHandler(expenseRepo)
+	habitHandler := handlers.NewHabitHandler(habitRepo)
+	kanbanHandler := handlers.NewKanbanHandler(kanbanRepo)
 	calculationHandler := handlers.NewCalculationHandler(calculationRepo)
+	pomodoroHandler := handlers.NewPomodoroHandler(pomodoroRepo)
+	envVaultHandler := handlers.NewEnvVaultHandler(envVaultRepo)
+	jsonDocumentHandler := handlers.NewJsonDocumentHandler(jsonDocumentRepo)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardRepo)
 
 	// Create router
 	handler := router.New(
 		authHandler, profileHandler,
-		snippetHandler,
+		snippetHandler, expenseHandler,
+		habitHandler, kanbanHandler,
+		pomodoroHandler, envVaultHandler,
+		jsonDocumentHandler,
 		dashboardHandler, calculationHandler,
 		sessionRepo, cfg.FrontendURL, cfg.UploadsDir,
 	)
