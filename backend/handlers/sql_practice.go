@@ -19,21 +19,46 @@ import (
 )
 
 type SqlPracticeHandler struct {
-	repo *repository.SqlPracticeRepo
-	pool *pgxpool.Pool
+	repo        *repository.SqlPracticeRepo
+	profileRepo *repository.ProfileRepo
+	pool        *pgxpool.Pool
 }
 
-func NewSqlPracticeHandler(repo *repository.SqlPracticeRepo, pool *pgxpool.Pool) *SqlPracticeHandler {
-	return &SqlPracticeHandler{repo: repo, pool: pool}
+func NewSqlPracticeHandler(repo *repository.SqlPracticeRepo, profileRepo *repository.ProfileRepo, pool *pgxpool.Pool) *SqlPracticeHandler {
+	return &SqlPracticeHandler{repo: repo, profileRepo: profileRepo, pool: pool}
+}
+
+func (h *SqlPracticeHandler) getLanguage(ctx context.Context, userID uuid.UUID) string {
+	profile, err := h.profileRepo.FindByID(ctx, userID)
+	if err != nil {
+		return "en"
+	}
+	return profile.PreferredLanguage
 }
 
 func (h *SqlPracticeHandler) ListChallenges(w http.ResponseWriter, r *http.Request) {
 	userID := helpers.UserIDFromContext(r.Context())
+	lang := h.getLanguage(r.Context(), userID)
 
 	challenges, err := h.repo.ListChallenges(r.Context())
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "failed to fetch challenges")
 		return
+	}
+
+	// Translate if needed
+	if lang == "th" {
+		for i := range challenges {
+			if challenges[i].TitleTH != nil && *challenges[i].TitleTH != "" {
+				challenges[i].Title = *challenges[i].TitleTH
+			}
+			if challenges[i].DescriptionTH != nil && *challenges[i].DescriptionTH != "" {
+				challenges[i].Description = *challenges[i].DescriptionTH
+			}
+			if challenges[i].HintTH != nil && *challenges[i].HintTH != "" {
+				challenges[i].Hint = *challenges[i].HintTH
+			}
+		}
 	}
 
 	progress, err := h.repo.GetProgress(r.Context(), userID)
@@ -75,6 +100,19 @@ func (h *SqlPracticeHandler) GetChallenge(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		helpers.Error(w, http.StatusNotFound, "challenge not found")
 		return
+	}
+
+	lang := h.getLanguage(r.Context(), userID)
+	if lang == "th" {
+		if challenge.TitleTH != nil && *challenge.TitleTH != "" {
+			challenge.Title = *challenge.TitleTH
+		}
+		if challenge.DescriptionTH != nil && *challenge.DescriptionTH != "" {
+			challenge.Description = *challenge.DescriptionTH
+		}
+		if challenge.HintTH != nil && *challenge.HintTH != "" {
+			challenge.Hint = *challenge.HintTH
+		}
 	}
 
 	submissions, err := h.repo.ListSubmissions(r.Context(), userID, challenge.ID, 20)
@@ -666,9 +704,10 @@ func parseSchema(schema string) *models.ChallengeMetadata {
 }
 
 func (h *SqlPracticeHandler) PreviewTable(w http.ResponseWriter, r *http.Request) {
+	userID := helpers.UserIDFromContext(r.Context())
 	slug := r.PathValue("slug")
 	tableName := r.PathValue("tableName")
-	
+
 	if slug == "" || tableName == "" {
 		helpers.Error(w, http.StatusBadRequest, "slug and tableName are required")
 		return
@@ -678,6 +717,19 @@ func (h *SqlPracticeHandler) PreviewTable(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		helpers.Error(w, http.StatusNotFound, "challenge not found")
 		return
+	}
+
+	lang := h.getLanguage(r.Context(), userID)
+	if lang == "th" {
+		if challenge.TitleTH != nil && *challenge.TitleTH != "" {
+			challenge.Title = *challenge.TitleTH
+		}
+		if challenge.DescriptionTH != nil && *challenge.DescriptionTH != "" {
+			challenge.Description = *challenge.DescriptionTH
+		}
+		if challenge.HintTH != nil && *challenge.HintTH != "" {
+			challenge.Hint = *challenge.HintTH
+		}
 	}
 
 	// Simple sandbox execution for preview
@@ -715,6 +767,7 @@ func (h *SqlPracticeHandler) PreviewTable(w http.ResponseWriter, r *http.Request
 
 func (h *SqlPracticeHandler) ListLessons(w http.ResponseWriter, r *http.Request) {
 	userID := helpers.UserIDFromContext(r.Context())
+	lang := h.getLanguage(r.Context(), userID)
 
 	lessons, err := h.repo.ListLessons(r.Context(), userID)
 	if err != nil {
@@ -727,6 +780,22 @@ func (h *SqlPracticeHandler) ListLessons(w http.ResponseWriter, r *http.Request)
 	var moduleIDs []string
 
 	for _, l := range lessons {
+		// Translate lesson if needed
+		if lang == "th" {
+			if l.ModuleTitleTH != nil && *l.ModuleTitleTH != "" {
+				l.ModuleTitle = *l.ModuleTitleTH
+			}
+			if l.TitleTH != nil && *l.TitleTH != "" {
+				l.Title = *l.TitleTH
+			}
+			if l.DescriptionTH != nil && *l.DescriptionTH != "" {
+				l.Description = *l.DescriptionTH
+			}
+			if l.ContentTH != nil && *l.ContentTH != "" {
+				l.Content = *l.ContentTH
+			}
+		}
+
 		if _, ok := modulesMap[l.ModuleID]; !ok {
 			modulesMap[l.ModuleID] = &models.SqlModuleWithLessons{
 				ID:      l.ModuleID,
@@ -754,6 +823,22 @@ func (h *SqlPracticeHandler) GetLesson(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.Error(w, http.StatusNotFound, "lesson not found")
 		return
+	}
+
+	lang := h.getLanguage(r.Context(), userID)
+	if lang == "th" {
+		if lesson.ModuleTitleTH != nil && *lesson.ModuleTitleTH != "" {
+			lesson.ModuleTitle = *lesson.ModuleTitleTH
+		}
+		if lesson.TitleTH != nil && *lesson.TitleTH != "" {
+			lesson.Title = *lesson.TitleTH
+		}
+		if lesson.DescriptionTH != nil && *lesson.DescriptionTH != "" {
+			lesson.Description = *lesson.DescriptionTH
+		}
+		if lesson.ContentTH != nil && *lesson.ContentTH != "" {
+			lesson.Content = *lesson.ContentTH
+		}
 	}
 
 	helpers.JSON(w, http.StatusOK, lesson)
