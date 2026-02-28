@@ -5,6 +5,7 @@ import { Delete } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useTranslation } from "@/providers/language-provider";
 
 interface CalculatorDisplayProps {
   onCalculate: (expression: string, result: string) => Promise<unknown>;
@@ -192,6 +193,7 @@ function formatResult(value: number): string {
 // --- Component ---
 
 export function CalculatorDisplay({ onCalculate }: CalculatorDisplayProps) {
+  const { t } = useTranslation();
   const [display, setDisplay] = useState("0");
   const [previousResult, setPreviousResult] = useState<string | null>(null);
   const [hasResult, setHasResult] = useState(false);
@@ -207,7 +209,7 @@ export function CalculatorDisplay({ onCalculate }: CalculatorDisplayProps) {
       try {
         await onCalculate(display, result);
       } catch {
-        toast.error("Failed to save calculation");
+        toast.error(t("calculator.saveFailed"));
       }
     } catch {
       setDisplay("Error");

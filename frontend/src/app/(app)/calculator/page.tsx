@@ -22,18 +22,20 @@ import {
 import { CalculatorDisplay } from "@/components/calculator-display";
 import { CalculatorSkeleton } from "@/components/skeletons";
 import { useCalculator } from "@/hooks/use-calculator";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 
 export default function CalculatorPage() {
   const { history, loading, error, calculate, deleteEntry, clearHistory, refetch } =
     useCalculator();
+  const { t } = useTranslation();
 
   const handleDelete = async (id: string) => {
     try {
       await deleteEntry(id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete entry"
+        err instanceof Error ? err.message : t("calculator.deleteFailed")
       );
     }
   };
@@ -43,7 +45,7 @@ export default function CalculatorPage() {
       await clearHistory();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to clear history"
+        err instanceof Error ? err.message : t("calculator.clearFailed")
       );
     }
   };
@@ -52,9 +54,9 @@ export default function CalculatorPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Calculator</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("calculator.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Developer-friendly calculator with persistent history.
+            {t("calculator.subtitle")}
           </p>
         </div>
         <CalculatorSkeleton />
@@ -65,9 +67,9 @@ export default function CalculatorPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Calculator</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("calculator.title")}</h2>
         <p className="mt-1 text-muted-foreground">
-          Developer-friendly calculator with persistent history.
+          {t("calculator.subtitle")}
         </p>
       </div>
 
@@ -78,7 +80,7 @@ export default function CalculatorPage() {
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -90,27 +92,26 @@ export default function CalculatorPage() {
           <CardHeader className="flex-row items-center justify-between px-4 py-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <History className="size-4" />
-              History
+              {t("calculator.history")}
             </CardTitle>
             {history.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="sm">
-                    Clear All
+                    {t("calculator.clearAll")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Clear all history?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("calculator.clearTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete all calculation history. This
-                      action cannot be undone.
+                      {t("calculator.clearDesc")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                     <AlertDialogAction onClick={handleClear}>
-                      Clear
+                      {t("calculator.clear")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -122,10 +123,10 @@ export default function CalculatorPage() {
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <CalculatorIcon className="mb-3 size-10 text-muted-foreground/50" />
                 <p className="text-sm text-muted-foreground">
-                  No calculations yet
+                  {t("calculator.empty")}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Your history will appear here.
+                  {t("calculator.emptyDesc")}
                 </p>
               </div>
             ) : (
