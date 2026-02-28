@@ -3,6 +3,7 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   email: string | null;
+  preferred_language: string;
 }
 
 export interface CodeSnippet {

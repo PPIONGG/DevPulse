@@ -20,7 +20,7 @@ export function useProfile() {
   }, []);
 
   const updateProfile = useCallback(
-    async (data: Partial<Pick<Profile, "display_name" | "avatar_url">>) => {
+    async (data: Partial<Pick<Profile, "display_name" | "avatar_url" | "preferred_language">>) => {
       if (!user) return;
       setUpdating(true);
       setError(null);

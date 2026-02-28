@@ -22,9 +22,9 @@ func (r *ProfileRepo) Upsert(ctx context.Context, userID uuid.UUID, email string
 		`INSERT INTO profiles (id, email)
 		 VALUES ($1, $2)
 		 ON CONFLICT (id) DO UPDATE SET email = COALESCE(NULLIF($2, ''), profiles.email)
-		 RETURNING id, display_name, avatar_url, email`,
+		 RETURNING id, display_name, avatar_url, email, preferred_language`,
 		userID, email,
-	).Scan(&p.ID, &p.DisplayName, &p.AvatarURL, &p.Email)
+	).Scan(&p.ID, &p.DisplayName, &p.AvatarURL, &p.Email, &p.PreferredLanguage)
 	if err != nil {
 		return nil, err
 	}
@@ -34,9 +34,9 @@ func (r *ProfileRepo) Upsert(ctx context.Context, userID uuid.UUID, email string
 func (r *ProfileRepo) FindByID(ctx context.Context, userID uuid.UUID) (*models.Profile, error) {
 	var p models.Profile
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, display_name, avatar_url, email FROM profiles WHERE id = $1`,
+		`SELECT id, display_name, avatar_url, email, preferred_language FROM profiles WHERE id = $1`,
 		userID,
-	).Scan(&p.ID, &p.DisplayName, &p.AvatarURL, &p.Email)
+	).Scan(&p.ID, &p.DisplayName, &p.AvatarURL, &p.Email, &p.PreferredLanguage)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +49,12 @@ func (r *ProfileRepo) Update(ctx context.Context, userID uuid.UUID, input models
 		`UPDATE profiles
 		 SET display_name = COALESCE($2, display_name),
 		     avatar_url = COALESCE($3, avatar_url),
+		     preferred_language = COALESCE($4, preferred_language),
 		     updated_at = now()
 		 WHERE id = $1
-		 RETURNING id, display_name, avatar_url, email`,
-		userID, input.DisplayName, input.AvatarURL,
-	).Scan(&p.ID, &p.DisplayName, &p.AvatarURL, &p.Email)
+		 RETURNING id, display_name, avatar_url, email, preferred_language`,
+		userID, input.DisplayName, input.AvatarURL, input.PreferredLanguage,
+	).Scan(&p.ID, &p.DisplayName, &p.AvatarURL, &p.Email, &p.PreferredLanguage)
 	if err != nil {
 		return nil, err
 	}

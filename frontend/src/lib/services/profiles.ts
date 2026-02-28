@@ -6,7 +6,7 @@ export async function getProfile(): Promise<Profile | null> {
 }
 
 export async function updateProfile(
-  data: Partial<Pick<Profile, "display_name" | "avatar_url">>
+  data: Partial<Pick<Profile, "display_name" | "avatar_url" | "preferred_language">>
 ): Promise<void> {
   await api.put("/api/profile", data);
 }
