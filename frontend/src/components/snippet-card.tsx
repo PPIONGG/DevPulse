@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CodeBlock } from "@/components/code-block";
+import { useTranslation } from "@/providers/language-provider";
 import type { CodeSnippet } from "@/lib/types/database";
 
 interface SnippetCardProps {
@@ -40,6 +41,7 @@ export function SnippetCard({
   onToggleFavorite,
   onCopy,
 }: SnippetCardProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -60,13 +62,13 @@ export function SnippetCard({
             {!readOnly && snippet.copied_from && (
               <Badge variant="outline" className="shrink-0 gap-1 text-xs text-muted-foreground">
                 <CopyPlus className="size-3" />
-                Copied
+                {t("common.copied")}
               </Badge>
             )}
           </div>
           {readOnly && snippet.owner_name && (
             <p className="truncate text-xs text-muted-foreground">
-              by {snippet.owner_name}
+              {t("snippets.by")} {snippet.owner_name}
             </p>
           )}
         </div>
@@ -95,7 +97,7 @@ export function SnippetCard({
               size="icon"
               className="size-8"
               onClick={() => onCopy(snippet)}
-              title="Copy to My Snippets"
+              title={t("snippets.copyToMine")}
             >
               <CopyPlus className="size-4" />
             </Button>
@@ -110,18 +112,18 @@ export function SnippetCard({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onToggleFavorite?.(snippet)}>
                   <Star className="mr-2 size-4" />
-                  {snippet.is_favorite ? "Unfavorite" : "Favorite"}
+                  {snippet.is_favorite ? t("common.unfavorite") : t("common.favorite")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit?.(snippet)}>
                   <Pencil className="mr-2 size-4" />
-                  Edit
+                  {t("common.edit")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={() => onDelete?.(snippet)}
                 >
                   <Trash2 className="mr-2 size-4" />
-                  Delete
+                  {t("common.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

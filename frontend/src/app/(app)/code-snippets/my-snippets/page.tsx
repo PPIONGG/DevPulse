@@ -25,6 +25,7 @@ import { SnippetCard } from "@/components/snippet-card";
 import { SnippetForm } from "@/components/snippet-form";
 import { SnippetCardSkeleton } from "@/components/skeletons";
 import { useSnippets } from "@/hooks/use-snippets";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import { languages } from "@/config/languages";
 import type { CodeSnippet, CodeSnippetInput } from "@/lib/types/database";
@@ -44,6 +45,7 @@ export default function MySnippetsPage() {
     toggleFavorite,
     refetch,
   } = useSnippets();
+  const { t } = useTranslation();
 
   const [search, setSearch] = useState("");
   const [language, setLanguage] = useState("all");
@@ -103,7 +105,7 @@ export default function MySnippetsPage() {
     try {
       await deleteSnippet(deletingSnippet.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete snippet");
+      toast.error(err instanceof Error ? err.message : t("snippets.deleteFailed"));
     } finally {
       setDeletingSnippet(null);
     }
@@ -118,14 +120,14 @@ export default function MySnippetsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">My Snippets</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("snippets.myTitle")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Your personal collection of code snippets.
+            {t("snippets.mySubtitle")}
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 size-4" />
-          New Snippet
+          {t("snippets.new")}
         </Button>
       </div>
 
@@ -133,7 +135,7 @@ export default function MySnippetsPage() {
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search snippets..."
+            placeholder={t("snippets.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -141,10 +143,10 @@ export default function MySnippetsPage() {
         </div>
         <Select value={language} onValueChange={setLanguage}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Languages" />
+            <SelectValue placeholder={t("snippets.allLanguages")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Languages</SelectItem>
+            <SelectItem value="all">{t("snippets.allLanguages")}</SelectItem>
             {availableLanguages.map((lang) => (
               <SelectItem key={lang} value={lang}>
                 {languageLabelMap[lang] ?? lang}
@@ -158,7 +160,7 @@ export default function MySnippetsPage() {
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <p>{error}</p>
           <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -173,17 +175,17 @@ export default function MySnippetsPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Code2 className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {hasFilters ? "No matching snippets" : "No snippets yet"}
+            {hasFilters ? t("snippets.noMatch") : t("snippets.empty")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFilters
-              ? "Try a different search term or language."
-              : "Create your first snippet to get started."}
+              ? t("snippets.noMatchDesc")
+              : t("snippets.emptyDesc")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" onClick={() => setFormOpen(true)}>
               <Plus className="mr-2 size-4" />
-              New Snippet
+              {t("snippets.new")}
             </Button>
           )}
         </div>
@@ -214,15 +216,14 @@ export default function MySnippetsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete snippet?</AlertDialogTitle>
+            <AlertDialogTitle>{t("snippets.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingSnippet?.title}&quot;.
-              This action cannot be undone.
+              {t("snippets.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

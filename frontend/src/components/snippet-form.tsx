@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { languages } from "@/config/languages";
+import { useTranslation } from "@/providers/language-provider";
 import type { CodeSnippet, CodeSnippetInput } from "@/lib/types/database";
 
 interface SnippetFormProps {
@@ -48,6 +49,7 @@ export function SnippetForm({
   snippet,
   onSubmit,
 }: SnippetFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!snippet;
   const initial: CodeSnippetInput = snippet
     ? {
@@ -138,7 +140,7 @@ export function SnippetForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save snippet");
+      setError(err instanceof Error ? err.message : t("snippets.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -149,7 +151,7 @@ export function SnippetForm({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Snippet" : "New Snippet"}
+            {isEditing ? t("snippets.editTitle") : t("snippets.newTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -160,10 +162,10 @@ export function SnippetForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("snippets.formTitle")}</Label>
             <Input
               id="title"
-              placeholder="Snippet title"
+              placeholder={t("snippets.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -173,7 +175,7 @@ export function SnippetForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="language">Language</Label>
+            <Label htmlFor="language">{t("snippets.formLanguage")}</Label>
             <Select
               value={form.language}
               onValueChange={(value) =>
@@ -194,10 +196,10 @@ export function SnippetForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="code">Code</Label>
+            <Label htmlFor="code">{t("snippets.formCode")}</Label>
             <Textarea
               id="code"
-              placeholder="Paste your code here..."
+              placeholder={t("snippets.formCodePlaceholder")}
               className="min-h-[200px] font-mono text-sm"
               value={form.code}
               onChange={(e) =>
@@ -208,10 +210,10 @@ export function SnippetForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("snippets.formDescription")}</Label>
             <Textarea
               id="description"
-              placeholder="Optional description"
+              placeholder={t("snippets.formDescPlaceholder")}
               className="min-h-[80px]"
               value={form.description}
               onChange={(e) =>
@@ -221,17 +223,17 @@ export function SnippetForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags">{t("snippets.formTags")}</Label>
             <div className="flex gap-2">
               <Input
                 id="tags"
-                placeholder="Type a tag and press Enter"
+                placeholder={t("snippets.formTagsPlaceholder")}
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
               />
               <Button type="button" variant="outline" onClick={addTag}>
-                Add
+                {t("common.add")}
               </Button>
             </div>
             {form.tags.length > 0 && (
@@ -266,9 +268,9 @@ export function SnippetForm({
                 }
               />
               <Label htmlFor="is_public" className="font-normal">
-                Public (visible to others)
+                {t("snippets.formPublic")}
                 {snippet?.copied_from && (
-                  <span className="ml-1 text-xs text-muted-foreground">(Copied snippet)</span>
+                  <span className="ml-1 text-xs text-muted-foreground">{t("snippets.formCopied")}</span>
                 )}
               </Label>
             </div>
@@ -284,7 +286,7 @@ export function SnippetForm({
                 }
               />
               <Label htmlFor="is_favorite" className="font-normal">
-                Favorite
+                {t("snippets.formFavorite")}
               </Label>
             </div>
           </div>
@@ -295,10 +297,10 @@ export function SnippetForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>
