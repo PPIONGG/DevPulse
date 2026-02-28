@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/providers/language-provider";
 import type { KanbanBoard, KanbanBoardInput } from "@/lib/types/database";
 
 interface KanbanBoardFormProps {
@@ -34,6 +35,7 @@ export function KanbanBoardForm({
   onSubmit,
 }: KanbanBoardFormProps) {
   const isEditing = !!board;
+  const { t } = useTranslation();
   const [form, setForm] = useState<KanbanBoardInput>(defaultValues);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export function KanbanBoardForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save board");
+      setError(err instanceof Error ? err.message : t("kanban.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -73,7 +75,7 @@ export function KanbanBoardForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Board" : "New Board"}
+            {isEditing ? t("kanban.editTitle") : t("kanban.newTitle")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,10 +85,10 @@ export function KanbanBoardForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="board-title">Title</Label>
+            <Label htmlFor="board-title">{t("kanban.formTitle")}</Label>
             <Input
               id="board-title"
-              placeholder="Project board name"
+              placeholder={t("kanban.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -95,10 +97,10 @@ export function KanbanBoardForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="board-desc">Description</Label>
+            <Label htmlFor="board-desc">{t("kanban.formDescription")}</Label>
             <Textarea
               id="board-desc"
-              placeholder="Optional description"
+              placeholder={t("kanban.formDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -112,10 +114,10 @@ export function KanbanBoardForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

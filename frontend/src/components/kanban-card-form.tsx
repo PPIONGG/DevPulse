@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cardPriorities } from "@/config/kanban-config";
+import { useTranslation } from "@/providers/language-provider";
 import type { KanbanCard, KanbanCardInput } from "@/lib/types/database";
 
 interface KanbanCardFormProps {
@@ -46,6 +47,7 @@ export function KanbanCardForm({
   onSubmit,
 }: KanbanCardFormProps) {
   const isEditing = !!card;
+  const { t } = useTranslation();
   const [form, setForm] = useState<KanbanCardInput>(defaultValues);
   const [labelInput, setLabelInput] = useState("");
   const [saving, setSaving] = useState(false);
@@ -100,7 +102,7 @@ export function KanbanCardForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save card");
+      setError(err instanceof Error ? err.message : t("kanban.saveCardFailed"));
     } finally {
       setSaving(false);
     }
@@ -111,7 +113,7 @@ export function KanbanCardForm({
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Card" : "New Card"}
+            {isEditing ? t("kanban.editCardTitle") : t("kanban.newCardTitle")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,10 +123,10 @@ export function KanbanCardForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="card-title">Title</Label>
+            <Label htmlFor="card-title">{t("kanban.formCardTitle")}</Label>
             <Input
               id="card-title"
-              placeholder="Card title"
+              placeholder={t("kanban.formCardTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -133,10 +135,10 @@ export function KanbanCardForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="card-desc">Description</Label>
+            <Label htmlFor="card-desc">{t("kanban.formCardDescription")}</Label>
             <Textarea
               id="card-desc"
-              placeholder="Optional description"
+              placeholder={t("kanban.formCardDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -146,7 +148,7 @@ export function KanbanCardForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="card-priority">Priority</Label>
+              <Label htmlFor="card-priority">{t("kanban.formCardPriority")}</Label>
               <Select
                 value={form.priority}
                 onValueChange={(value) =>
@@ -169,7 +171,7 @@ export function KanbanCardForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="card-due">Due Date</Label>
+              <Label htmlFor="card-due">{t("kanban.formCardDueDate")}</Label>
               <Input
                 id="card-due"
                 type="date"
@@ -184,17 +186,17 @@ export function KanbanCardForm({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="card-labels">Labels</Label>
+            <Label htmlFor="card-labels">{t("kanban.formCardLabels")}</Label>
             <div className="flex gap-2">
               <Input
                 id="card-labels"
-                placeholder="Type a label and press Enter"
+                placeholder={t("kanban.formCardLabelsPlaceholder")}
                 value={labelInput}
                 onChange={(e) => setLabelInput(e.target.value)}
                 onKeyDown={handleLabelKeyDown}
               />
               <Button type="button" variant="outline" onClick={addLabel}>
-                Add
+                {t("common.add")}
               </Button>
             </div>
             {form.labels.length > 0 && (
@@ -220,10 +222,10 @@ export function KanbanCardForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

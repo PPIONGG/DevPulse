@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/providers/language-provider";
 import type { KanbanBoard } from "@/lib/types/database";
 
 interface KanbanBoardCardProps {
@@ -31,6 +32,8 @@ export function KanbanBoardCard({
   onDelete,
   onToggleFavorite,
 }: KanbanBoardCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Card
       className="cursor-pointer gap-0 py-0 transition-colors hover:border-primary/50 hover:shadow-md"
@@ -62,7 +65,7 @@ export function KanbanBoardCard({
               }}
             >
               <Star className="mr-2 size-4" />
-              {board.is_favorite ? "Unfavorite" : "Favorite"}
+              {board.is_favorite ? t("common.unfavorite") : t("common.favorite")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={(e) => {
@@ -71,7 +74,7 @@ export function KanbanBoardCard({
               }}
             >
               <Pencil className="mr-2 size-4" />
-              Edit
+              {t("common.edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
@@ -81,7 +84,7 @@ export function KanbanBoardCard({
               }}
             >
               <Trash2 className="mr-2 size-4" />
-              Delete
+              {t("common.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

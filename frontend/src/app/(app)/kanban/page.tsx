@@ -26,6 +26,7 @@ import { KanbanBoardForm } from "@/components/kanban-board-form";
 import { KanbanBoardView } from "@/components/kanban-board-view";
 import { KanbanBoardCardSkeleton } from "@/components/skeletons";
 import { useKanban } from "@/hooks/use-kanban";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type { KanbanBoard, KanbanBoardInput } from "@/lib/types/database";
 
@@ -50,6 +51,7 @@ export default function KanbanPage() {
     moveCards,
     refetch,
   } = useKanban();
+  const { t } = useTranslation();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -96,7 +98,7 @@ export default function KanbanPage() {
       await deleteBoard(deletingBoard.id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete board"
+        err instanceof Error ? err.message : t("kanban.deleteFailed")
       );
     } finally {
       setDeletingBoard(null);
@@ -151,14 +153,14 @@ export default function KanbanPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Kanban</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("kanban.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Manage your projects with boards.
+            {t("kanban.subtitle")}
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 size-4" />
-          New Board
+          {t("kanban.new")}
         </Button>
       </div>
 
@@ -166,7 +168,7 @@ export default function KanbanPage() {
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search boards..."
+            placeholder={t("kanban.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -174,11 +176,11 @@ export default function KanbanPage() {
         </div>
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Boards" />
+            <SelectValue placeholder={t("kanban.allBoards")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Boards</SelectItem>
-            <SelectItem value="favorites">Favorites</SelectItem>
+            <SelectItem value="all">{t("kanban.allBoards")}</SelectItem>
+            <SelectItem value="favorites">{t("kanban.favorites")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -190,7 +192,7 @@ export default function KanbanPage() {
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -205,17 +207,17 @@ export default function KanbanPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Kanban className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {hasFilters ? "No matching boards" : "No boards yet"}
+            {hasFilters ? t("kanban.noMatch") : t("kanban.empty")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFilters
-              ? "Try a different search term or filter."
-              : "Create your first kanban board to get started."}
+              ? t("kanban.noMatchDesc")
+              : t("kanban.emptyDesc")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" onClick={() => setFormOpen(true)}>
               <Plus className="mr-2 size-4" />
-              New Board
+              {t("kanban.new")}
             </Button>
           )}
         </div>
@@ -247,15 +249,14 @@ export default function KanbanPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete board?</AlertDialogTitle>
+            <AlertDialogTitle>{t("kanban.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingBoard?.title}&quot; and
-              all its columns and cards. This action cannot be undone.
+              {t("kanban.deleteDescPrefix")} {deletingBoard?.title} {t("kanban.deleteDescSuffix")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { KanbanCardForm } from "@/components/kanban-card-form";
 import { getPriorityConfig, columnColors } from "@/config/kanban-config";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type {
   KanbanBoardFull,
@@ -68,6 +69,7 @@ function SortableCard({
   onEdit: (card: KanbanCard) => void;
   onDelete: (card: KanbanCard) => void;
 }) {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -126,14 +128,14 @@ function SortableCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(card)}>
                 <Pencil className="mr-2 size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onDelete(card)}
               >
                 <Trash2 className="mr-2 size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -182,6 +184,7 @@ export function KanbanBoardView({
   onDeleteCard,
   onMoveCards,
 }: KanbanBoardViewProps) {
+  const { t } = useTranslation();
   const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
   const [addingColumnTitle, setAddingColumnTitle] = useState("");
   const [showAddColumn, setShowAddColumn] = useState(false);
@@ -301,7 +304,7 @@ export function KanbanBoardView({
       setAddingColumnTitle("");
       setShowAddColumn(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create column");
+      toast.error(err instanceof Error ? err.message : t("kanban.createColumnFailed"));
     }
   };
 
@@ -318,7 +321,7 @@ export function KanbanBoardView({
       setAddingCardTitle("");
       setAddingCardColId(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create card");
+      toast.error(err instanceof Error ? err.message : t("kanban.createCardFailed"));
     }
   };
 
@@ -342,7 +345,7 @@ export function KanbanBoardView({
     try {
       await onDeleteCard(deletingCard.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete card");
+      toast.error(err instanceof Error ? err.message : t("kanban.deleteCardFailed"));
     } finally {
       setDeletingCard(null);
     }
@@ -353,7 +356,7 @@ export function KanbanBoardView({
     try {
       await onDeleteColumn(deletingColId);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete column");
+      toast.error(err instanceof Error ? err.message : t("kanban.deleteColumnFailed"));
     } finally {
       setDeletingColId(null);
     }
@@ -400,7 +403,7 @@ export function KanbanBoardView({
                       }}
                     >
                       <Plus className="mr-2 size-4" />
-                      Add Card
+                      {t("kanban.addCard")}
                     </DropdownMenuItem>
                     {columnColors.map((cc) => (
                       <DropdownMenuItem
@@ -424,7 +427,7 @@ export function KanbanBoardView({
                       onClick={() => setDeletingColId(col.id)}
                     >
                       <Trash2 className="mr-2 size-4" />
-                      Delete Column
+                      {t("kanban.deleteColumn")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -452,7 +455,7 @@ export function KanbanBoardView({
                 <div className="mt-2 flex gap-1">
                   <Input
                     autoFocus
-                    placeholder="Card title"
+                    placeholder={t("kanban.cardTitlePlaceholder")}
                     value={addingCardTitle}
                     onChange={(e) => setAddingCardTitle(e.target.value)}
                     onKeyDown={(e) => {
@@ -469,7 +472,7 @@ export function KanbanBoardView({
                     className="h-8 shrink-0"
                     onClick={() => handleQuickAddCard(col.id)}
                   >
-                    Add
+                    {t("common.add")}
                   </Button>
                 </div>
               ) : (
@@ -480,7 +483,7 @@ export function KanbanBoardView({
                   onClick={() => setAddingCardColId(col.id)}
                 >
                   <Plus className="mr-1 size-3" />
-                  Add card
+                  {t("kanban.addCardBtn")}
                 </Button>
               )}
             </div>
@@ -492,7 +495,7 @@ export function KanbanBoardView({
               <div className="rounded-lg border bg-muted/30 p-2">
                 <Input
                   autoFocus
-                  placeholder="Column title"
+                  placeholder={t("kanban.columnTitlePlaceholder")}
                   value={addingColumnTitle}
                   onChange={(e) => setAddingColumnTitle(e.target.value)}
                   onKeyDown={(e) => {
@@ -506,7 +509,7 @@ export function KanbanBoardView({
                 />
                 <div className="flex gap-1">
                   <Button size="sm" className="h-8" onClick={handleAddColumn}>
-                    Add
+                    {t("common.add")}
                   </Button>
                   <Button
                     size="sm"
@@ -517,7 +520,7 @@ export function KanbanBoardView({
                       setAddingColumnTitle("");
                     }}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 </div>
               </div>
@@ -528,7 +531,7 @@ export function KanbanBoardView({
                 onClick={() => setShowAddColumn(true)}
               >
                 <Plus className="mr-2 size-4" />
-                Add Column
+                {t("kanban.addColumn")}
               </Button>
             )}
           </div>
@@ -558,15 +561,15 @@ export function KanbanBoardView({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete card?</AlertDialogTitle>
+            <AlertDialogTitle>{t("kanban.deleteCardTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingCard?.title}&quot;.
+              {t("kanban.deleteCardDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteCard}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -578,15 +581,15 @@ export function KanbanBoardView({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete column?</AlertDialogTitle>
+            <AlertDialogTitle>{t("kanban.deleteColumnTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this column and all its cards.
+              {t("kanban.deleteColumnDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteColumn}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
