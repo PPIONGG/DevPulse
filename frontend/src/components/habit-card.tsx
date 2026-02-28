@@ -17,6 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import type { HabitWithStats } from "@/lib/types/database";
 
 interface HabitCardProps {
@@ -45,10 +47,10 @@ function getLast30Days(): string[] {
   return days;
 }
 
-const frequencyLabels: Record<string, string> = {
-  daily: "Daily",
-  weekdays: "Weekdays",
-  weekly: "Weekly",
+const frequencyKeys: Record<string, TranslationKey> = {
+  daily: "habits.daily",
+  weekdays: "habits.weekdays",
+  weekly: "habits.weekly",
 };
 
 export function HabitCard({
@@ -58,6 +60,7 @@ export function HabitCard({
   onArchive,
   onToggle,
 }: HabitCardProps) {
+  const { t } = useTranslation();
   const today = todayStr();
   const isCompletedToday = habit.completions.some(
     (c) => c.completed_date === today
@@ -89,7 +92,7 @@ export function HabitCard({
                 {habit.title}
               </CardTitle>
               <Badge variant="outline" className="shrink-0 text-xs">
-                {frequencyLabels[habit.frequency] ?? habit.frequency}
+                {frequencyKeys[habit.frequency] ? t(frequencyKeys[habit.frequency]) : habit.frequency}
               </Badge>
             </div>
             {habit.description && (
@@ -100,7 +103,7 @@ export function HabitCard({
             <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Flame className="size-3" style={{ color: habit.color }} />
-                {habit.currentStreak} day streak
+                {habit.currentStreak} {t("habits.dayStreak")}
               </span>
               <span>{habit.completionRate}% (30d)</span>
             </div>
@@ -115,18 +118,18 @@ export function HabitCard({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(habit)}>
               <Pencil className="mr-2 size-4" />
-              Edit
+              {t("common.edit")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onArchive(habit)}>
               {habit.is_archived ? (
                 <>
                   <ArchiveRestore className="mr-2 size-4" />
-                  Unarchive
+                  {t("habits.unarchive")}
                 </>
               ) : (
                 <>
                   <Archive className="mr-2 size-4" />
-                  Archive
+                  {t("habits.archive")}
                 </>
               )}
             </DropdownMenuItem>
@@ -135,7 +138,7 @@ export function HabitCard({
               onClick={() => onDelete(habit)}
             >
               <Trash2 className="mr-2 size-4" />
-              Delete
+              {t("common.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

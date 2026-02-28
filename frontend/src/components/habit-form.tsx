@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { habitColors } from "@/config/habit-colors";
+import { useTranslation } from "@/providers/language-provider";
 import type { Habit, HabitInput } from "@/lib/types/database";
 
 interface HabitFormProps {
@@ -43,6 +44,7 @@ export function HabitForm({
   habit,
   onSubmit,
 }: HabitFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!habit;
   const initial: HabitInput = habit
     ? {
@@ -84,7 +86,7 @@ export function HabitForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save habit");
+      setError(err instanceof Error ? err.message : t("habits.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -95,7 +97,7 @@ export function HabitForm({
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Habit" : "New Habit"}
+            {isEditing ? t("habits.editTitle") : t("habits.newTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -107,10 +109,10 @@ export function HabitForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("habits.formTitle")}</Label>
             <Input
               id="title"
-              placeholder="e.g. Exercise, Read 30 min"
+              placeholder={t("habits.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -120,10 +122,10 @@ export function HabitForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("habits.formDescription")}</Label>
             <Textarea
               id="description"
-              placeholder="Optional description"
+              placeholder={t("habits.formDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -133,7 +135,7 @@ export function HabitForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Color</Label>
+            <Label>{t("habits.formColor")}</Label>
             <div className="flex gap-2">
               {habitColors.map((c) => (
                 <button
@@ -155,7 +157,7 @@ export function HabitForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="frequency">Frequency</Label>
+            <Label htmlFor="frequency">{t("habits.formFrequency")}</Label>
             <Select
               value={form.frequency}
               onValueChange={(value) =>
@@ -169,16 +171,16 @@ export function HabitForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekdays">Weekdays (Mon-Fri)</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="daily">{t("habits.daily")}</SelectItem>
+                <SelectItem value="weekdays">{t("habits.weekdays")}</SelectItem>
+                <SelectItem value="weekly">{t("habits.weekly")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {form.frequency === "weekly" && (
             <div className="space-y-2">
-              <Label htmlFor="target_days">Target days per week</Label>
+              <Label htmlFor="target_days">{t("habits.formTargetDays")}</Label>
               <Input
                 id="target_days"
                 type="number"
@@ -204,10 +206,10 @@ export function HabitForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>
