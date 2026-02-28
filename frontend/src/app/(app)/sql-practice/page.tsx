@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import { ChallengeCard } from "@/components/challenge-card";
+import { SqlPracticeStats } from "@/components/sql-practice-stats";
 import { ChallengeCardSkeleton } from "@/components/skeletons";
 import { useSqlPractice } from "@/hooks/use-sql-practice";
 import { challengeDifficulties, challengeCategories } from "@/config/sql-practice";
@@ -35,11 +34,6 @@ export default function SqlPracticePage() {
     refetch,
   } = useSqlPractice();
 
-  const progressPercent = useMemo(() => {
-    if (!stats || stats.total_challenges === 0) return 0;
-    return Math.round((stats.solved / stats.total_challenges) * 100);
-  }, [stats]);
-
   const handleCardClick = (slug: string) => {
     router.push(`/sql-practice/${slug}`);
   };
@@ -53,28 +47,7 @@ export default function SqlPracticePage() {
         </p>
       </div>
 
-      {stats && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">
-              {stats.solved} / {stats.total_challenges} solved
-            </span>
-            <span className="text-muted-foreground">{progressPercent}%</span>
-          </div>
-          <Progress value={progressPercent} className="h-2" />
-          <div className="flex gap-4 text-xs text-muted-foreground">
-            <span>
-              Easy: {stats.easy_solved}/{stats.easy_total}
-            </span>
-            <span>
-              Medium: {stats.medium_solved}/{stats.medium_total}
-            </span>
-            <span>
-              Hard: {stats.hard_solved}/{stats.hard_total}
-            </span>
-          </div>
-        </div>
-      )}
+      <SqlPracticeStats stats={stats} />
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px]">

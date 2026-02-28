@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getDifficultyConfig, getCategoryConfig } from "@/config/sql-practice";
@@ -47,6 +47,12 @@ export function ChallengeCard({ challenge, index, onClick }: ChallengeCardProps)
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
               {category.label}
             </Badge>
+            {isSolved && challenge.progress?.best_time_ms != null && (
+              <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                <Clock className="size-2.5" />
+                {challenge.progress.best_time_ms}ms
+              </span>
+            )}
             {challenge.progress && challenge.progress.attempts > 0 && (
               <span className="text-[10px] text-muted-foreground">
                 {challenge.progress.attempts} attempt{challenge.progress.attempts !== 1 ? "s" : ""}

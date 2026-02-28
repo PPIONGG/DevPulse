@@ -700,6 +700,12 @@ export interface SqlSubmitResult {
   error_message: string;
 }
 
+export interface SqlPracticeCategoryStats {
+  category: string;
+  total: number;
+  solved: number;
+}
+
 export interface SqlPracticeStats {
   total_challenges: number;
   solved: number;
@@ -709,10 +715,16 @@ export interface SqlPracticeStats {
   medium_solved: number;
   hard_total: number;
   hard_solved: number;
+  categories: SqlPracticeCategoryStats[];
+  practice_streak: number;
+  total_submissions: number;
 }
 
 export interface SqlChallengeDetail {
   challenge: SqlChallenge;
   submissions: SqlSubmission[];
   progress: SqlChallengeProgress | null;
+  prev_slug: string;
+  next_slug: string;
+  solution_sql: string | null;
 }

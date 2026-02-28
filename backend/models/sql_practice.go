@@ -56,13 +56,22 @@ type SqlSubmitResult struct {
 	ErrorMessage    string       `json:"error_message"`
 }
 
+type SqlPracticeCategoryStats struct {
+	Category string `json:"category"`
+	Total    int    `json:"total"`
+	Solved   int    `json:"solved"`
+}
+
 type SqlPracticeStats struct {
-	TotalChallenges int `json:"total_challenges"`
-	Solved          int `json:"solved"`
-	EasyTotal       int `json:"easy_total"`
-	EasySolved      int `json:"easy_solved"`
-	MediumTotal     int `json:"medium_total"`
-	MediumSolved    int `json:"medium_solved"`
-	HardTotal       int `json:"hard_total"`
-	HardSolved      int `json:"hard_solved"`
+	TotalChallenges  int                        `json:"total_challenges"`
+	Solved           int                        `json:"solved"`
+	EasyTotal        int                        `json:"easy_total"`
+	EasySolved       int                        `json:"easy_solved"`
+	MediumTotal      int                        `json:"medium_total"`
+	MediumSolved     int                        `json:"medium_solved"`
+	HardTotal        int                        `json:"hard_total"`
+	HardSolved       int                        `json:"hard_solved"`
+	Categories       []SqlPracticeCategoryStats `json:"categories"`
+	PracticeStreak   int                        `json:"practice_streak"`
+	TotalSubmissions int                        `json:"total_submissions"`
 }

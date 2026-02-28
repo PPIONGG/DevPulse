@@ -1,29 +1,46 @@
 "use client";
 
-import { useRef, useCallback } from "react";
-import { Play, Loader2 } from "lucide-react";
+import { useRef, useCallback, useEffect } from "react";
+import { Play, Send, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ChallengeEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onRun: () => void;
   onSubmit: () => void;
+  onReset?: () => void;
+  running: boolean;
   submitting: boolean;
 }
 
 export function ChallengeEditor({
   value,
   onChange,
+  onRun,
   onSubmit,
+  onReset,
+  running,
   submitting,
 }: ChallengeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const busy = running || submitting;
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Enter") {
+        e.preventDefault();
+        if (!busy) onSubmit();
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        if (!submitting) onSubmit();
+        if (!busy) onRun();
+        return;
       }
       // Tab indentation
       if (e.key === "Tab") {
@@ -38,31 +55,67 @@ export function ChallengeEditor({
         });
       }
     },
-    [value, onChange, onSubmit, submitting]
+    [value, onChange, onRun, onSubmit, busy]
   );
+
+  const isMac = typeof navigator !== "undefined" && navigator.userAgent.includes("Mac");
+  const modKey = isMac ? "\u2318" : "Ctrl";
 
   return (
     <div className="flex flex-col rounded-lg border bg-background">
       <div className="flex items-center justify-between border-b px-3 py-2">
         <span className="text-xs font-medium text-muted-foreground">SQL Editor</span>
-        <Button
-          size="sm"
-          onClick={onSubmit}
-          disabled={submitting || !value.trim()}
-          className="h-7 gap-1.5 text-xs"
-        >
-          {submitting ? (
-            <Loader2 className="size-3 animate-spin" />
-          ) : (
-            <Play className="size-3" />
+        <div className="flex items-center gap-1.5">
+          {onReset && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onReset}
+              disabled={busy || !value.trim()}
+              className="h-7 gap-1 text-xs text-muted-foreground"
+            >
+              <RotateCcw className="size-3" />
+              Reset
+            </Button>
           )}
-          {submitting ? "Running..." : "Submit"}
-          {!submitting && (
-            <kbd className="ml-1 rounded bg-primary-foreground/20 px-1 py-0.5 text-[10px]">
-              {navigator.userAgent.includes("Mac") ? "\u2318" : "Ctrl"}+\u21B5
-            </kbd>
-          )}
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRun}
+            disabled={busy || !value.trim()}
+            className="h-7 gap-1.5 text-xs"
+          >
+            {running ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <Play className="size-3" />
+            )}
+            {running ? "Running..." : "Run"}
+            {!busy && (
+              <kbd className="ml-0.5 rounded bg-muted px-1 py-0.5 text-[10px]">
+                {modKey}+↵
+              </kbd>
+            )}
+          </Button>
+          <Button
+            size="sm"
+            onClick={onSubmit}
+            disabled={busy || !value.trim()}
+            className="h-7 gap-1.5 text-xs"
+          >
+            {submitting ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <Send className="size-3" />
+            )}
+            {submitting ? "Submitting..." : "Submit"}
+            {!busy && (
+              <kbd className="ml-0.5 rounded bg-primary-foreground/20 px-1 py-0.5 text-[10px]">
+                {modKey}+⇧+↵
+              </kbd>
+            )}
+          </Button>
+        </div>
       </div>
       <textarea
         ref={textareaRef}

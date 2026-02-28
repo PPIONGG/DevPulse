@@ -6,6 +6,7 @@ import {
   getChallenges,
   getChallenge as getChallengeService,
   submitAnswer as submitAnswerService,
+  runQuery as runQueryService,
   getStats as getStatsService,
 } from "@/lib/services/sql-practice";
 import { useAuth } from "@/providers/auth-provider";
@@ -108,7 +109,9 @@ export function useSqlChallenge(slug: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [running, setRunning] = useState(false);
   const [result, setResult] = useState<SqlSubmitResult | null>(null);
+  const [resultIsPreview, setResultIsPreview] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -149,6 +152,7 @@ export function useSqlChallenge(slug: string) {
       try {
         setSubmitting(true);
         setResult(null);
+        setResultIsPreview(false);
         const res = await submitAnswerService({
           challenge_id: data.challenge.id,
           query,
@@ -157,7 +161,6 @@ export function useSqlChallenge(slug: string) {
           setResult(res);
           if (res.status === "correct") {
             toast.success("Correct answer!");
-            // Refetch to update submissions and progress
             fetchChallenge();
           }
         }
@@ -173,15 +176,47 @@ export function useSqlChallenge(slug: string) {
     [data, user, fetchChallenge]
   );
 
+  const run = useCallback(
+    async (query: string) => {
+      if (!data || !user) return;
+      try {
+        setRunning(true);
+        setResult(null);
+        setResultIsPreview(true);
+        const res = await runQueryService({
+          challenge_id: data.challenge.id,
+          query,
+        });
+        if (mountedRef.current) {
+          setResult(res);
+        }
+        return res;
+      } catch (err) {
+        if (mountedRef.current) {
+          toast.error(err instanceof Error ? err.message : "Failed to run query");
+        }
+      } finally {
+        if (mountedRef.current) setRunning(false);
+      }
+    },
+    [data, user]
+  );
+
   return {
     challenge: data?.challenge ?? null,
     submissions: data?.submissions ?? [],
     progress: data?.progress ?? null,
+    prevSlug: data?.prev_slug ?? "",
+    nextSlug: data?.next_slug ?? "",
+    solutionSql: data?.solution_sql ?? null,
     loading,
     error,
     submitting,
+    running,
     result,
+    resultIsPreview,
     submit,
+    run,
     refetch: fetchChallenge,
   };
 }

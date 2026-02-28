@@ -20,6 +20,10 @@ export async function submitAnswer(req: SqlSubmitRequest): Promise<SqlSubmitResu
   return api.post<SqlSubmitResult>("/api/sql-practice/submit", req, 65_000);
 }
 
+export async function runQuery(req: SqlSubmitRequest): Promise<SqlSubmitResult> {
+  return api.post<SqlSubmitResult>("/api/sql-practice/run", req, 65_000);
+}
+
 export async function getStats(): Promise<SqlPracticeStats> {
   return api.get<SqlPracticeStats>("/api/sql-practice/stats");
 }

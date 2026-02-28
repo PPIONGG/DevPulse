@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, useEffect, useRef, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -11,15 +11,21 @@ import {
   Lightbulb,
   Clock,
   CheckCircle2,
+  Code2,
+  RotateCcw,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChallengeEditor } from "@/components/challenge-editor";
 import { ChallengeResult } from "@/components/challenge-result";
+import { CodeBlock } from "@/components/code-block";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSqlChallenge } from "@/hooks/use-sql-practice";
 import { getDifficultyConfig, getCategoryConfig, getStatusConfig } from "@/config/sql-practice";
+
+const DRAFT_KEY = (slug: string) => `sql-draft-${slug}`;
 
 export default function ChallengeDetailPage({
   params,
@@ -32,21 +38,72 @@ export default function ChallengeDetailPage({
     challenge,
     submissions,
     progress,
+    prevSlug,
+    nextSlug,
+    solutionSql,
     loading,
     error,
     submitting,
+    running,
     result,
+    resultIsPreview,
     submit,
+    run,
     refetch,
   } = useSqlChallenge(slug);
 
   const [query, setQuery] = useState("");
   const [showHint, setShowHint] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializedRef = useRef(false);
 
-  const handleSubmit = () => {
-    submit(query);
-  };
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    if (!initializedRef.current) {
+      const saved = localStorage.getItem(DRAFT_KEY(slug));
+      if (saved) setQuery(saved);
+      initializedRef.current = true;
+    }
+  }, [slug]);
+
+  // Save draft to localStorage (debounced)
+  useEffect(() => {
+    if (!initializedRef.current) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      if (query.trim()) {
+        localStorage.setItem(DRAFT_KEY(slug), query);
+      } else {
+        localStorage.removeItem(DRAFT_KEY(slug));
+      }
+    }, 500);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [query, slug]);
+
+  const handleSubmit = useCallback(async () => {
+    const res = await submit(query);
+    if (res?.status === "correct") {
+      localStorage.removeItem(DRAFT_KEY(slug));
+    }
+  }, [query, submit, slug]);
+
+  const handleRun = useCallback(() => {
+    run(query);
+  }, [query, run]);
+
+  const handleReset = useCallback(() => {
+    setQuery("");
+    localStorage.removeItem(DRAFT_KEY(slug));
+  }, [slug]);
+
+  const handleLoadQuery = useCallback((q: string) => {
+    setQuery(q);
+    toast.success("Query loaded into editor");
+  }, []);
 
   if (loading) {
     return (
@@ -130,13 +187,8 @@ export default function ChallengeDetailPage({
             variant="outline"
             size="icon"
             className="size-8"
-            onClick={() => {
-              const prevOrder = challenge.sort_order - 1;
-              if (prevOrder < 1) return;
-              // Navigate programmatically — we'll just go back for now
-              router.push("/sql-practice");
-            }}
-            disabled={challenge.sort_order <= 1}
+            onClick={() => router.push(`/sql-practice/${prevSlug}`)}
+            disabled={!prevSlug}
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -144,7 +196,8 @@ export default function ChallengeDetailPage({
             variant="outline"
             size="icon"
             className="size-8"
-            onClick={() => router.push("/sql-practice")}
+            onClick={() => router.push(`/sql-practice/${nextSlug}`)}
+            disabled={!nextSlug}
           >
             <ChevronRight className="size-4" />
           </Button>
@@ -171,9 +224,7 @@ export default function ChallengeDetailPage({
               <CardTitle className="text-sm">Schema</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <pre className="overflow-x-auto bg-muted/50 p-4 text-xs font-mono leading-relaxed">
-                {challenge.table_schema}
-              </pre>
+              <CodeBlock code={challenge.table_schema} language="sql" />
             </CardContent>
           </Card>
 
@@ -182,9 +233,7 @@ export default function ChallengeDetailPage({
               <CardTitle className="text-sm">Sample Data</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <pre className="overflow-x-auto bg-muted/50 p-4 text-xs font-mono leading-relaxed">
-                {challenge.seed_data}
-              </pre>
+              <CodeBlock code={challenge.seed_data} language="sql" />
             </CardContent>
           </Card>
 
@@ -207,6 +256,31 @@ export default function ChallengeDetailPage({
               {challenge.hint}
             </div>
           )}
+
+          {/* Solution reveal (only after solving) */}
+          {solutionSql && (
+            <>
+              <button
+                onClick={() => setShowSolution(!showSolution)}
+                className="flex w-full items-center gap-2 rounded-lg border px-4 py-2.5 text-sm text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30 transition-colors"
+              >
+                <Code2 className="size-4" />
+                <span>{showSolution ? "Hide Solution" : "View Solution"}</span>
+                {showSolution ? (
+                  <ChevronUp className="ml-auto size-4" />
+                ) : (
+                  <ChevronDown className="ml-auto size-4" />
+                )}
+              </button>
+              {showSolution && (
+                <Card className="gap-0 py-0 overflow-hidden border-green-200 dark:border-green-900">
+                  <CardContent className="p-0">
+                    <CodeBlock code={solutionSql} language="sql" />
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </div>
 
         {/* Right panel: Editor + Results */}
@@ -214,11 +288,14 @@ export default function ChallengeDetailPage({
           <ChallengeEditor
             value={query}
             onChange={setQuery}
+            onRun={handleRun}
             onSubmit={handleSubmit}
+            onReset={handleReset}
+            running={running}
             submitting={submitting}
           />
 
-          {result && <ChallengeResult result={result} />}
+          {result && <ChallengeResult result={result} isPreview={resultIsPreview} />}
 
           {/* Submission history */}
           {submissions.length > 0 && (
@@ -257,6 +334,13 @@ export default function ChallengeDetailPage({
                             </span>
                           </div>
                           <div className="flex items-center gap-2 shrink-0 text-muted-foreground">
+                            <button
+                              onClick={() => handleLoadQuery(sub.query)}
+                              className="flex items-center gap-0.5 rounded px-1.5 py-0.5 hover:bg-muted transition-colors"
+                              title="Load query into editor"
+                            >
+                              <RotateCcw className="size-3" />
+                            </button>
                             {sub.execution_time_ms != null && (
                               <span className="flex items-center gap-0.5">
                                 <Clock className="size-3" />

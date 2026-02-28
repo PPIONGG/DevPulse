@@ -96,17 +96,42 @@ func (h *SqlPracticeHandler) GetChallenge(w http.ResponseWriter, r *http.Request
 		}
 	}
 
+	prevSlug, nextSlug, _ := h.repo.GetAdjacentSlugs(r.Context(), challenge.SortOrder)
+
+	// Only reveal solution if user has solved the challenge
+	var solutionSQL *string
+	if challengeProgress != nil && challengeProgress.IsSolved {
+		solutionSQL = &challenge.SolutionSQL
+	}
+
 	type Response struct {
 		Challenge   models.SqlChallenge         `json:"challenge"`
 		Submissions []models.SqlSubmission       `json:"submissions"`
 		Progress    *models.SqlChallengeProgress `json:"progress"`
+		PrevSlug    string                       `json:"prev_slug"`
+		NextSlug    string                       `json:"next_slug"`
+		SolutionSQL *string                      `json:"solution_sql"`
 	}
 
 	helpers.JSON(w, http.StatusOK, Response{
 		Challenge:   *challenge,
 		Submissions: submissions,
 		Progress:    challengeProgress,
+		PrevSlug:    prevSlug,
+		NextSlug:    nextSlug,
+		SolutionSQL: solutionSQL,
 	})
+}
+
+func (h *SqlPracticeHandler) validateQuery(query string) error {
+	trimmed := strings.TrimSpace(strings.ToUpper(query))
+	if !strings.HasPrefix(trimmed, "SELECT") && !strings.HasPrefix(trimmed, "WITH") {
+		return fmt.Errorf("only SELECT and WITH (CTE) queries are allowed")
+	}
+	if containsMultipleStatements(query) {
+		return fmt.Errorf("only single statements are allowed")
+	}
+	return nil
 }
 
 func (h *SqlPracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
@@ -123,9 +148,8 @@ func (h *SqlPracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	trimmed := strings.TrimSpace(strings.ToUpper(req.Query))
-	if !strings.HasPrefix(trimmed, "SELECT") && !strings.HasPrefix(trimmed, "WITH") {
-		helpers.Error(w, http.StatusBadRequest, "only SELECT and WITH (CTE) queries are allowed")
+	if err := h.validateQuery(req.Query); err != nil {
+		helpers.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -153,9 +177,50 @@ func (h *SqlPracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request
 		ms := result.ExecutionTimeMs
 		sub.ExecutionTimeMs = &ms
 	}
-	h.repo.CreateSubmission(r.Context(), userID, sub)
-	h.repo.UpsertProgress(r.Context(), userID, challengeID, result.Status == "correct", result.ExecutionTimeMs)
+	if _, err := h.repo.CreateSubmission(r.Context(), userID, sub); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to save submission")
+		return
+	}
+	if err := h.repo.UpsertProgress(r.Context(), userID, challengeID, result.Status == "correct", result.ExecutionTimeMs); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to update progress")
+		return
+	}
 
+	helpers.JSON(w, http.StatusOK, result)
+}
+
+func (h *SqlPracticeHandler) RunQuery(w http.ResponseWriter, r *http.Request) {
+	var req models.SqlSubmitRequest
+	if err := helpers.DecodeJSON(r, &req); err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.Query == "" {
+		helpers.Error(w, http.StatusBadRequest, "query is required")
+		return
+	}
+
+	if err := h.validateQuery(req.Query); err != nil {
+		helpers.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	challengeID, err := uuid.Parse(req.ChallengeID)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid challenge_id")
+		return
+	}
+
+	challenge, err := h.repo.GetByID(r.Context(), challengeID)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "challenge not found")
+		return
+	}
+
+	result := h.executeAndJudge(r.Context(), challenge, req.Query)
+
+	// RunQuery is preview-only: no submission or progress recorded
 	helpers.JSON(w, http.StatusOK, result)
 }
 
@@ -194,7 +259,7 @@ func (h *SqlPracticeHandler) executeAndJudge(ctx context.Context, challenge *mod
 		return models.SqlSubmitResult{
 			Status:          "error",
 			ExecutionTimeMs: elapsed,
-			ErrorMessage:    userErr.Error(),
+			ErrorMessage:    sanitizeDbError(userErr.Error()),
 		}
 	}
 
@@ -275,6 +340,16 @@ func formatSqlValue(v interface{}) interface{} {
 		return string(val)
 	case [16]byte:
 		return fmt.Sprintf("%x-%x-%x-%x-%x", val[0:4], val[4:6], val[6:8], val[8:10], val[10:16])
+	case float32:
+		if float32(int64(val)) == val {
+			return int64(val)
+		}
+		return val
+	case float64:
+		if float64(int64(val)) == val {
+			return int64(val)
+		}
+		return val
 	default:
 		return val
 	}
@@ -354,4 +429,71 @@ func rowsToStrings(rows [][]interface{}) []string {
 		result[i] = string(b)
 	}
 	return result
+}
+
+// containsMultipleStatements strips string literals and comments, then checks for semicolons.
+func containsMultipleStatements(query string) bool {
+	stripped := stripSqlLiteralsAndComments(query)
+	// Count semicolons that aren't trailing
+	trimmed := strings.TrimSpace(stripped)
+	trimmed = strings.TrimRight(trimmed, ";")
+	return strings.Contains(trimmed, ";")
+}
+
+func stripSqlLiteralsAndComments(s string) string {
+	var buf strings.Builder
+	i := 0
+	for i < len(s) {
+		// Single-line comment
+		if i+1 < len(s) && s[i] == '-' && s[i+1] == '-' {
+			for i < len(s) && s[i] != '\n' {
+				i++
+			}
+			continue
+		}
+		// Block comment
+		if i+1 < len(s) && s[i] == '/' && s[i+1] == '*' {
+			i += 2
+			for i+1 < len(s) && !(s[i] == '*' && s[i+1] == '/') {
+				i++
+			}
+			if i+1 < len(s) {
+				i += 2
+			}
+			continue
+		}
+		// String literal (single quote)
+		if s[i] == '\'' {
+			i++
+			for i < len(s) {
+				if s[i] == '\'' {
+					i++
+					if i < len(s) && s[i] == '\'' {
+						i++ // escaped quote
+						continue
+					}
+					break
+				}
+				i++
+			}
+			continue
+		}
+		buf.WriteByte(s[i])
+		i++
+	}
+	return buf.String()
+}
+
+func sanitizeDbError(msg string) string {
+	// Strip "ERROR: " prefix
+	msg = strings.TrimPrefix(msg, "ERROR: ")
+	// Strip "(SQLSTATE ...)" suffix
+	if idx := strings.LastIndex(msg, "(SQLSTATE"); idx != -1 {
+		msg = strings.TrimSpace(msg[:idx])
+	}
+	// Truncate
+	if len(msg) > 300 {
+		msg = msg[:300] + "..."
+	}
+	return msg
 }

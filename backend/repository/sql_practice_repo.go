@@ -89,9 +89,13 @@ func (r *SqlPracticeRepo) GetProgress(ctx context.Context, userID uuid.UUID) ([]
 
 func (r *SqlPracticeRepo) UpsertProgress(ctx context.Context, userID, challengeID uuid.UUID, isSolved bool, timeMs int) error {
 	now := time.Now()
+	var firstSolvedAt *time.Time
+	if isSolved {
+		firstSolvedAt = &now
+	}
 	_, err := r.pool.Exec(ctx,
 		`INSERT INTO sql_challenge_progress (user_id, challenge_id, is_solved, best_time_ms, attempts, first_solved_at, last_attempted_at)
-		 VALUES ($1, $2, $3, $4, 1, CASE WHEN $3 THEN $5 ELSE NULL END, $5)
+		 VALUES ($1, $2, $3, $4, 1, $5, $6)
 		 ON CONFLICT (user_id, challenge_id) DO UPDATE SET
 		   is_solved = sql_challenge_progress.is_solved OR EXCLUDED.is_solved,
 		   best_time_ms = CASE
@@ -100,9 +104,9 @@ func (r *SqlPracticeRepo) UpsertProgress(ctx context.Context, userID, challengeI
 		     ELSE sql_challenge_progress.best_time_ms
 		   END,
 		   attempts = sql_challenge_progress.attempts + 1,
-		   first_solved_at = COALESCE(sql_challenge_progress.first_solved_at, CASE WHEN EXCLUDED.is_solved THEN $5 ELSE NULL END),
-		   last_attempted_at = $5`,
-		userID, challengeID, isSolved, timeMs, now,
+		   first_solved_at = COALESCE(sql_challenge_progress.first_solved_at, EXCLUDED.first_solved_at),
+		   last_attempted_at = EXCLUDED.last_attempted_at`,
+		userID, challengeID, isSolved, timeMs, firstSolvedAt, now,
 	)
 	return err
 }
@@ -121,6 +125,16 @@ func (r *SqlPracticeRepo) CreateSubmission(ctx context.Context, userID uuid.UUID
 	return &s, nil
 }
 
+func (r *SqlPracticeRepo) GetAdjacentSlugs(ctx context.Context, sortOrder int) (prevSlug, nextSlug string, err error) {
+	_ = r.pool.QueryRow(ctx,
+		`SELECT slug FROM sql_challenges WHERE sort_order < $1 ORDER BY sort_order DESC LIMIT 1`, sortOrder,
+	).Scan(&prevSlug)
+	_ = r.pool.QueryRow(ctx,
+		`SELECT slug FROM sql_challenges WHERE sort_order > $1 ORDER BY sort_order ASC LIMIT 1`, sortOrder,
+	).Scan(&nextSlug)
+	return prevSlug, nextSlug, nil
+}
+
 func (r *SqlPracticeRepo) GetStats(ctx context.Context, userID uuid.UUID) (*models.SqlPracticeStats, error) {
 	var stats models.SqlPracticeStats
 
@@ -136,6 +150,7 @@ func (r *SqlPracticeRepo) GetStats(ctx context.Context, userID uuid.UUID) (*mode
 		return nil, err
 	}
 
+	// Difficulty breakdown
 	rows, err := r.pool.Query(ctx,
 		`SELECT c.difficulty, COUNT(*) AS total,
 		        COUNT(p.challenge_id) FILTER (WHERE p.is_solved = true) AS solved
@@ -165,8 +180,80 @@ func (r *SqlPracticeRepo) GetStats(ctx context.Context, userID uuid.UUID) (*mode
 			stats.HardSolved = solved
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-	return &stats, rows.Err()
+	// Category breakdown
+	catRows, err := r.pool.Query(ctx,
+		`SELECT c.category, COUNT(*) AS total,
+		        COUNT(p.challenge_id) FILTER (WHERE p.is_solved = true) AS solved
+		 FROM sql_challenges c
+		 LEFT JOIN sql_challenge_progress p ON c.id = p.challenge_id AND p.user_id = $1
+		 GROUP BY c.category
+		 ORDER BY MIN(c.sort_order)`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer catRows.Close()
+
+	for catRows.Next() {
+		var cs models.SqlPracticeCategoryStats
+		if err := catRows.Scan(&cs.Category, &cs.Total, &cs.Solved); err != nil {
+			return nil, err
+		}
+		stats.Categories = append(stats.Categories, cs)
+	}
+	if stats.Categories == nil {
+		stats.Categories = []models.SqlPracticeCategoryStats{}
+	}
+	if err := catRows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Total submissions
+	_ = r.pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM sql_submissions WHERE user_id = $1`, userID,
+	).Scan(&stats.TotalSubmissions)
+
+	// Practice streak (consecutive days with submissions)
+	streakRows, err := r.pool.Query(ctx,
+		`SELECT DISTINCT submitted_at::date AS d
+		 FROM sql_submissions WHERE user_id = $1
+		 ORDER BY d DESC`, userID)
+	if err != nil {
+		return &stats, nil
+	}
+	defer streakRows.Close()
+
+	streak := 0
+	var prev time.Time
+	for streakRows.Next() {
+		var d time.Time
+		if err := streakRows.Scan(&d); err != nil {
+			break
+		}
+		if streak == 0 {
+			today := time.Now().Truncate(24 * time.Hour)
+			if d.Equal(today) || d.Equal(today.AddDate(0, 0, -1)) {
+				streak = 1
+				prev = d
+			} else {
+				break
+			}
+		} else {
+			expected := prev.AddDate(0, 0, -1)
+			if d.Equal(expected) {
+				streak++
+				prev = d
+			} else {
+				break
+			}
+		}
+	}
+	stats.PracticeStreak = streak
+
+	return &stats, nil
 }
 
 func (r *SqlPracticeRepo) ListSubmissions(ctx context.Context, userID, challengeID uuid.UUID, limit int) ([]models.SqlSubmission, error) {
