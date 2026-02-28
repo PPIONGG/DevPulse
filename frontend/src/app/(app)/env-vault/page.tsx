@@ -28,6 +28,7 @@ import { VaultCardSkeleton } from "@/components/skeletons";
 import { useEnvVaults } from "@/hooks/use-env-vaults";
 import { environments } from "@/config/environments";
 import { toast } from "sonner";
+import { useTranslation } from "@/providers/language-provider";
 import type { EnvVault, EnvVaultInput } from "@/lib/types/database";
 
 export default function EnvVaultPage() {
@@ -45,6 +46,8 @@ export default function EnvVaultPage() {
     importVariables,
     refetch,
   } = useEnvVaults();
+
+  const { t } = useTranslation();
 
   const [search, setSearch] = useState("");
   const [envFilter, setEnvFilter] = useState("all");
@@ -98,7 +101,7 @@ export default function EnvVaultPage() {
         setExpandedVaultId(null);
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete vault");
+      toast.error(err instanceof Error ? err.message : t("envVault.deleteFailed"));
     } finally {
       setDeletingVault(null);
     }
@@ -121,14 +124,14 @@ export default function EnvVaultPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Env Vault</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("envVault.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Securely store and manage environment variables.
+            {t("envVault.subtitle")}
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 size-4" />
-          New Vault
+          {t("envVault.new")}
         </Button>
       </div>
 
@@ -136,7 +139,7 @@ export default function EnvVaultPage() {
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search vaults..."
+            placeholder={t("envVault.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -144,10 +147,10 @@ export default function EnvVaultPage() {
         </div>
         <Select value={envFilter} onValueChange={setEnvFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Environments" />
+            <SelectValue placeholder={t("envVault.allEnvironments")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Environments</SelectItem>
+            <SelectItem value="all">{t("envVault.allEnvironments")}</SelectItem>
             {environments.map((env) => (
               <SelectItem key={env.value} value={env.value}>
                 {env.label}
@@ -161,7 +164,7 @@ export default function EnvVaultPage() {
           onClick={() => setShowFavorites(!showFavorites)}
         >
           <Star className={`mr-1 size-4 ${showFavorites ? "fill-current" : ""}`} />
-          Favorites
+          {t("envVault.favorites")}
         </Button>
       </div>
 
@@ -169,7 +172,7 @@ export default function EnvVaultPage() {
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <p>{error}</p>
           <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -184,17 +187,17 @@ export default function EnvVaultPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <KeyRound className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {hasFilters ? "No matching vaults" : "No vaults yet"}
+            {hasFilters ? t("envVault.noMatch") : t("envVault.empty")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFilters
-              ? "Try a different search term or environment filter."
-              : "Create a vault to start storing environment variables."}
+              ? t("envVault.noMatchDesc")
+              : t("envVault.emptyDesc")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" onClick={() => setFormOpen(true)}>
               <Plus className="mr-2 size-4" />
-              New Vault
+              {t("envVault.new")}
             </Button>
           )}
         </div>
@@ -239,15 +242,14 @@ export default function EnvVaultPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete vault?</AlertDialogTitle>
+            <AlertDialogTitle>{t("envVault.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingVault?.name}&quot; and
-              all its variables. This action cannot be undone.
+              {t("envVault.deleteDescPrefix")} &quot;{deletingVault?.name}&quot; {t("envVault.deleteDescSuffix")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

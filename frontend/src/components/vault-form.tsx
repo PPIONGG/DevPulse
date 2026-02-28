@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { environments } from "@/config/environments";
+import { useTranslation } from "@/providers/language-provider";
 import type { EnvVault, EnvVaultInput } from "@/lib/types/database";
 
 interface VaultFormProps {
@@ -42,6 +43,7 @@ export function VaultForm({
   vault,
   onSubmit,
 }: VaultFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!vault;
   const initial: EnvVaultInput = vault
     ? {
@@ -97,7 +99,7 @@ export function VaultForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save vault");
+      setError(err instanceof Error ? err.message : t("envVault.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -108,7 +110,7 @@ export function VaultForm({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Vault" : "New Vault"}
+            {isEditing ? t("envVault.editTitle") : t("envVault.newTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -120,10 +122,10 @@ export function VaultForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{t("envVault.formName")}</Label>
             <Input
               id="name"
-              placeholder="e.g. My SaaS App"
+              placeholder={t("envVault.formNamePlaceholder")}
               value={form.name}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, name: e.target.value }))
@@ -133,7 +135,7 @@ export function VaultForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="environment">Environment</Label>
+            <Label htmlFor="environment">{t("envVault.formEnvironment")}</Label>
             <Select
               value={form.environment}
               onValueChange={(value) =>
@@ -154,10 +156,10 @@ export function VaultForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("envVault.formDescription")}</Label>
             <Textarea
               id="description"
-              placeholder="Optional description"
+              placeholder={t("envVault.formDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -172,10 +174,10 @@ export function VaultForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

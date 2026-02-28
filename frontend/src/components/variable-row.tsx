@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Trash2, Check, X, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/providers/language-provider";
 import type { EnvVariable, EnvVariableInput } from "@/lib/types/database";
 
 interface VariableRowProps {
@@ -21,6 +22,7 @@ export function VariableRow({
   onUpdate,
   onDelete,
 }: VariableRowProps) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [editKey, setEditKey] = useState(variable.key);
   const [editValue, setEditValue] = useState(variable.value);
@@ -72,7 +74,7 @@ export function VariableRow({
           value={editKey}
           onChange={(e) => setEditKey(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="KEY"
+          placeholder={t("envVault.keyPlaceholder")}
           autoFocus
         />
         <span className="text-muted-foreground">=</span>
@@ -81,14 +83,14 @@ export function VariableRow({
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="value"
+          placeholder={t("envVault.valuePlaceholder")}
         />
         <Button
           variant="ghost"
           size="icon"
           className="size-7"
           onClick={() => setEditIsSecret(!editIsSecret)}
-          title={editIsSecret ? "Mark as non-secret" : "Mark as secret"}
+          title={editIsSecret ? t("envVault.markNonSecret") : t("envVault.markSecret")}
         >
           {editIsSecret ? (
             <Lock className="size-3.5" />
@@ -122,7 +124,7 @@ export function VariableRow({
       <button
         className="cursor-pointer truncate font-mono text-sm font-medium text-foreground"
         onClick={startEditing}
-        title="Click to edit"
+        title={t("envVault.clickToEdit")}
       >
         {variable.key}
       </button>
@@ -130,7 +132,7 @@ export function VariableRow({
       <button
         className="min-w-0 flex-1 cursor-pointer truncate text-left font-mono text-sm text-muted-foreground"
         onClick={startEditing}
-        title="Click to edit"
+        title={t("envVault.clickToEdit")}
       >
         {displayValue}
       </button>
@@ -141,7 +143,7 @@ export function VariableRow({
             size="icon"
             className="size-7"
             onClick={onToggleReveal}
-            title={isRevealed ? "Hide value" : "Reveal value"}
+            title={isRevealed ? t("envVault.hideValue") : t("envVault.revealValue")}
           >
             {isRevealed ? (
               <EyeOff className="size-3.5" />
@@ -155,7 +157,7 @@ export function VariableRow({
           size="icon"
           className="size-7 text-destructive"
           onClick={onDelete}
-          title="Delete variable"
+          title={t("envVault.deleteVariable")}
         >
           <Trash2 className="size-3.5" />
         </Button>

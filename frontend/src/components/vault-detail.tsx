@@ -18,6 +18,7 @@ import { VariableRow } from "@/components/variable-row";
 import { VaultImportDialog } from "@/components/vault-import-dialog";
 import { getEnvironmentConfig } from "@/config/environments";
 import { toast } from "sonner";
+import { useTranslation } from "@/providers/language-provider";
 import type { EnvVault, EnvVariableInput } from "@/lib/types/database";
 
 interface VaultDetailProps {
@@ -35,6 +36,7 @@ export function VaultDetail({
   onDeleteVariable,
   onImportVariables,
 }: VaultDetailProps) {
+  const { t } = useTranslation();
   const envConfig = getEnvironmentConfig(vault.environment);
   const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
   const [revealAll, setRevealAll] = useState(false);
@@ -71,7 +73,7 @@ export function VaultDetail({
       .map((v) => `${v.key}=${v.value}`)
       .join("\n");
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    toast.success(t("common.copiedToClipboard"));
   };
 
   const exportAsEnv = () => {
@@ -137,7 +139,7 @@ export function VaultDetail({
               onClick={() => setAddingNew(true)}
             >
               <Plus className="mr-1 size-3.5" />
-              Add
+              {t("common.add")}
             </Button>
             <Button
               variant="ghost"
@@ -146,7 +148,7 @@ export function VaultDetail({
               onClick={() => setImportOpen(true)}
             >
               <Upload className="mr-1 size-3.5" />
-              Import
+              {t("common.import")}
             </Button>
             <Button
               variant="ghost"
@@ -156,7 +158,7 @@ export function VaultDetail({
               disabled={vault.variables.length === 0}
             >
               <Copy className="mr-1 size-3.5" />
-              Copy All
+              {t("envVault.copyAll")}
             </Button>
             <Button
               variant="ghost"
@@ -166,7 +168,7 @@ export function VaultDetail({
               disabled={vault.variables.length === 0}
             >
               <Download className="mr-1 size-3.5" />
-              Export
+              {t("common.export")}
             </Button>
             <Button
               variant="ghost"
@@ -180,7 +182,7 @@ export function VaultDetail({
               ) : (
                 <Eye className="mr-1 size-3.5" />
               )}
-              {revealAll ? "Hide All" : "Reveal All"}
+              {revealAll ? t("envVault.hideAll") : t("envVault.revealAll")}
             </Button>
           </div>
         </CardHeader>
@@ -189,7 +191,7 @@ export function VaultDetail({
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <KeyRound className="mb-3 size-8 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                No variables yet. Add one or import from a .env file.
+                {t("envVault.emptyVars")}
               </p>
               <div className="mt-3 flex gap-2">
                 <Button
@@ -198,7 +200,7 @@ export function VaultDetail({
                   onClick={() => setAddingNew(true)}
                 >
                   <Plus className="mr-1 size-3.5" />
-                  Add Variable
+                  {t("envVault.addVariable")}
                 </Button>
                 <Button
                   size="sm"
@@ -206,7 +208,7 @@ export function VaultDetail({
                   onClick={() => setImportOpen(true)}
                 >
                   <Upload className="mr-1 size-3.5" />
-                  Import .env
+                  {t("envVault.importEnv")}
                 </Button>
               </div>
             </div>
@@ -233,7 +235,7 @@ export function VaultDetail({
                     value={newKey}
                     onChange={(e) => setNewKey(e.target.value.toUpperCase())}
                     onKeyDown={handleAddKeyDown}
-                    placeholder="KEY"
+                    placeholder={t("envVault.keyPlaceholder")}
                     autoFocus
                   />
                   <span className="text-muted-foreground">=</span>
@@ -242,7 +244,7 @@ export function VaultDetail({
                     value={newValue}
                     onChange={(e) => setNewValue(e.target.value)}
                     onKeyDown={handleAddKeyDown}
-                    placeholder="value"
+                    placeholder={t("envVault.valuePlaceholder")}
                   />
                   <Button
                     variant="ghost"
@@ -251,7 +253,7 @@ export function VaultDetail({
                     onClick={handleAddVariable}
                     disabled={saving || !newKey.trim()}
                   >
-                    {saving ? "..." : "Add"}
+                    {saving ? "…" : t("common.add")}
                   </Button>
                   <Button
                     variant="ghost"
@@ -263,7 +265,7 @@ export function VaultDetail({
                       setNewValue("");
                     }}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 </div>
               )}

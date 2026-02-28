@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/providers/language-provider";
 
 interface VaultImportDialogProps {
   open: boolean;
@@ -47,6 +48,7 @@ export function VaultImportDialog({
   onOpenChange,
   onImport,
 }: VaultImportDialogProps) {
+  const { t } = useTranslation();
   const [raw, setRaw] = useState("");
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export function VaultImportDialog({
       onOpenChange(false);
       setRaw("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to import variables");
+      setError(err instanceof Error ? err.message : t("envVault.importFailed"));
     } finally {
       setImporting(false);
     }
@@ -80,7 +82,7 @@ export function VaultImportDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import .env</DialogTitle>
+          <DialogTitle>{t("envVault.importTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -92,7 +94,7 @@ export function VaultImportDialog({
 
           <div className="space-y-2">
             <Label htmlFor="env-raw">
-              Paste your .env file content
+              {t("envVault.importLabel")}
             </Label>
             <Textarea
               id="env-raw"
@@ -106,9 +108,9 @@ export function VaultImportDialog({
           {preview.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label>Preview</Label>
+                <Label>{t("envVault.importPreview")}</Label>
                 <Badge variant="secondary" className="text-xs">
-                  {preview.length} variable{preview.length !== 1 ? "s" : ""}
+                  {preview.length} {preview.length !== 1 ? t("envVault.variables") : t("envVault.variable")}
                 </Badge>
               </div>
               <div className="max-h-[200px] overflow-y-auto rounded-md border bg-muted/30 p-3">
@@ -131,13 +133,13 @@ export function VaultImportDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleImport}
             disabled={importing || preview.length === 0}
           >
-            {importing ? "Importing..." : `Import ${preview.length} Variable${preview.length !== 1 ? "s" : ""}`}
+            {importing ? t("envVault.importing") : `${t("common.import")} ${preview.length} Variable${preview.length !== 1 ? "s" : ""}`}
           </Button>
         </DialogFooter>
       </DialogContent>

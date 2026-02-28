@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getEnvironmentConfig } from "@/config/environments";
 import { toast } from "sonner";
+import { useTranslation } from "@/providers/language-provider";
 import type { EnvVault } from "@/lib/types/database";
 
 interface VaultCardProps {
@@ -38,6 +39,7 @@ export function VaultCard({
   onDelete,
   onToggleFavorite,
 }: VaultCardProps) {
+  const { t } = useTranslation();
   const envConfig = getEnvironmentConfig(vault.environment);
 
   const copyAsEnv = (e: React.MouseEvent) => {
@@ -46,7 +48,7 @@ export function VaultCard({
       .map((v) => `${v.key}=${v.value}`)
       .join("\n");
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    toast.success(t("common.copiedToClipboard"));
   };
 
   return (
@@ -74,7 +76,7 @@ export function VaultCard({
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
               <KeyRound className="size-3" />
-              <span>{vault.variables.length} variable{vault.variables.length !== 1 ? "s" : ""}</span>
+              <span>{vault.variables.length} {vault.variables.length !== 1 ? t("envVault.variables") : t("envVault.variable")}</span>
               {vault.description && (
                 <>
                   <span className="text-border">|</span>
@@ -93,7 +95,7 @@ export function VaultCard({
               e.stopPropagation();
               onToggleFavorite(vault);
             }}
-            title={vault.is_favorite ? "Remove from favorites" : "Add to favorites"}
+            title={vault.is_favorite ? t("envVault.removeFromFavorites") : t("envVault.addToFavorites")}
           >
             <Star
               className={`size-4 ${vault.is_favorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
@@ -104,7 +106,7 @@ export function VaultCard({
             size="icon"
             className="size-8"
             onClick={copyAsEnv}
-            title="Copy as .env"
+            title={t("envVault.copyAsEnv")}
           >
             <Copy className="size-4" />
           </Button>
@@ -127,7 +129,7 @@ export function VaultCard({
                 }}
               >
                 <Pencil className="mr-2 size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
@@ -137,7 +139,7 @@ export function VaultCard({
                 }}
               >
                 <Trash2 className="mr-2 size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
