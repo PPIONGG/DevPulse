@@ -28,6 +28,7 @@ import { ExpenseCardSkeleton } from "@/components/skeletons";
 import { useExpenses } from "@/hooks/use-expenses";
 import { toast } from "sonner";
 import { expenseCategories } from "@/config/expense-categories";
+import { useTranslation } from "@/providers/language-provider";
 import type { Expense, ExpenseInput } from "@/lib/types/database";
 
 export default function ExpensesPage() {
@@ -40,6 +41,7 @@ export default function ExpensesPage() {
     deleteExpense,
     refetch,
   } = useExpenses();
+  const { t } = useTranslation();
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
@@ -110,7 +112,7 @@ export default function ExpensesPage() {
     try {
       await deleteExpense(deletingExpense.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete expense");
+      toast.error(err instanceof Error ? err.message : t("expenses.deleteFailed"));
     } finally {
       setDeletingExpense(null);
     }
@@ -125,14 +127,14 @@ export default function ExpensesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Expenses</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("expenses.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Track and manage your expenses.
+            {t("expenses.subtitle")}
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 size-4" />
-          New Expense
+          {t("expenses.new")}
         </Button>
       </div>
 
@@ -140,7 +142,7 @@ export default function ExpensesPage() {
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search expenses..."
+            placeholder={t("expenses.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -148,10 +150,10 @@ export default function ExpensesPage() {
         </div>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Categories" />
+            <SelectValue placeholder={t("expenses.allCategories")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t("expenses.allCategories")}</SelectItem>
             {expenseCategories.map((c) => (
               <SelectItem key={c.value} value={c.value}>
                 {c.label}
@@ -162,10 +164,10 @@ export default function ExpensesPage() {
         {monthOptions.length > 0 && (
           <Select value={month} onValueChange={setMonth}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Months" />
+              <SelectValue placeholder={t("expenses.allMonths")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Months</SelectItem>
+              <SelectItem value="all">{t("expenses.allMonths")}</SelectItem>
               {monthOptions.map((m) => (
                 <SelectItem key={m.value} value={m.value}>
                   {m.label}
@@ -180,7 +182,7 @@ export default function ExpensesPage() {
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <p>{error}</p>
           <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -195,17 +197,17 @@ export default function ExpensesPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Receipt className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {hasFilters ? "No matching expenses" : "No expenses yet"}
+            {hasFilters ? t("expenses.noMatch") : t("expenses.empty")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFilters
-              ? "Try a different search term, category, or month."
-              : "Start tracking your expenses."}
+              ? t("expenses.noMatchDesc")
+              : t("expenses.emptyDesc")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" onClick={() => setFormOpen(true)}>
               <Plus className="mr-2 size-4" />
-              New Expense
+              {t("expenses.new")}
             </Button>
           )}
         </div>
@@ -240,15 +242,14 @@ export default function ExpensesPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete expense?</AlertDialogTitle>
+            <AlertDialogTitle>{t("expenses.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingExpense?.title}&quot;.
-              This action cannot be undone.
+              {t("expenses.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { expenseCategories, currencies } from "@/config/expense-categories";
+import { useTranslation } from "@/providers/language-provider";
 import type { Expense, ExpenseInput } from "@/lib/types/database";
 
 interface ExpenseFormProps {
@@ -51,6 +52,7 @@ export function ExpenseForm({
   expense,
   onSubmit,
 }: ExpenseFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!expense;
   const initial: ExpenseInput = expense
     ? {
@@ -131,7 +133,7 @@ export function ExpenseForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save expense");
+      setError(err instanceof Error ? err.message : t("expenses.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -142,7 +144,7 @@ export function ExpenseForm({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Expense" : "New Expense"}
+            {isEditing ? t("expenses.editTitle") : t("expenses.newTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -154,10 +156,10 @@ export function ExpenseForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("expenses.formTitle")}</Label>
             <Input
               id="title"
-              placeholder="e.g. Lunch, Uber ride, Netflix"
+              placeholder={t("expenses.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -168,7 +170,7 @@ export function ExpenseForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
+              <Label htmlFor="amount">{t("expenses.formAmount")}</Label>
               <Input
                 id="amount"
                 type="text"
@@ -180,7 +182,7 @@ export function ExpenseForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency">{t("expenses.formCurrency")}</Label>
               <Select
                 value={form.currency}
                 onValueChange={(value) =>
@@ -203,7 +205,7 @@ export function ExpenseForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("expenses.formCategory")}</Label>
               <Select
                 value={form.category}
                 onValueChange={(value) =>
@@ -223,7 +225,7 @@ export function ExpenseForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{t("expenses.formDate")}</Label>
               <Input
                 id="date"
                 type="date"
@@ -237,10 +239,10 @@ export function ExpenseForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">{t("expenses.formNotes")}</Label>
             <Textarea
               id="notes"
-              placeholder="Optional notes"
+              placeholder={t("expenses.formNotesPlaceholder")}
               className="min-h-[60px]"
               value={form.notes}
               onChange={(e) =>
@@ -261,7 +263,7 @@ export function ExpenseForm({
               }
             />
             <Label htmlFor="is_recurring" className="font-normal">
-              Recurring expense
+              {t("expenses.formRecurring")}
             </Label>
           </div>
 
@@ -271,10 +273,10 @@ export function ExpenseForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

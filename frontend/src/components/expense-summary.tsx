@@ -7,6 +7,7 @@ import {
   formatAmount,
   expenseCategories,
 } from "@/config/expense-categories";
+import { useTranslation } from "@/providers/language-provider";
 import type { Expense } from "@/lib/types/database";
 
 interface ExpenseSummaryProps {
@@ -15,6 +16,7 @@ interface ExpenseSummaryProps {
 }
 
 export function ExpenseSummary({ expenses, currency }: ExpenseSummaryProps) {
+  const { t } = useTranslation();
   const summary = useMemo(() => {
     // Filter to selected currency
     const filtered = expenses.filter((e) => e.currency === currency);
@@ -47,13 +49,13 @@ export function ExpenseSummary({ expenses, currency }: ExpenseSummaryProps) {
     <Card className="gap-0 py-0">
       <CardHeader className="px-4 py-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Summary</CardTitle>
+          <CardTitle className="text-base">{t("expenses.summary")}</CardTitle>
           <span className="text-lg font-bold">
             {formatAmount(summary.total, currency)}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          {summary.count} expense{summary.count !== 1 ? "s" : ""} in {currency}
+          {summary.count} {summary.count !== 1 ? t("expenses.expensesCount") : t("expenses.expenseCount")} {t("expenses.inCurrency")} {currency}
         </p>
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">

@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getCategoryConfig, formatAmount } from "@/config/expense-categories";
+import { useTranslation } from "@/providers/language-provider";
 import type { Expense } from "@/lib/types/database";
 
 interface ExpenseCardProps {
@@ -26,6 +27,7 @@ interface ExpenseCardProps {
 }
 
 export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
+  const { t } = useTranslation();
   const category = getCategoryConfig(expense.category);
 
   return (
@@ -75,14 +77,14 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(expense)}>
                 <Pencil className="mr-2 size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => onDelete(expense)}
               >
                 <Trash2 className="mr-2 size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
