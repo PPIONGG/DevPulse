@@ -10,7 +10,7 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 |-------|-------------|-------------|
 | `users` | User accounts | email (unique), password_hash (nullable), github_id (unique, nullable), role (TEXT, default `'user'`), is_active (BOOLEAN, default `true`) |
 | `sessions` | Session tokens | token (PK, 64-hex), user_id, expires_at (30 days) |
-| `profiles` | User profiles | id (FK → users.id), display_name, avatar_url, email |
+| `profiles` | User profiles | id (FK → users.id), display_name, avatar_url, email, preferred_language (TEXT, default `'en'`) |
 
 ## Feature Tables
 
@@ -72,6 +72,7 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 | 034 | `add_content_moderation` | `snippets.is_verified`, `verified_by`, `verified_at` columns + index |
 | 035 | `create_audit_and_stats` | `vault_audit_logs` table with indexes |
 | 036 | `create_system_settings` | `system_settings` + `feature_toggles` tables with seeds |
+| 037 | `add_preferred_language` | `profiles.preferred_language` column (TEXT, default `'en'`) for i18n |
 
 ## Challenge Categories
 

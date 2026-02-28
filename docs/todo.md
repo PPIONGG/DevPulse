@@ -81,18 +81,18 @@ Goal: Visibility into sensitive operations.
 ## 6. Multi-language Support (i18n) - Hybrid Approach
 Goal: Support Thai (TH) and English (EN) for UI components while keeping complex technical content in English for Phase 1.
 
-- [ ] **Database & Backend**
-    - Add `preferred_language` (TEXT, default 'en') to `profiles` table.
+- [x] **Database & Backend**
+    - Add `preferred_language` (TEXT, default 'en') to `profiles` table (migration 037).
     - Update `models/profile.go` and `repository/profile_repo.go` to handle the new field.
     - Update `PUT /api/profile` handler to allow users to save their language preference.
-- [ ] **Frontend Infrastructure**
-    - Setup i18n framework (e.g., `next-intl` or custom `I18nProvider`).
-    - Create translation dictionary files: `src/lib/i18n/locales/en.json` and `th.json`.
-    - Define base translation keys for Sidebar groups, Common buttons (Save, Cancel, Delete), and Toast messages.
-- [ ] **Frontend UI Implementation**
-    - Replace hardcoded strings in `AppSidebar.tsx` and `MobileSidebar.tsx` with translation keys.
-    - Implement a Language Switcher component in the `UserMenu` or Header.
-    - Ensure the UI language synchronizes with the user's profile preference on login.
-- [ ] **Hybrid Strategy (Phase 2: Content)**
-    - Keep SQL Challenges and Academy content in English to maintain technical accuracy.
-    - (Optional) Add fields for Thai descriptions in `sql_challenges` and `sql_lessons` for future localization.
+- [x] **Frontend Infrastructure**
+    - Custom `LanguageProvider` + `useTranslation()` hook (no external library).
+    - Translation dictionaries: `src/lib/i18n/en.json` (1100+ keys) and `th.json`.
+    - Type-safe `TranslationKey` type, English fallback for missing keys.
+- [x] **Frontend UI Implementation**
+    - All pages and components use `t()` calls instead of hardcoded strings (60+ files updated).
+    - Language switcher in `UserMenu` (Globe icon) and `/settings` page (dropdown).
+    - Language syncs with `profiles.preferred_language` on login and persists across sessions.
+- [x] **Hybrid Strategy**
+    - SQL Challenges and Academy content stays in English.
+    - All UI chrome (sidebar, buttons, labels, toasts, forms, dialogs) fully translated to Thai/English.

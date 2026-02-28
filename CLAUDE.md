@@ -1,6 +1,6 @@
 # DevPulse
 
-Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, SQL practice & academy, admin panel, and a calculator.
+Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, SQL practice & academy, admin panel, calculator, time tracker, workflows, and marketplace. Supports Thai/English (i18n).
 
 Detailed references: [API Endpoints](docs/api-endpoints.md) | [Database Schema](docs/database-schema.md)
 
@@ -14,6 +14,7 @@ Detailed references: [API Endpoints](docs/api-endpoints.md) | [Database Schema](
 - **Toasts:** sonner
 - **Theme:** next-themes (light/dark mode)
 - **Avatar crop:** react-image-crop (circular 256x256 JPEG)
+- **i18n:** Custom lightweight system — JSON dictionaries + `LanguageProvider` + `useTranslation()` hook (Thai/English)
 - **Package manager:** npm (not yarn/pnpm/bun)
 
 ## Project Structure
@@ -24,7 +25,7 @@ DevPulse/
 │   └── src/
 │       ├── app/              # App Router pages & layouts
 │       │   ├── page.tsx      # Root — redirects to /dashboard
-│       │   ├── layout.tsx    # Root layout (AuthProvider, Toaster, ThemeProvider)
+│       │   ├── layout.tsx    # Root layout (AuthProvider, LanguageProvider, Toaster, ThemeProvider)
 │       │   ├── global-error.tsx / not-found.tsx
 │       │   ├── (app)/        # Authenticated layout group (sidebar + header)
 │       │   │   ├── layout.tsx          # AuthGuard + sidebar + mobile nav
@@ -87,8 +88,12 @@ DevPulse/
 │       │   ├── api/          # API client (fetch wrapper with credentials, 15s timeout)
 │       │   ├── services/     # snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents, sql-practice, navigation, admin
 │       │   ├── types/        # Shared TypeScript types (database.ts)
+│       │   ├── i18n/          # Translation system
+│       │   │   ├── en.json   # English translations (1100+ keys)
+│       │   │   ├── th.json   # Thai translations
+│       │   │   └── index.ts  # Exports translations, Language type, TranslationKey type
 │       │   └── utils/        # cn() class merger, withTimeout() helper
-│       └── providers/        # AuthProvider (wraps entire app)
+│       └── providers/        # AuthProvider, LanguageProvider (wrap entire app)
 ├── backend/                  # Go API server
 │   ├── main.go              # Entry point — wires config, DB, repos, handlers, router
 │   ├── config/              # Env var loading (reads .env and ../.env)
@@ -122,6 +127,7 @@ DevPulse/
 - **Loading states:** All list pages use skeleton cards from `components/skeletons.tsx`.
 - **Styling:** Tailwind CSS v4 with CSS variables. Use `cn()` for conditional classes. Light/dark mode via `next-themes`.
 - **Forms:** Dialog-based (create/edit share same form component). Delete uses `AlertDialog`.
+- **i18n:** All UI strings use `t("key")` from `useTranslation()` hook. Translations in `lib/i18n/en.json` + `th.json`. Standalone functions outside components receive `t` as a parameter. Technical content (SQL challenges, academy lessons) stays in English. Language preference persisted in `profiles.preferred_language`.
 - **Data flow:** Pages → hooks → services → API client. Never skip layers.
 
 ## Commands
@@ -210,7 +216,16 @@ Each follows the architecture: migration → model → repo → handler → rout
 | SQL Practice | `/sql-practice` | Done |
 | SQL Academy | `/sql-practice/learn` | Done |
 | SQL Cheat Sheet | `/sql-practice/cheat-sheet` | Done |
+| Time Tracker | `/time-tracker` | Done |
+| Workflows | `/workflows` | Done |
+| Marketplace | `/marketplace` | Done |
 | Admin Menu Manager | `/admin/navigation` | Done |
+| Admin User Management | `/admin/users` | Done |
+| Admin Snippets Moderation | `/admin/snippets` | Done |
+| Admin SQL Challenges | `/admin/challenges` | Done |
+| Admin System Stats | `/admin/stats` | Done |
+| Admin Settings | `/admin/settings` | Done |
+| Multi-language (i18n) | All pages | Done |
 
 ## Calculator
 
@@ -241,3 +256,14 @@ Recursive descent parser for safe expression evaluation (no `eval`/`new Function
 - **RBAC:** Users have `role` field. First registered user auto-promoted to admin (migration 030).
 - **Menu Manager** (`/admin/navigation`): Toggle visibility of sidebar items for all users. Dashboard is locked (cannot hide).
 - **Admin middleware:** `AdminOnly()` wraps admin-only routes, returns 403 for non-admin users.
+
+## Multi-language (i18n)
+
+Hybrid approach — UI chrome translated to Thai/English, technical content stays in English.
+
+- **Architecture:** Custom lightweight system (no external library). `LanguageProvider` context wraps the app inside `AuthProvider`.
+- **Translation files:** `lib/i18n/en.json` (1100+ keys) and `th.json`. Organized by feature namespace (e.g., `sidebar.*`, `expenses.*`, `timeTracker.*`).
+- **Usage:** `const { t } = useTranslation()` in components. `t("key")` returns translated string, falls back to English if key missing.
+- **Standalone functions:** Functions outside components (formatters, helpers) receive `t` as parameter: `function formatX(value, t: (key: TranslationKey) => string)`.
+- **Language switcher:** Available in UserMenu (Globe icon) and Settings page (dropdown).
+- **Persistence:** `profiles.preferred_language` column in DB. Language change calls `updateProfile()` + `refreshProfile()`.
