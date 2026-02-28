@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -103,6 +104,9 @@ func (h *SqlPracticeHandler) GetChallenge(w http.ResponseWriter, r *http.Request
 	if challengeProgress != nil && challengeProgress.IsSolved {
 		solutionSQL = &challenge.SolutionSQL
 	}
+
+	// Parse schema for visual display
+	challenge.Metadata = parseSchema(challenge.TableSchema)
 
 	type Response struct {
 		Challenge   models.SqlChallenge         `json:"challenge"`
@@ -386,6 +390,95 @@ func (h *SqlPracticeHandler) ListSubmissions(w http.ResponseWriter, r *http.Requ
 	helpers.JSON(w, http.StatusOK, subs)
 }
 
+func (h *SqlPracticeHandler) ListTopSolutions(w http.ResponseWriter, r *http.Request) {
+	challengeIDStr := r.PathValue("challengeId")
+	challengeID, err := uuid.Parse(challengeIDStr)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid challenge ID")
+		return
+	}
+
+	solutions, err := h.repo.GetTopSolutions(r.Context(), challengeID, 10)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to fetch top solutions")
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, solutions)
+}
+
+func (h *SqlPracticeHandler) ExplainQuery(w http.ResponseWriter, r *http.Request) {
+	var req models.SqlSubmitRequest
+	if err := helpers.DecodeJSON(r, &req); err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.Query == "" {
+		helpers.Error(w, http.StatusBadRequest, "query is required")
+		return
+	}
+
+	if err := h.validateQuery(req.Query); err != nil {
+		helpers.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	challengeID, err := uuid.Parse(req.ChallengeID)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid challenge_id")
+		return
+	}
+
+	challenge, err := h.repo.GetByID(r.Context(), challengeID)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "challenge not found")
+		return
+	}
+
+	execCtx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	tx, err := h.pool.Begin(execCtx)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to start sandbox")
+		return
+	}
+	defer tx.Rollback(context.Background())
+
+	if _, err := tx.Exec(execCtx, challenge.TableSchema); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to setup sandbox schema")
+		return
+	}
+
+	if _, err := tx.Exec(execCtx, challenge.SeedData); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to seed sandbox data")
+		return
+	}
+
+	// Run EXPLAIN ANALYZE
+	explainQuery := "EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) " + req.Query
+	rows, err := tx.Query(execCtx, explainQuery)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, sanitizeDbError(err.Error()))
+		return
+	}
+	defer rows.Close()
+
+	var plan []string
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			break
+		}
+		plan = append(plan, line)
+	}
+
+	helpers.JSON(w, http.StatusOK, map[string]string{
+		"plan": strings.Join(plan, "\n"),
+	})
+}
+
 func compareResults(user, expected *models.QueryResult, orderSensitive bool) bool {
 	if user == nil || expected == nil {
 		return false
@@ -496,4 +589,96 @@ func sanitizeDbError(msg string) string {
 		msg = msg[:300] + "..."
 	}
 	return msg
+}
+
+func parseSchema(schema string) *models.ChallengeMetadata {
+	metadata := &models.ChallengeMetadata{Tables: []models.TableMetadata{}}
+
+	tableRegex := regexp.MustCompile(`(?i)CREATE\s+(?:TEMP\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s*\(([\s\S]+?)\);`)
+	colRegex := regexp.MustCompile(`(?i)^\s*(\w+)\s+([\w\(\),.]+)`)
+
+	tableMatches := tableRegex.FindAllStringSubmatch(schema, -1)
+	for _, match := range tableMatches {
+		tableName := match[1]
+		colsStr := match[2]
+		
+		table := models.TableMetadata{
+			Name:    tableName,
+			Columns: []models.ColumnMetadata{},
+		}
+
+		lines := strings.Split(colsStr, ",")
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			// Skip constraints
+			upperLine := strings.ToUpper(line)
+			if strings.HasPrefix(upperLine, "PRIMARY KEY") || 
+			   strings.HasPrefix(upperLine, "FOREIGN KEY") || 
+			   strings.HasPrefix(upperLine, "CONSTRAINT") ||
+			   strings.HasPrefix(upperLine, "UNIQUE") ||
+			   strings.HasPrefix(upperLine, "CHECK") {
+				continue
+			}
+
+			colMatch := colRegex.FindStringSubmatch(line)
+			if len(colMatch) >= 3 {
+				table.Columns = append(table.Columns, models.ColumnMetadata{
+					Name: colMatch[1],
+					Type: colMatch[2],
+				})
+			}
+		}
+		metadata.Tables = append(metadata.Tables, table)
+	}
+
+	return metadata
+}
+
+func (h *SqlPracticeHandler) PreviewTable(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
+	tableName := r.PathValue("tableName")
+	
+	if slug == "" || tableName == "" {
+		helpers.Error(w, http.StatusBadRequest, "slug and tableName are required")
+		return
+	}
+
+	challenge, err := h.repo.GetBySlug(r.Context(), slug)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "challenge not found")
+		return
+	}
+
+	// Simple sandbox execution for preview
+	execCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	tx, err := h.pool.Begin(execCtx)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to start sandbox")
+		return
+	}
+	defer tx.Rollback(context.Background())
+
+	if _, err := tx.Exec(execCtx, challenge.TableSchema); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to setup sandbox schema")
+		return
+	}
+
+	if _, err := tx.Exec(execCtx, challenge.SeedData); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to seed sandbox data")
+		return
+	}
+
+	query := fmt.Sprintf("SELECT * FROM %s LIMIT 50", tableName)
+	result, err := runQueryInTx(execCtx, tx, query)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "failed to preview table: "+err.Error())
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, result)
 }

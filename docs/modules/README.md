@@ -26,6 +26,7 @@ Seventeen feature modules for DevPulse. Each module has its own detailed spec in
 | 15 | Snippet Marketplace | [15-snippet-marketplace.md](./15-snippet-marketplace.md) | ⭐⭐⭐⭐⭐ | 📋 Spec | E-Commerce + Stripe + reviews |
 | 16 | Workflow Automation | [16-workflow-automation.md](./16-workflow-automation.md) | ⭐⭐⭐⭐⭐ | 📋 Spec | Visual DAG builder + cron + webhook |
 | 17 | Database Explorer | [17-database-explorer.md](./17-database-explorer.md) | ⭐⭐⭐⭐ | 📋 Spec | SQL editor, schema browser, ERD |
+| 18 | SQL Practice Roadmap | [18-sql-practice-roadmap.md](./18-sql-practice-roadmap.md) | ⭐⭐⭐⭐ | 🚀 Roadmap | Autocomplete, Performance, Gamification |
 
 ## Shared Patterns
 

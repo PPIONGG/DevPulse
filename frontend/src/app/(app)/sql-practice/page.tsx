@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Search, GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { ChallengeCard } from "@/components/challenge-card";
 import { SqlPracticeStats } from "@/components/sql-practice-stats";
+import { SqlPracticeDaily } from "@/components/sql-practice-daily";
 import { ChallengeCardSkeleton } from "@/components/skeletons";
 import { useSqlPractice } from "@/hooks/use-sql-practice";
 import { challengeDifficulties, challengeCategories } from "@/config/sql-practice";
@@ -40,14 +42,27 @@ export default function SqlPracticePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">SQL Practice</h2>
-        <p className="mt-1 text-muted-foreground">
-          Practice SQL queries with interactive challenges.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">SQL Practice</h2>
+          <p className="mt-1 text-muted-foreground">
+            Practice SQL queries with interactive challenges.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => router.push("/sql-practice/cheat-sheet")}>
+            Cheat Sheet
+          </Button>
+          <Button size="sm" onClick={() => router.push("/sql-practice/learn")} className="gap-2">
+            <GraduationCap className="size-4" />
+            SQL Academy
+          </Button>
+        </div>
       </div>
 
       <SqlPracticeStats stats={stats} />
+
+      <SqlPracticeDaily challenge={stats?.daily_challenge} />
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px]">

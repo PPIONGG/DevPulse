@@ -16,7 +16,13 @@ export function ChallengeResult({ result, isPreview }: ChallengeResultProps) {
 
   return (
     <div className="space-y-3">
-      <ResultBanner status={result.status} errorMessage={result.error_message} executionTimeMs={result.execution_time_ms} isPreview={isPreview} />
+      <ResultBanner
+        status={result.status}
+        errorMessage={result.error_message}
+        executionTimeMs={result.execution_time_ms}
+        isPreview={isPreview}
+        result={result}
+      />
       {result.user_result && (
         <ResultTable
           title="Your Output"
@@ -35,16 +41,36 @@ export function ChallengeResult({ result, isPreview }: ChallengeResultProps) {
   );
 }
 
+function getWrongReason(user: QueryResult, expected: QueryResult): string {
+  if (user.columns.length !== expected.columns.length) {
+    return `Column count mismatch: Expected ${expected.columns.length}, but got ${user.columns.length}.`;
+  }
+  
+  const userCols = user.columns.map(c => c.toLowerCase()).sort();
+  const expCols = expected.columns.map(c => c.toLowerCase()).sort();
+  if (userCols.join(",") !== expCols.join(",")) {
+    return "Column names do not match the expected result.";
+  }
+
+  if (user.rows.length !== expected.rows.length) {
+    return `Row count mismatch: Expected ${expected.rows.length} rows, but got ${user.rows.length}.`;
+  }
+
+  return "The data in your result doesn't match the expected output.";
+}
+
 function ResultBanner({
   status,
   errorMessage,
   executionTimeMs,
   isPreview,
+  result,
 }: {
   status: string;
   errorMessage: string;
   executionTimeMs: number;
   isPreview?: boolean;
+  result: SqlSubmitResult;
 }) {
   if (status === "correct") {
     return (
@@ -84,15 +110,22 @@ function ResultBanner({
     );
   }
 
+  const wrongReason = result.user_result && result.expected_result 
+    ? getWrongReason(result.user_result, result.expected_result)
+    : "";
+
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900 dark:bg-red-950">
-      <XCircle className="size-5 shrink-0 text-red-600 dark:text-red-400" />
+    <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900 dark:bg-red-950">
+      <XCircle className="mt-0.5 size-5 shrink-0 text-red-600 dark:text-red-400" />
       <div className="flex-1">
         <p className="text-sm font-medium text-red-800 dark:text-red-200">
           Wrong Answer
         </p>
-        <p className="text-xs text-red-600 dark:text-red-400">
-          Executed in {executionTimeMs}ms &mdash; Compare your output with the expected output below.
+        <p className="mt-0.5 text-xs font-medium text-red-700 dark:text-red-300">
+          {wrongReason}
+        </p>
+        <p className="mt-1 text-[10px] text-red-600 dark:text-red-400">
+          Executed in {executionTimeMs}ms &mdash; Compare outputs below.
         </p>
       </div>
       {isPreview && (

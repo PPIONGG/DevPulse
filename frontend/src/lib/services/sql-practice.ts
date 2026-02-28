@@ -31,3 +31,15 @@ export async function getStats(): Promise<SqlPracticeStats> {
 export async function getSubmissions(challengeId: string): Promise<SqlSubmission[]> {
   return api.get<SqlSubmission[]>(`/api/sql-practice/submissions/${challengeId}`);
 }
+
+export async function previewTable(slug: string, tableName: string): Promise<QueryResult> {
+  return api.get<QueryResult>(`/api/sql-practice/challenges/${slug}/preview/${tableName}`);
+}
+
+export async function explainQuery(req: SqlSubmitRequest): Promise<{ plan: string }> {
+  return api.post<{ plan: string }>("/api/sql-practice/explain", req);
+}
+
+export async function getTopSolutions(challengeId: string): Promise<SqlTopSolution[]> {
+  return api.get<SqlTopSolution[]>(`/api/sql-practice/top-solutions/${challengeId}`);
+}

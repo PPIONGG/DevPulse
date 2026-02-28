@@ -8,6 +8,9 @@ import {
   submitAnswer as submitAnswerService,
   runQuery as runQueryService,
   getStats as getStatsService,
+  previewTable as previewTableService,
+  explainQuery as explainQueryService,
+  getTopSolutions as getTopSolutionsService,
 } from "@/lib/services/sql-practice";
 import { useAuth } from "@/providers/auth-provider";
 import type {
@@ -15,6 +18,8 @@ import type {
   SqlChallengeDetail,
   SqlSubmitResult,
   SqlPracticeStats,
+  QueryResult,
+  SqlTopSolution,
 } from "@/lib/types/database";
 
 export function useSqlPractice() {
@@ -202,6 +207,45 @@ export function useSqlChallenge(slug: string) {
     [data, user]
   );
 
+  const previewTable = useCallback(
+    async (tableName: string) => {
+      try {
+        return await previewTableService(slug, tableName);
+      } catch (err) {
+        toast.error("Failed to preview table");
+        throw err;
+      }
+    },
+    [slug]
+  );
+
+  const explain = useCallback(
+    async (query: string) => {
+      if (!data) return;
+      try {
+        const res = await explainQueryService({
+          challenge_id: data.challenge.id,
+          query,
+        });
+        return res.plan;
+      } catch (err) {
+        toast.error("Failed to explain query");
+        throw err;
+      }
+    },
+    [data]
+  );
+
+  const getTopSolutions = useCallback(async () => {
+    if (!data) return [];
+    try {
+      return await getTopSolutionsService(data.challenge.id);
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }, [data]);
+
   return {
     challenge: data?.challenge ?? null,
     submissions: data?.submissions ?? [],
@@ -217,6 +261,9 @@ export function useSqlChallenge(slug: string) {
     resultIsPreview,
     submit,
     run,
+    previewTable,
+    explain,
+    getTopSolutions,
     refetch: fetchChallenge,
   };
 }

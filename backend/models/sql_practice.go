@@ -7,19 +7,34 @@ import (
 )
 
 type SqlChallenge struct {
-	ID             uuid.UUID `json:"id"`
-	Slug           string    `json:"slug"`
-	Title          string    `json:"title"`
-	Difficulty     string    `json:"difficulty"`
-	Category       string    `json:"category"`
-	Description    string    `json:"description"`
-	TableSchema    string    `json:"table_schema"`
-	SeedData       string    `json:"seed_data"`
-	SolutionSQL    string    `json:"-"`
-	Hint           string    `json:"hint"`
-	OrderSensitive bool      `json:"order_sensitive"`
-	SortOrder      int       `json:"sort_order"`
-	CreatedAt      time.Time `json:"created_at"`
+	ID             uuid.UUID        `json:"id"`
+	Slug           string           `json:"slug"`
+	Title          string           `json:"title"`
+	Difficulty     string           `json:"difficulty"`
+	Category       string           `json:"category"`
+	Description    string           `json:"description"`
+	TableSchema    string           `json:"table_schema"`
+	SeedData       string           `json:"seed_data"`
+	SolutionSQL    string           `json:"-"`
+	Hint           string           `json:"hint"`
+	OrderSensitive bool             `json:"order_sensitive"`
+	SortOrder      int              `json:"sort_order"`
+	CreatedAt      time.Time        `json:"created_at"`
+	Metadata       *ChallengeMetadata `json:"metadata,omitempty"`
+}
+
+type ColumnMetadata struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type TableMetadata struct {
+	Name    string           `json:"name"`
+	Columns []ColumnMetadata `json:"columns"`
+}
+
+type ChallengeMetadata struct {
+	Tables []TableMetadata `json:"tables"`
 }
 
 type SqlSubmission struct {
@@ -54,6 +69,18 @@ type SqlSubmitResult struct {
 	ExpectedResult  *QueryResult `json:"expected_result"`
 	ExecutionTimeMs int          `json:"execution_time_ms"`
 	ErrorMessage    string       `json:"error_message"`
+	QueryPlan       string       `json:"query_plan,omitempty"`
+}
+
+type SqlTopSolution struct {
+	ID              uuid.UUID `json:"id"`
+	UserID          uuid.UUID `json:"user_id"`
+	DisplayName     string    `json:"display_name,omitempty"`
+	AvatarURL       string    `json:"avatar_url,omitempty"`
+	Query           string    `json:"query"`
+	ExecutionTimeMs int       `json:"execution_time_ms"`
+	QueryLength     int       `json:"query_length"`
+	SubmittedAt     time.Time `json:"submitted_at"`
 }
 
 type SqlPracticeCategoryStats struct {
@@ -74,4 +101,5 @@ type SqlPracticeStats struct {
 	Categories       []SqlPracticeCategoryStats `json:"categories"`
 	PracticeStreak   int                        `json:"practice_streak"`
 	TotalSubmissions int                        `json:"total_submissions"`
+	DailyChallenge   *SqlChallenge              `json:"daily_challenge,omitempty"`
 }

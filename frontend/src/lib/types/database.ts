@@ -647,6 +647,20 @@ export interface QueryHistoryEntry {
 
 // --- SQL Practice ---
 
+export interface ColumnMetadata {
+  name: string;
+  type: string;
+}
+
+export interface TableMetadata {
+  name: string;
+  columns: ColumnMetadata[];
+}
+
+export interface ChallengeMetadata {
+  tables: TableMetadata[];
+}
+
 export interface SqlChallenge {
   id: string;
   slug: string;
@@ -660,6 +674,7 @@ export interface SqlChallenge {
   order_sensitive: boolean;
   sort_order: number;
   created_at: string;
+  metadata?: ChallengeMetadata;
 }
 
 export interface SqlChallengeProgress {
@@ -698,6 +713,18 @@ export interface SqlSubmitResult {
   expected_result: QueryResult | null;
   execution_time_ms: number;
   error_message: string;
+  query_plan?: string;
+}
+
+export interface SqlTopSolution {
+  id: string;
+  user_id: string;
+  display_name: string;
+  avatar_url: string;
+  query: string;
+  execution_time_ms: number;
+  query_length: number;
+  submitted_at: string;
 }
 
 export interface SqlPracticeCategoryStats {
@@ -718,6 +745,7 @@ export interface SqlPracticeStats {
   categories: SqlPracticeCategoryStats[];
   practice_streak: number;
   total_submissions: number;
+  daily_challenge?: SqlChallenge;
 }
 
 export interface SqlChallengeDetail {

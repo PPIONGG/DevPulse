@@ -206,6 +206,9 @@ func New(
 	mux.Handle("POST /api/sql-practice/run", authMW(http.HandlerFunc(sqlPractice.RunQuery)))
 	mux.Handle("GET /api/sql-practice/stats", authMW(http.HandlerFunc(sqlPractice.GetStats)))
 	mux.Handle("GET /api/sql-practice/submissions/{challengeId}", authMW(http.HandlerFunc(sqlPractice.ListSubmissions)))
+	mux.Handle("GET /api/sql-practice/challenges/{slug}/preview/{tableName}", authMW(http.HandlerFunc(sqlPractice.PreviewTable)))
+	mux.Handle("POST /api/sql-practice/explain", authMW(http.HandlerFunc(sqlPractice.ExplainQuery)))
+	mux.Handle("GET /api/sql-practice/top-solutions/{challengeId}", authMW(http.HandlerFunc(sqlPractice.ListTopSolutions)))
 
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))

@@ -1,8 +1,16 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
-import { Play, Send, Loader2, RotateCcw } from "lucide-react";
+import { useCallback } from "react";
+import { Play, Send, Loader2, RotateCcw, Info, Layout } from "lucide-react";
+import { format } from "sql-formatter";
+import { useTheme } from "next-themes";
+import CodeMirror from "@uiw/react-codemirror";
+import { sql, PostgreSQL } from "@codemirror/lang-sql";
+import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
+import { EditorView, keymap } from "@codemirror/view";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import type { ChallengeMetadata } from "@/lib/types/database";
 
 interface ChallengeEditorProps {
   value: string;
@@ -12,6 +20,7 @@ interface ChallengeEditorProps {
   onReset?: () => void;
   running: boolean;
   submitting: boolean;
+  metadata?: ChallengeMetadata;
 }
 
 export function ChallengeEditor({
@@ -22,50 +31,69 @@ export function ChallengeEditor({
   onReset,
   running,
   submitting,
+  metadata,
 }: ChallengeEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { resolvedTheme } = useTheme();
   const busy = running || submitting;
-
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Enter") {
-        e.preventDefault();
-        if (!busy) onSubmit();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        if (!busy) onRun();
-        return;
-      }
-      // Tab indentation
-      if (e.key === "Tab") {
-        e.preventDefault();
-        const textarea = e.currentTarget;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const newValue = value.substring(0, start) + "  " + value.substring(end);
-        onChange(newValue);
-        requestAnimationFrame(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + 2;
-        });
-      }
-    },
-    [value, onChange, onRun, onSubmit, busy]
-  );
 
   const isMac = typeof navigator !== "undefined" && navigator.userAgent.includes("Mac");
   const modKey = isMac ? "\u2318" : "Ctrl";
 
+  const handleFormat = useCallback(() => {
+    try {
+      const formatted = format(value, {
+        language: "postgresql",
+        uppercase: true,
+      });
+      onChange(formatted);
+    } catch (err) {
+      console.error("Format error:", err);
+    }
+  }, [value, onChange]);
+
+  // Transform metadata into CodeMirror schema format
+  const getSchema = () => {
+    if (!metadata) return undefined;
+    const schema: Record<string, string[]> = {};
+    metadata.tables.forEach((table) => {
+      schema[table.name] = table.columns.map((c) => c.name);
+    });
+    return schema;
+  };
+
+  // Custom keymaps for Run (Mod-Enter) and Submit (Mod-Shift-Enter)
+  const customKeymap = keymap.of([
+    {
+      key: "Mod-Enter",
+      run: () => {
+        if (!busy) onRun();
+        return true;
+      },
+    },
+    {
+      key: "Mod-Shift-Enter",
+      run: () => {
+        if (!busy) onSubmit();
+        return true;
+      },
+    },
+  ]);
+
   return (
-    <div className="flex flex-col rounded-lg border bg-background">
-      <div className="flex items-center justify-between border-b px-3 py-2">
+    <div className="flex flex-col rounded-lg border bg-background overflow-hidden">
+      <div className="flex items-center justify-between border-b px-3 py-2 bg-muted/30">
         <span className="text-xs font-medium text-muted-foreground">SQL Editor</span>
         <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleFormat}
+            disabled={busy || !value.trim()}
+            className="h-7 gap-1 text-xs text-muted-foreground"
+          >
+            <Layout className="size-3" />
+            Format
+          </Button>
           {onReset && (
             <Button
               variant="ghost"
@@ -117,17 +145,48 @@ export function ChallengeEditor({
           </Button>
         </div>
       </div>
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Write your SQL query here..."
-        className="min-h-[200px] w-full resize-y bg-transparent p-3 font-mono text-sm outline-none placeholder:text-muted-foreground/50"
-        spellCheck={false}
-        autoCapitalize="off"
-        autoCorrect="off"
-      />
+      
+      <div className="relative min-h-[200px] w-full text-sm">
+        <CodeMirror
+          value={value}
+          onChange={(val) => onChange(val)}
+          theme={resolvedTheme === "dark" ? vscodeDark : vscodeLight}
+          extensions={[
+            sql({
+              dialect: PostgreSQL,
+              schema: getSchema(),
+            }),
+            customKeymap,
+            EditorView.lineWrapping,
+          ]}
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: true,
+            highlightActiveLine: true,
+            autocompletion: true,
+          }}
+          className="h-full min-h-[200px] [&>.cm-editor]:min-h-[200px] [&>.cm-editor]:outline-none"
+        />
+      </div>
+
+      {metadata && metadata.tables.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t bg-muted/30 px-3 py-2">
+          <Info className="mr-1 size-3 text-muted-foreground" />
+          <span className="text-[10px] font-medium text-muted-foreground mr-1">Available:</span>
+          {metadata.tables.map((table) => (
+            <Badge
+              key={table.name}
+              variant="outline"
+              className="text-[10px] font-mono px-1.5 py-0 h-4 border-dashed bg-background/50"
+            >
+              {table.name}
+            </Badge>
+          ))}
+          <span className="ml-auto text-[10px] text-muted-foreground italic">
+            Press Ctrl+Space for autocomplete
+          </span>
+        </div>
+      )}
     </div>
   );
 }

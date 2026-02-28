@@ -256,6 +256,56 @@ func (r *SqlPracticeRepo) GetStats(ctx context.Context, userID uuid.UUID) (*mode
 	return &stats, nil
 }
 
+func (r *SqlPracticeRepo) GetTopSolutions(ctx context.Context, challengeID uuid.UUID, limit int) ([]models.SqlTopSolution, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT s.id, s.user_id, COALESCE(p.display_name, ''), COALESCE(p.avatar_url, ''), s.query, COALESCE(s.execution_time_ms, 0), char_length(s.query) as query_length, s.submitted_at
+		 FROM sql_submissions s
+		 LEFT JOIN profiles p ON s.user_id = p.id
+		 WHERE s.challenge_id = $1 AND s.status = 'correct'
+		 ORDER BY s.execution_time_ms ASC NULLS LAST, query_length ASC
+		 LIMIT $2`, challengeID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var solutions []models.SqlTopSolution
+	for rows.Next() {
+		var s models.SqlTopSolution
+		if err := rows.Scan(&s.ID, &s.UserID, &s.DisplayName, &s.AvatarURL, &s.Query, &s.ExecutionTimeMs, &s.QueryLength, &s.SubmittedAt); err != nil {
+			return nil, err
+		}
+		solutions = append(solutions, s)
+	}
+	if solutions == nil {
+		solutions = []models.SqlTopSolution{}
+	}
+	return solutions, rows.Err()
+}
+
+func (r *SqlPracticeRepo) GetChallengeByDay(ctx context.Context) (*models.SqlChallenge, error) {
+	// Simple deterministic selection based on day of year
+	dayOfYear := time.Now().YearDay()
+	
+	var count int
+	err := r.pool.QueryRow(ctx, `SELECT COUNT(*) FROM sql_challenges`).Scan(&count)
+	if err != nil || count == 0 {
+		return nil, err
+	}
+
+	offset := dayOfYear % count
+	var c models.SqlChallenge
+	err = r.pool.QueryRow(ctx,
+		`SELECT id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at
+		 FROM sql_challenges ORDER BY id OFFSET $1 LIMIT 1`, offset,
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+	
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
 func (r *SqlPracticeRepo) ListSubmissions(ctx context.Context, userID, challengeID uuid.UUID, limit int) ([]models.SqlSubmission, error) {
 	rows, err := r.pool.Query(ctx,
 		`SELECT id, user_id, challenge_id, query, status, execution_time_ms, error_message, submitted_at
