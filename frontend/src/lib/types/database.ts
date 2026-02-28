@@ -215,3 +215,432 @@ export type JsonDocumentInput = Pick<
   JsonDocument,
   "title" | "content" | "format" | "description" | "tags" | "is_favorite"
 >;
+
+// --- Time Tracker ---
+
+export interface Client {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  company: string;
+  address: string;
+  phone: string;
+  notes: string;
+  hourly_rate: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ClientInput = Pick<
+  Client,
+  "name" | "email" | "company" | "address" | "phone" | "notes" | "hourly_rate" | "currency"
+>;
+
+export interface Project {
+  id: string;
+  user_id: string;
+  client_id: string | null;
+  title: string;
+  description: string;
+  color: string;
+  hourly_rate: number | null;
+  budget_hours: number | null;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ProjectInput = Pick<
+  Project,
+  "client_id" | "title" | "description" | "color" | "hourly_rate" | "budget_hours"
+>;
+
+export interface TimeEntry {
+  id: string;
+  user_id: string;
+  project_id: string;
+  description: string;
+  start_time: string;
+  end_time: string | null;
+  duration: number;
+  is_billable: boolean;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export type TimeEntryInput = Pick<
+  TimeEntry,
+  "project_id" | "description" | "start_time" | "end_time" | "duration" | "is_billable" | "tags"
+>;
+
+export interface InvoiceLineItem {
+  description: string;
+  hours: number;
+  rate: number;
+  amount: number;
+}
+
+export interface Invoice {
+  id: string;
+  user_id: string;
+  client_id: string | null;
+  invoice_number: string;
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  issue_date: string;
+  due_date: string;
+  subtotal: number;
+  tax_rate: number;
+  tax_amount: number;
+  total: number;
+  currency: string;
+  notes: string;
+  line_items: InvoiceLineItem[];
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type InvoiceInput = Pick<
+  Invoice,
+  "client_id" | "due_date" | "tax_rate" | "currency" | "notes" | "line_items"
+>;
+
+export interface TimeReport {
+  total_hours: number;
+  billable_hours: number;
+  total_amount: number;
+  by_project: { project_id: string; project_name: string; color: string; hours: number; amount: number }[];
+  by_day: { date: string; hours: number }[];
+}
+
+// --- API Playground ---
+
+export interface KeyValuePair {
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
+export interface ApiCollection {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  is_favorite: boolean;
+  requests: ApiRequest[];
+  created_at: string;
+  updated_at: string;
+}
+
+export type ApiCollectionInput = Pick<
+  ApiCollection,
+  "title" | "description" | "is_favorite"
+>;
+
+export interface ApiRequest {
+  id: string;
+  user_id: string;
+  collection_id: string | null;
+  title: string;
+  method: string;
+  url: string;
+  headers: KeyValuePair[];
+  query_params: KeyValuePair[];
+  body_type: string;
+  body: string;
+  env_vault_id: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ApiRequestInput = Pick<
+  ApiRequest,
+  | "collection_id"
+  | "title"
+  | "method"
+  | "url"
+  | "headers"
+  | "query_params"
+  | "body_type"
+  | "body"
+  | "env_vault_id"
+  | "sort_order"
+>;
+
+export interface ApiRequestHistory {
+  id: string;
+  user_id: string;
+  request_id: string | null;
+  method: string;
+  url: string;
+  request_headers: KeyValuePair[];
+  request_body: string;
+  response_status: number;
+  response_headers: Record<string, string>;
+  response_body: string;
+  response_size: number;
+  response_time_ms: number;
+  created_at: string;
+}
+
+export interface ApiProxyRequest {
+  method: string;
+  url: string;
+  headers: KeyValuePair[];
+  body: string;
+  env_vault_id?: string | null;
+  request_id?: string | null;
+  timeout_secs?: number;
+}
+
+export interface ApiProxyResponse {
+  status: number;
+  status_text: string;
+  headers: Record<string, string>;
+  body: string;
+  size: number;
+  time_ms: number;
+}
+
+// --- Marketplace ---
+
+export interface Listing {
+  id: string;
+  seller_id: string;
+  title: string;
+  description: string;
+  preview_code: string;
+  full_code: string;
+  language: string;
+  tags: string[];
+  price_cents: number;
+  currency: string;
+  is_published: boolean;
+  download_count: number;
+  seller_name: string;
+  avg_rating: number;
+  review_count: number;
+  is_purchased: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ListingInput {
+  title: string;
+  description: string;
+  preview_code: string;
+  full_code: string;
+  language: string;
+  tags: string[];
+  price_cents: number;
+  currency: string;
+  is_published: boolean;
+}
+
+export interface Purchase {
+  id: string;
+  buyer_id: string;
+  listing_id: string;
+  amount_cents: number;
+  platform_fee_cents: number;
+  currency: string;
+  status: string;
+  purchased_at: string | null;
+  created_at: string;
+  listing_title?: string;
+  listing_language?: string;
+  seller_name?: string;
+}
+
+export interface Review {
+  id: string;
+  buyer_id: string;
+  listing_id: string;
+  rating: number;
+  comment: string;
+  buyer_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReviewInput {
+  rating: number;
+  comment: string;
+}
+
+export interface SellerStats {
+  total_sales: number;
+  total_revenue: number;
+  active_listings: number;
+  total_listings: number;
+}
+
+// --- Workflows ---
+
+export interface Workflow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  is_enabled: boolean;
+  trigger_type: string;
+  cron_expression: string;
+  webhook_token: string | null;
+  nodes: unknown;
+  edges: unknown;
+  last_run_at: string | null;
+  last_run_status: string | null;
+  run_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkflowInput {
+  title: string;
+  description: string;
+  is_enabled: boolean;
+  trigger_type: string;
+  cron_expression: string;
+  nodes: unknown;
+  edges: unknown;
+}
+
+export interface WorkflowRun {
+  id: string;
+  workflow_id: string;
+  user_id: string;
+  status: string;
+  trigger_type: string;
+  started_at: string;
+  finished_at: string | null;
+  duration_ms: number | null;
+  error: string;
+  created_at: string;
+}
+
+export interface WorkflowStepLog {
+  id: string;
+  run_id: string;
+  node_id: string;
+  node_type: string;
+  status: string;
+  input_data: unknown;
+  output_data: unknown;
+  error: string;
+  started_at: string;
+  finished_at: string | null;
+  duration_ms: number | null;
+}
+
+// --- Database Explorer ---
+
+export interface DBConnection {
+  id: string;
+  user_id: string;
+  name: string;
+  db_type: string;
+  host: string;
+  port: number;
+  database_name: string;
+  username: string;
+  ssl_mode: string;
+  is_read_only: boolean;
+  color: string;
+  last_connected_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBConnectionInput {
+  name: string;
+  host: string;
+  port: number;
+  database_name: string;
+  username: string;
+  password: string;
+  ssl_mode: string;
+  is_read_only: boolean;
+  color: string;
+}
+
+export interface TableInfo {
+  name: string;
+  schema: string;
+  row_estimate: number;
+  size_bytes: number;
+}
+
+export interface ColumnInfo {
+  name: string;
+  data_type: string;
+  is_nullable: boolean;
+  is_primary_key: boolean;
+  default_value: string | null;
+  ordinal_position: number;
+}
+
+export interface ForeignKeyInfo {
+  column_name: string;
+  foreign_table: string;
+  foreign_column: string;
+  constraint_name: string;
+}
+
+export interface TableDetail {
+  table: TableInfo;
+  columns: ColumnInfo[];
+  foreign_keys: ForeignKeyInfo[];
+}
+
+export interface QueryRequest {
+  connection_id: string;
+  query: string;
+  limit: number;
+}
+
+export interface QueryResult {
+  columns: string[];
+  rows: unknown[][];
+  row_count: number;
+  execution_time_ms: number;
+  truncated: boolean;
+}
+
+export interface SavedQuery {
+  id: string;
+  user_id: string;
+  connection_id: string | null;
+  title: string;
+  query: string;
+  description: string;
+  tags: string[];
+  is_favorite: boolean;
+  last_run_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedQueryInput {
+  connection_id: string | null;
+  title: string;
+  query: string;
+  description: string;
+  tags: string[];
+  is_favorite: boolean;
+}
+
+export interface QueryHistoryEntry {
+  id: string;
+  user_id: string;
+  connection_id: string;
+  query: string;
+  row_count: number | null;
+  execution_time_ms: number | null;
+  status: string;
+  error_message: string;
+  created_at: string;
+}

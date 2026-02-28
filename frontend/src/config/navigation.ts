@@ -8,6 +8,11 @@ import {
   Timer,
   KeyRound,
   Braces,
+  Globe,
+  Clock,
+  Store,
+  Workflow,
+  Database,
   Settings,
   FolderOpen,
   Share2,
@@ -73,6 +78,31 @@ export const navigationItems: NavItem[] = [
     title: "JSON Tools",
     href: "/json-tools",
     icon: Braces,
+  },
+  {
+    title: "API Playground",
+    href: "/api-playground",
+    icon: Globe,
+  },
+  {
+    title: "Time Tracker",
+    href: "/time-tracker",
+    icon: Clock,
+  },
+  {
+    title: "Marketplace",
+    href: "/marketplace",
+    icon: Store,
+  },
+  {
+    title: "Workflows",
+    href: "/workflows",
+    icon: Workflow,
+  },
+  {
+    title: "DB Explorer",
+    href: "/db-explorer",
+    icon: Database,
   },
   {
     title: "Calculator",

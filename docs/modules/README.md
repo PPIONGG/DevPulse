@@ -2,7 +2,7 @@
 
 ## Overview
 
-Twelve feature modules for DevPulse. Each module has its own detailed spec in this directory. Implement them in order — earlier modules are simpler and establish patterns reused by later ones.
+Seventeen feature modules for DevPulse. Each module has its own detailed spec in this directory. Modules 1–12 are the original set (simpler features). Modules 13–17 are advanced features (⭐⭐⭐⭐+) with more complex architecture.
 
 ## Module Status
 
@@ -20,6 +20,12 @@ Twelve feature modules for DevPulse. Each module has its own detailed spec in th
 | 10 | Env Vault | [10-env-vault.md](./10-env-vault.md) | ⭐⭐ | ✅ Done | — |
 | 11 | Regex Playground | [11-regex-playground.md](./11-regex-playground.md) | ⭐⭐ | 📝 Draft | อาจกลับมาทำทีหลัง |
 | 12 | JSON Tools | [12-json-tools.md](./12-json-tools.md) | ⭐⭐ | ✅ Done | — |
+| **Advanced Modules** | | | | | |
+| 13 | API Playground | [13-api-playground.md](./13-api-playground.md) | ⭐⭐⭐⭐ | 📋 Spec | mini Postman + Env Vault integration |
+| 14 | Time Tracker + Invoice | [14-time-tracker.md](./14-time-tracker.md) | ⭐⭐⭐⭐ | 📋 Spec | Timer, reports, PDF invoice |
+| 15 | Snippet Marketplace | [15-snippet-marketplace.md](./15-snippet-marketplace.md) | ⭐⭐⭐⭐⭐ | 📋 Spec | E-Commerce + Stripe + reviews |
+| 16 | Workflow Automation | [16-workflow-automation.md](./16-workflow-automation.md) | ⭐⭐⭐⭐⭐ | 📋 Spec | Visual DAG builder + cron + webhook |
+| 17 | Database Explorer | [17-database-explorer.md](./17-database-explorer.md) | ⭐⭐⭐⭐ | 📋 Spec | SQL editor, schema browser, ERD |
 
 ## Shared Patterns
 
@@ -121,6 +127,15 @@ npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
 
 # Module 12 — JSON Tools
 npm install js-yaml && npm install -D @types/js-yaml
+
+# Module 14 — Time Tracker + Invoice
+npm install recharts
+
+# Module 15 — Snippet Marketplace
+npm install @stripe/stripe-js
+
+# Module 16 — Workflow Automation
+npm install @xyflow/react
 ```
 
 ## Verification

@@ -18,6 +18,11 @@ func New(
 	pomodoro *handlers.PomodoroHandler,
 	envVault *handlers.EnvVaultHandler,
 	jsonDoc *handlers.JsonDocumentHandler,
+	apiPlayground *handlers.ApiPlaygroundHandler,
+	timeTracker *handlers.TimeTrackerHandler,
+	marketplace *handlers.MarketplaceHandler,
+	workflow *handlers.WorkflowHandler,
+	dbExplorer *handlers.DatabaseExplorerHandler,
 	dashboard *handlers.DashboardHandler,
 	calculation *handlers.CalculationHandler,
 	sessionRepo *repository.SessionRepo,
@@ -102,6 +107,96 @@ func New(
 	mux.Handle("POST /api/json-documents", authMW(http.HandlerFunc(jsonDoc.Create)))
 	mux.Handle("PUT /api/json-documents/{id}", authMW(http.HandlerFunc(jsonDoc.Update)))
 	mux.Handle("DELETE /api/json-documents/{id}", authMW(http.HandlerFunc(jsonDoc.Delete)))
+
+	mux.Handle("GET /api/api-playground/collections", authMW(http.HandlerFunc(apiPlayground.ListCollections)))
+	mux.Handle("POST /api/api-playground/collections", authMW(http.HandlerFunc(apiPlayground.CreateCollection)))
+	mux.Handle("PUT /api/api-playground/collections/{id}", authMW(http.HandlerFunc(apiPlayground.UpdateCollection)))
+	mux.Handle("DELETE /api/api-playground/collections/{id}", authMW(http.HandlerFunc(apiPlayground.DeleteCollection)))
+	mux.Handle("GET /api/api-playground/requests/{id}", authMW(http.HandlerFunc(apiPlayground.GetRequest)))
+	mux.Handle("POST /api/api-playground/requests", authMW(http.HandlerFunc(apiPlayground.CreateRequest)))
+	mux.Handle("PUT /api/api-playground/requests/{id}", authMW(http.HandlerFunc(apiPlayground.UpdateRequest)))
+	mux.Handle("DELETE /api/api-playground/requests/{id}", authMW(http.HandlerFunc(apiPlayground.DeleteRequest)))
+	mux.Handle("PATCH /api/api-playground/requests/{id}/move", authMW(http.HandlerFunc(apiPlayground.MoveRequest)))
+	mux.Handle("POST /api/api-playground/send", authMW(http.HandlerFunc(apiPlayground.SendRequest)))
+	mux.Handle("GET /api/api-playground/history", authMW(http.HandlerFunc(apiPlayground.ListHistory)))
+	mux.Handle("DELETE /api/api-playground/history/{id}", authMW(http.HandlerFunc(apiPlayground.DeleteHistoryItem)))
+	mux.Handle("DELETE /api/api-playground/history", authMW(http.HandlerFunc(apiPlayground.ClearHistory)))
+
+	// Clients
+	mux.Handle("GET /api/clients", authMW(http.HandlerFunc(timeTracker.ListClients)))
+	mux.Handle("POST /api/clients", authMW(http.HandlerFunc(timeTracker.CreateClient)))
+	mux.Handle("PUT /api/clients/{id}", authMW(http.HandlerFunc(timeTracker.UpdateClient)))
+	mux.Handle("DELETE /api/clients/{id}", authMW(http.HandlerFunc(timeTracker.DeleteClient)))
+
+	// Projects
+	mux.Handle("GET /api/projects", authMW(http.HandlerFunc(timeTracker.ListProjects)))
+	mux.Handle("POST /api/projects", authMW(http.HandlerFunc(timeTracker.CreateProject)))
+	mux.Handle("PUT /api/projects/{id}", authMW(http.HandlerFunc(timeTracker.UpdateProject)))
+	mux.Handle("PATCH /api/projects/{id}/archive", authMW(http.HandlerFunc(timeTracker.ArchiveProject)))
+	mux.Handle("DELETE /api/projects/{id}", authMW(http.HandlerFunc(timeTracker.DeleteProject)))
+
+	// Time entries
+	mux.Handle("GET /api/time-entries", authMW(http.HandlerFunc(timeTracker.ListEntries)))
+	mux.Handle("GET /api/time-entries/running", authMW(http.HandlerFunc(timeTracker.GetRunning)))
+	mux.Handle("POST /api/time-entries/start", authMW(http.HandlerFunc(timeTracker.StartTimer)))
+	mux.Handle("POST /api/time-entries/{id}/stop", authMW(http.HandlerFunc(timeTracker.StopTimer)))
+	mux.Handle("POST /api/time-entries", authMW(http.HandlerFunc(timeTracker.CreateEntry)))
+	mux.Handle("PUT /api/time-entries/{id}", authMW(http.HandlerFunc(timeTracker.UpdateEntry)))
+	mux.Handle("DELETE /api/time-entries/{id}", authMW(http.HandlerFunc(timeTracker.DeleteEntry)))
+	mux.Handle("GET /api/time-entries/report", authMW(http.HandlerFunc(timeTracker.GetReport)))
+
+	// Invoices
+	mux.Handle("GET /api/invoices", authMW(http.HandlerFunc(timeTracker.ListInvoices)))
+	mux.Handle("GET /api/invoices/{id}", authMW(http.HandlerFunc(timeTracker.GetInvoice)))
+	mux.Handle("POST /api/invoices", authMW(http.HandlerFunc(timeTracker.CreateInvoice)))
+	mux.Handle("PUT /api/invoices/{id}", authMW(http.HandlerFunc(timeTracker.UpdateInvoice)))
+	mux.Handle("PATCH /api/invoices/{id}/status", authMW(http.HandlerFunc(timeTracker.UpdateInvoiceStatus)))
+	mux.Handle("DELETE /api/invoices/{id}", authMW(http.HandlerFunc(timeTracker.DeleteInvoice)))
+	mux.Handle("GET /api/invoices/{id}/pdf", authMW(http.HandlerFunc(timeTracker.DownloadPDF)))
+
+	// Marketplace
+	mux.Handle("GET /api/marketplace/listings", authMW(http.HandlerFunc(marketplace.BrowseListings)))
+	mux.Handle("GET /api/marketplace/listings/{id}", authMW(http.HandlerFunc(marketplace.GetListing)))
+	mux.Handle("GET /api/marketplace/my-listings", authMW(http.HandlerFunc(marketplace.MyListings)))
+	mux.Handle("POST /api/marketplace/listings", authMW(http.HandlerFunc(marketplace.CreateListing)))
+	mux.Handle("PUT /api/marketplace/listings/{id}", authMW(http.HandlerFunc(marketplace.UpdateListing)))
+	mux.Handle("DELETE /api/marketplace/listings/{id}", authMW(http.HandlerFunc(marketplace.DeleteListing)))
+	mux.Handle("POST /api/marketplace/purchase", authMW(http.HandlerFunc(marketplace.CreatePurchase)))
+	mux.Handle("GET /api/marketplace/purchases", authMW(http.HandlerFunc(marketplace.MyPurchases)))
+	mux.Handle("GET /api/marketplace/listings/{id}/reviews", authMW(http.HandlerFunc(marketplace.GetReviews)))
+	mux.Handle("POST /api/marketplace/listings/{id}/reviews", authMW(http.HandlerFunc(marketplace.CreateReview)))
+	mux.Handle("PUT /api/marketplace/reviews/{id}", authMW(http.HandlerFunc(marketplace.UpdateReview)))
+	mux.Handle("DELETE /api/marketplace/reviews/{id}", authMW(http.HandlerFunc(marketplace.DeleteReview)))
+	mux.Handle("GET /api/marketplace/seller/dashboard", authMW(http.HandlerFunc(marketplace.SellerDashboard)))
+
+	// Workflows
+	mux.Handle("GET /api/workflows", authMW(http.HandlerFunc(workflow.List)))
+	mux.Handle("GET /api/workflows/{id}", authMW(http.HandlerFunc(workflow.GetByID)))
+	mux.Handle("POST /api/workflows", authMW(http.HandlerFunc(workflow.Create)))
+	mux.Handle("PUT /api/workflows/{id}", authMW(http.HandlerFunc(workflow.Update)))
+	mux.Handle("DELETE /api/workflows/{id}", authMW(http.HandlerFunc(workflow.Delete)))
+	mux.Handle("PATCH /api/workflows/{id}/toggle", authMW(http.HandlerFunc(workflow.Toggle)))
+	mux.Handle("POST /api/workflows/{id}/run", authMW(http.HandlerFunc(workflow.RunManual)))
+	mux.Handle("GET /api/workflows/{workflowId}/runs", authMW(http.HandlerFunc(workflow.ListRuns)))
+	mux.Handle("GET /api/workflows/{workflowId}/runs/{runId}", authMW(http.HandlerFunc(workflow.GetRun)))
+	mux.Handle("GET /api/workflows/{workflowId}/runs/{runId}/steps", authMW(http.HandlerFunc(workflow.GetStepLogs)))
+	mux.HandleFunc("POST /api/webhooks/workflows/{token}", workflow.WebhookTrigger)
+
+	// Database Explorer
+	mux.Handle("GET /api/db-explorer/connections", authMW(http.HandlerFunc(dbExplorer.ListConnections)))
+	mux.Handle("POST /api/db-explorer/connections", authMW(http.HandlerFunc(dbExplorer.CreateConnection)))
+	mux.Handle("PUT /api/db-explorer/connections/{id}", authMW(http.HandlerFunc(dbExplorer.UpdateConnection)))
+	mux.Handle("DELETE /api/db-explorer/connections/{id}", authMW(http.HandlerFunc(dbExplorer.DeleteConnection)))
+	mux.Handle("POST /api/db-explorer/connections/test", authMW(http.HandlerFunc(dbExplorer.TestConnection)))
+	mux.Handle("GET /api/db-explorer/connections/{id}/tables", authMW(http.HandlerFunc(dbExplorer.GetTables)))
+	mux.Handle("GET /api/db-explorer/connections/{id}/tables/{table}", authMW(http.HandlerFunc(dbExplorer.GetTableDetail)))
+	mux.Handle("POST /api/db-explorer/query", authMW(http.HandlerFunc(dbExplorer.ExecuteQuery)))
+	mux.Handle("GET /api/db-explorer/saved-queries", authMW(http.HandlerFunc(dbExplorer.ListSavedQueries)))
+	mux.Handle("POST /api/db-explorer/saved-queries", authMW(http.HandlerFunc(dbExplorer.CreateSavedQuery)))
+	mux.Handle("PUT /api/db-explorer/saved-queries/{id}", authMW(http.HandlerFunc(dbExplorer.UpdateSavedQuery)))
+	mux.Handle("DELETE /api/db-explorer/saved-queries/{id}", authMW(http.HandlerFunc(dbExplorer.DeleteSavedQuery)))
+	mux.Handle("GET /api/db-explorer/history", authMW(http.HandlerFunc(dbExplorer.GetHistory)))
+	mux.Handle("DELETE /api/db-explorer/history", authMW(http.HandlerFunc(dbExplorer.ClearHistory)))
 
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))

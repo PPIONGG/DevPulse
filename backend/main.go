@@ -12,6 +12,7 @@ import (
 	"github.com/thammasornlueadtaharn/devpulse-backend/config"
 	"github.com/thammasornlueadtaharn/devpulse-backend/database"
 	"github.com/thammasornlueadtaharn/devpulse-backend/database/migrations"
+	"github.com/thammasornlueadtaharn/devpulse-backend/engine"
 	"github.com/thammasornlueadtaharn/devpulse-backend/handlers"
 	"github.com/thammasornlueadtaharn/devpulse-backend/repository"
 	"github.com/thammasornlueadtaharn/devpulse-backend/router"
@@ -49,7 +50,21 @@ func main() {
 	pomodoroRepo := repository.NewPomodoroRepo(pool)
 	envVaultRepo := repository.NewEnvVaultRepo(pool)
 	jsonDocumentRepo := repository.NewJsonDocumentRepo(pool)
+	apiPlaygroundRepo := repository.NewApiPlaygroundRepo(pool)
+	clientRepo := repository.NewClientRepo(pool)
+	projectRepo := repository.NewProjectRepo(pool)
+	timeEntryRepo := repository.NewTimeEntryRepo(pool)
+	invoiceRepo := repository.NewInvoiceRepo(pool)
+	marketplaceRepo := repository.NewMarketplaceRepo(pool)
+	workflowRepo := repository.NewWorkflowRepo(pool)
+	dbConnRepo := repository.NewDBConnectionRepo(pool)
+	savedQueryRepo := repository.NewSavedQueryRepo(pool)
+	queryHistoryRepo := repository.NewQueryHistoryRepo(pool)
 	dashboardRepo := repository.NewDashboardRepo(snippetRepo, expenseRepo, habitRepo, kanbanRepo)
+
+	// Create engines
+	workflowEngine := engine.NewWorkflowEngine(workflowRepo)
+	connManager := engine.NewConnectionManager(cfg.SessionSecret)
 
 	// Create handlers
 	authHandler := handlers.NewAuthHandler(
@@ -65,6 +80,11 @@ func main() {
 	pomodoroHandler := handlers.NewPomodoroHandler(pomodoroRepo)
 	envVaultHandler := handlers.NewEnvVaultHandler(envVaultRepo)
 	jsonDocumentHandler := handlers.NewJsonDocumentHandler(jsonDocumentRepo)
+	apiPlaygroundHandler := handlers.NewApiPlaygroundHandler(apiPlaygroundRepo, envVaultRepo)
+	timeTrackerHandler := handlers.NewTimeTrackerHandler(clientRepo, projectRepo, timeEntryRepo, invoiceRepo)
+	marketplaceHandler := handlers.NewMarketplaceHandler(marketplaceRepo)
+	workflowHandler := handlers.NewWorkflowHandler(workflowRepo, workflowEngine)
+	dbExplorerHandler := handlers.NewDatabaseExplorerHandler(dbConnRepo, savedQueryRepo, queryHistoryRepo, connManager)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardRepo)
 
 	// Create router
@@ -73,7 +93,9 @@ func main() {
 		snippetHandler, expenseHandler,
 		habitHandler, kanbanHandler,
 		pomodoroHandler, envVaultHandler,
-		jsonDocumentHandler,
+		jsonDocumentHandler, apiPlaygroundHandler,
+		timeTrackerHandler,
+		marketplaceHandler, workflowHandler, dbExplorerHandler,
 		dashboardHandler, calculationHandler,
 		sessionRepo, cfg.FrontendURL, cfg.UploadsDir,
 	)
