@@ -25,9 +25,16 @@ func (r *SessionRepo) Create(ctx context.Context, userID uuid.UUID) (*models.Ses
 		return nil, err
 	}
 
+	var role string
+	err = r.pool.QueryRow(ctx, `SELECT role FROM users WHERE id = $1`, userID).Scan(&role)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &models.Session{
 		Token:     token,
 		UserID:    userID,
+		UserRole:  role,
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}
 
@@ -45,11 +52,12 @@ func (r *SessionRepo) Create(ctx context.Context, userID uuid.UUID) (*models.Ses
 func (r *SessionRepo) FindValid(ctx context.Context, token string) (*models.Session, error) {
 	var s models.Session
 	err := r.pool.QueryRow(ctx,
-		`SELECT token, user_id, expires_at, created_at
-		 FROM sessions
-		 WHERE token = $1 AND expires_at > now()`,
+		`SELECT s.token, s.user_id, u.role, s.expires_at, s.created_at
+		 FROM sessions s
+		 JOIN users u ON s.user_id = u.id
+		 WHERE s.token = $1 AND s.expires_at > now()`,
 		token,
-	).Scan(&s.Token, &s.UserID, &s.ExpiresAt, &s.CreatedAt)
+	).Scan(&s.Token, &s.UserID, &s.UserRole, &s.ExpiresAt, &s.CreatedAt)
 	if err != nil {
 		return nil, err
 	}

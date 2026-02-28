@@ -8,15 +8,16 @@ import {
   ChevronRight,
   BookOpen,
   CheckCircle2,
-  Play,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChallengeEditor } from "@/components/challenge-editor";
 import { ChallengeResult } from "@/components/challenge-result";
 import { VisualSchema } from "@/components/sql-visual-schema";
-import { useSqlChallenge } from "@/hooks/use-sql-practice";
-import { sqlModules, type SqlLesson } from "@/config/sql-lessons";
+import { useSqlAcademyLesson, useSqlAcademy } from "@/hooks/use-sql-practice";
+import { previewTable } from "@/lib/services/sql-practice";
 
 export default function SqlLessonPage({
   params,
@@ -26,41 +27,55 @@ export default function SqlLessonPage({
   const { id } = use(params);
   const router = useRouter();
 
-  // Find current lesson and its neighbors
-  const allLessons = sqlModules.flatMap(m => m.lessons);
-  const lessonIdx = allLessons.findIndex(l => l.id === id);
-  const lesson = allLessons[lessonIdx];
+  const { lesson, loading, error, running, result, run } = useSqlAcademyLesson(id);
+  const { modules } = useSqlAcademy();
+
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (lesson) setQuery(lesson.practice_query);
+  }, [lesson]);
+
+  // Find neighbors for navigation
+  const allLessons = modules.flatMap((m) => m.lessons);
+  const lessonIdx = allLessons.findIndex((l) => l.id === id);
   const prevLesson = allLessons[lessonIdx - 1];
   const nextLesson = allLessons[lessonIdx + 1];
 
-  // We use a dummy slug for the hook to use the execution engine
-  // In a real app, you might have a dedicated "sandbox" endpoint for lessons
-  // but here we can reuse the first challenge's environment for simplicity
-  const {
-    run,
-    previewTable,
-    result,
-    running,
-    resultIsPreview,
-  } = useSqlChallenge("select-all-employees");
-
-  const [query, setQuery] = useState(lesson?.practiceQuery || "");
-  const [solved, setSolved] = useState(false);
-
-  useEffect(() => {
-    if (lesson) setQuery(lesson.practiceQuery);
-    setSolved(false);
-  }, [lesson]);
-
-  const handleRun = useCallback(async () => {
-    const res = await run(query);
-    if (res?.status === "correct") {
-      setSolved(true);
-    }
+  const handleRun = useCallback(() => {
+    run(query);
   }, [query, run]);
 
-  if (!lesson) {
-    return <div>Lesson not found</div>;
+  const handlePreview = useCallback((tableName: string) => {
+    // In lessons, we don't have a slug, but the backend PreviewTable handler expects one.
+    // However, our VisualSchema in lesson context might need a different approach 
+    // or the backend needs to support preview by lesson ID.
+    // For now, let's keep it simple.
+    return previewTable("intro-to-sql", tableName); // Temporary fallback
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-full" />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !lesson) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <h3 className="text-lg font-medium text-destructive">Error loading lesson</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{error || "Lesson not found"}</p>
+        <Button variant="outline" className="mt-4" onClick={() => router.push("/sql-practice/learn")}>
+          Back to Academy
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -78,7 +93,7 @@ export default function SqlLessonPage({
           <div className="flex items-center gap-2">
             <BookOpen className="size-5 text-primary" />
             <h2 className="text-lg font-bold">{lesson.title}</h2>
-            {solved && <CheckCircle2 className="size-5 text-green-500" />}
+            {lesson.is_completed && <CheckCircle2 className="size-5 text-green-500" />}
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -93,7 +108,7 @@ export default function SqlLessonPage({
             Prev
           </Button>
           <Button
-            variant={solved ? "default" : "outline"}
+            variant={lesson.is_completed ? "default" : "outline"}
             size="sm"
             onClick={() => router.push(`/sql-practice/learn/${nextLesson.id}`)}
             disabled={!nextLesson}
@@ -121,7 +136,10 @@ export default function SqlLessonPage({
               <CardTitle className="text-sm">Database Schema</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              <VisualSchema onPreview={previewTable} />
+              <div className="rounded-md border bg-muted/20 p-4 text-xs font-mono">
+                <p className="text-muted-foreground mb-2">-- Available Tables</p>
+                <pre className="text-primary">{lesson.table_schema}</pre>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -132,14 +150,14 @@ export default function SqlLessonPage({
             value={query}
             onChange={setQuery}
             onRun={handleRun}
-            onSubmit={handleRun} // In lessons, submit just runs it
+            onSubmit={handleRun}
             running={running}
             submitting={false}
           />
 
           {result && (
             <div className="space-y-3">
-              {solved && (
+              {result.status === "correct" && (
                 <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-900/30 dark:bg-green-950/20 text-green-800 dark:text-green-200 text-sm font-medium flex items-center gap-2">
                   <CheckCircle2 className="size-4" />
                   Correct! You've completed this lesson.
@@ -154,7 +172,7 @@ export default function SqlLessonPage({
                   )}
                 </div>
               )}
-              <ChallengeResult result={result} isPreview={resultIsPreview} />
+              <ChallengeResult result={result} isPreview={true} />
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import {
@@ -17,12 +18,17 @@ interface NavGroupProps {
 
 export function NavGroup({ item }: NavGroupProps) {
   const pathname = usePathname();
-  const isChildActive = item.children?.some((child) =>
-    pathname.startsWith(child.href)
-  );
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const isActive = item.children?.some((child) =>
+      pathname.startsWith(child.href)
+    );
+    if (isActive) setOpen(true);
+  }, [pathname, item.children]);
 
   return (
-    <Collapsible defaultOpen={isChildActive}>
+    <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground group">
         <item.icon className="h-4 w-4 shrink-0" />
         <span className="flex-1 text-left">{item.title}</span>

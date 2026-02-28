@@ -129,8 +129,18 @@ func (h *SqlPracticeHandler) GetChallenge(w http.ResponseWriter, r *http.Request
 
 func (h *SqlPracticeHandler) validateQuery(query string) error {
 	trimmed := strings.TrimSpace(strings.ToUpper(query))
-	if !strings.HasPrefix(trimmed, "SELECT") && !strings.HasPrefix(trimmed, "WITH") {
-		return fmt.Errorf("only SELECT and WITH (CTE) queries are allowed")
+	allowedPrefixes := []string{"SELECT", "WITH", "INSERT", "UPDATE", "DELETE"}
+	
+	isValid := false
+	for _, prefix := range allowedPrefixes {
+		if strings.HasPrefix(trimmed, prefix) {
+			isValid = true
+			break
+		}
+	}
+
+	if !isValid {
+		return fmt.Errorf("only SELECT, WITH, INSERT, UPDATE, and DELETE queries are allowed")
 	}
 	if containsMultipleStatements(query) {
 		return fmt.Errorf("only single statements are allowed")
@@ -169,13 +179,14 @@ func (h *SqlPracticeHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	result := h.executeAndJudge(r.Context(), challenge, req.Query)
+	result := h.executeAndJudge(r.Context(), challenge.TableSchema, challenge.SeedData, req.Query, challenge.SolutionSQL, challenge.OrderSensitive)
 
 	sub := models.SqlSubmission{
 		ChallengeID:  challengeID,
 		Query:        req.Query,
 		Status:       result.Status,
 		ErrorMessage: result.ErrorMessage,
+		QueryPlan:    &result.QueryPlan,
 	}
 	if result.ExecutionTimeMs > 0 {
 		ms := result.ExecutionTimeMs
@@ -222,13 +233,13 @@ func (h *SqlPracticeHandler) RunQuery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := h.executeAndJudge(r.Context(), challenge, req.Query)
+	result := h.executeAndJudge(r.Context(), challenge.TableSchema, challenge.SeedData, req.Query, challenge.SolutionSQL, challenge.OrderSensitive)
 
 	// RunQuery is preview-only: no submission or progress recorded
 	helpers.JSON(w, http.StatusOK, result)
 }
 
-func (h *SqlPracticeHandler) executeAndJudge(ctx context.Context, challenge *models.SqlChallenge, userQuery string) models.SqlSubmitResult {
+func (h *SqlPracticeHandler) executeAndJudge(ctx context.Context, tableSchema, seedData, userQuery, solutionSQL string, orderSensitive bool) models.SqlSubmitResult {
 	execCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -241,14 +252,19 @@ func (h *SqlPracticeHandler) executeAndJudge(ctx context.Context, challenge *mod
 	}
 	defer tx.Rollback(context.Background())
 
-	if _, err := tx.Exec(execCtx, challenge.TableSchema); err != nil {
+	// Set a timeout for the statement execution to prevent long-running queries
+	if _, err := tx.Exec(execCtx, "SET statement_timeout = '5s'"); err != nil {
+		// Just log or ignore if fails, not critical
+	}
+
+	if _, err := tx.Exec(execCtx, tableSchema); err != nil {
 		return models.SqlSubmitResult{
 			Status:       "error",
 			ErrorMessage: "failed to setup sandbox schema",
 		}
 	}
 
-	if _, err := tx.Exec(execCtx, challenge.SeedData); err != nil {
+	if _, err := tx.Exec(execCtx, seedData); err != nil {
 		return models.SqlSubmitResult{
 			Status:       "error",
 			ErrorMessage: "failed to seed sandbox data",
@@ -267,7 +283,7 @@ func (h *SqlPracticeHandler) executeAndJudge(ctx context.Context, challenge *mod
 		}
 	}
 
-	expectedResult, expectedErr := runQueryInTx(execCtx, tx, challenge.SolutionSQL)
+	expectedResult, expectedErr := runQueryInTx(execCtx, tx, solutionSQL)
 	if expectedErr != nil {
 		return models.SqlSubmitResult{
 			Status:       "error",
@@ -275,22 +291,34 @@ func (h *SqlPracticeHandler) executeAndJudge(ctx context.Context, challenge *mod
 		}
 	}
 
-	isCorrect := compareResults(userResult, expectedResult, challenge.OrderSensitive)
+	isCorrect := compareResults(userResult, expectedResult, orderSensitive)
 
-	if isCorrect {
-		return models.SqlSubmitResult{
-			Status:          "correct",
-			UserResult:      userResult,
-			ExecutionTimeMs: elapsed,
+	// Explain Plan for performance analysis
+	var plan []string
+	if rows, err := tx.Query(execCtx, "EXPLAIN (FORMAT TEXT) "+userQuery); err == nil {
+		for rows.Next() {
+			var line string
+			if err := rows.Scan(&line); err == nil {
+				plan = append(plan, line)
+			}
 		}
+		rows.Close()
 	}
 
-	return models.SqlSubmitResult{
-		Status:          "wrong",
+	res := models.SqlSubmitResult{
+		ExecutionTimeMs: elapsed,
 		UserResult:      userResult,
 		ExpectedResult:  expectedResult,
-		ExecutionTimeMs: elapsed,
+		QueryPlan:       strings.Join(plan, "\n"),
 	}
+
+	if isCorrect {
+		res.Status = "correct"
+	} else {
+		res.Status = "wrong"
+	}
+
+	return res
 }
 
 func runQueryInTx(ctx context.Context, tx pgx.Tx, query string) (*models.QueryResult, error) {
@@ -681,4 +709,92 @@ func (h *SqlPracticeHandler) PreviewTable(w http.ResponseWriter, r *http.Request
 	}
 
 	helpers.JSON(w, http.StatusOK, result)
+}
+
+// Academy Handlers
+
+func (h *SqlPracticeHandler) ListLessons(w http.ResponseWriter, r *http.Request) {
+	userID := helpers.UserIDFromContext(r.Context())
+
+	lessons, err := h.repo.ListLessons(r.Context(), userID)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to fetch lessons")
+		return
+	}
+
+	// Group lessons by module
+	modulesMap := make(map[string]*models.SqlModuleWithLessons)
+	var moduleIDs []string
+
+	for _, l := range lessons {
+		if _, ok := modulesMap[l.ModuleID]; !ok {
+			modulesMap[l.ModuleID] = &models.SqlModuleWithLessons{
+				ID:      l.ModuleID,
+				Title:   l.ModuleTitle,
+				Lessons: []models.SqlLesson{},
+			}
+			moduleIDs = append(moduleIDs, l.ModuleID)
+		}
+		modulesMap[l.ModuleID].Lessons = append(modulesMap[l.ModuleID].Lessons, l)
+	}
+
+	result := make([]*models.SqlModuleWithLessons, len(moduleIDs))
+	for i, id := range moduleIDs {
+		result[i] = modulesMap[id]
+	}
+
+	helpers.JSON(w, http.StatusOK, result)
+}
+
+func (h *SqlPracticeHandler) GetLesson(w http.ResponseWriter, r *http.Request) {
+	userID := helpers.UserIDFromContext(r.Context())
+	id := r.PathValue("id")
+
+	lesson, err := h.repo.GetLessonByID(r.Context(), id, userID)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "lesson not found")
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, lesson)
+}
+
+func (h *SqlPracticeHandler) RunLessonQuery(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		LessonID string `json:"lesson_id"`
+		Query    string `json:"query"`
+	}
+	if err := helpers.DecodeJSON(r, &req); err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	userID := helpers.UserIDFromContext(r.Context())
+	lesson, err := h.repo.GetLessonByID(r.Context(), req.LessonID, userID)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "lesson not found")
+		return
+	}
+
+	if err := h.validateQuery(req.Query); err != nil {
+		helpers.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Use lesson-specific schema
+	result := h.executeAndJudge(r.Context(), lesson.TableSchema, lesson.SeedData, req.Query, lesson.PracticeQuery, false)
+
+	helpers.JSON(w, http.StatusOK, result)
+}
+
+func (h *SqlPracticeHandler) CompleteLesson(w http.ResponseWriter, r *http.Request) {
+	userID := helpers.UserIDFromContext(r.Context())
+	id := r.PathValue("id")
+
+	if err := h.repo.UpsertLessonProgress(r.Context(), userID, id, true); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to update progress")
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, map[string]string{"status": "success"})
 }

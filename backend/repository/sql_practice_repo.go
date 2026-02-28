@@ -114,11 +114,11 @@ func (r *SqlPracticeRepo) UpsertProgress(ctx context.Context, userID, challengeI
 func (r *SqlPracticeRepo) CreateSubmission(ctx context.Context, userID uuid.UUID, sub models.SqlSubmission) (*models.SqlSubmission, error) {
 	var s models.SqlSubmission
 	err := r.pool.QueryRow(ctx,
-		`INSERT INTO sql_submissions (user_id, challenge_id, query, status, execution_time_ms, error_message)
-		 VALUES ($1, $2, $3, $4, $5, $6)
-		 RETURNING id, user_id, challenge_id, query, status, execution_time_ms, error_message, submitted_at`,
-		userID, sub.ChallengeID, sub.Query, sub.Status, sub.ExecutionTimeMs, sub.ErrorMessage,
-	).Scan(&s.ID, &s.UserID, &s.ChallengeID, &s.Query, &s.Status, &s.ExecutionTimeMs, &s.ErrorMessage, &s.SubmittedAt)
+		`INSERT INTO sql_submissions (user_id, challenge_id, query, status, execution_time_ms, error_message, query_plan)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7)
+		 RETURNING id, user_id, challenge_id, query, status, execution_time_ms, error_message, submitted_at, query_plan`,
+		userID, sub.ChallengeID, sub.Query, sub.Status, sub.ExecutionTimeMs, sub.ErrorMessage, sub.QueryPlan,
+	).Scan(&s.ID, &s.UserID, &s.ChallengeID, &s.Query, &s.Status, &s.ExecutionTimeMs, &s.ErrorMessage, &s.SubmittedAt, &s.QueryPlan)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +308,7 @@ func (r *SqlPracticeRepo) GetChallengeByDay(ctx context.Context) (*models.SqlCha
 
 func (r *SqlPracticeRepo) ListSubmissions(ctx context.Context, userID, challengeID uuid.UUID, limit int) ([]models.SqlSubmission, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, user_id, challenge_id, query, status, execution_time_ms, error_message, submitted_at
+		`SELECT id, user_id, challenge_id, query, status, execution_time_ms, error_message, submitted_at, query_plan
 		 FROM sql_submissions
 		 WHERE user_id = $1 AND challenge_id = $2
 		 ORDER BY submitted_at DESC
@@ -321,7 +321,7 @@ func (r *SqlPracticeRepo) ListSubmissions(ctx context.Context, userID, challenge
 	var subs []models.SqlSubmission
 	for rows.Next() {
 		var s models.SqlSubmission
-		if err := rows.Scan(&s.ID, &s.UserID, &s.ChallengeID, &s.Query, &s.Status, &s.ExecutionTimeMs, &s.ErrorMessage, &s.SubmittedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.UserID, &s.ChallengeID, &s.Query, &s.Status, &s.ExecutionTimeMs, &s.ErrorMessage, &s.SubmittedAt, &s.QueryPlan); err != nil {
 			return nil, err
 		}
 		subs = append(subs, s)
@@ -330,4 +330,66 @@ func (r *SqlPracticeRepo) ListSubmissions(ctx context.Context, userID, challenge
 		subs = []models.SqlSubmission{}
 	}
 	return subs, rows.Err()
+}
+
+// SQL Academy Repository Methods
+
+func (r *SqlPracticeRepo) ListLessons(ctx context.Context, userID uuid.UUID) ([]models.SqlLesson, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT l.id, l.module_id, l.module_title, l.title, l.description, l.content, l.practice_query, l.expected_output_json, l.table_schema, l.seed_data, l.sort_order, l.created_at,
+		        COALESCE(p.is_completed, false) as is_completed
+		 FROM sql_lessons l
+		 LEFT JOIN sql_lesson_progress p ON l.id = p.lesson_id AND p.user_id = $1
+		 ORDER BY l.sort_order`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lessons []models.SqlLesson
+	for rows.Next() {
+		var l models.SqlLesson
+		if err := rows.Scan(&l.ID, &l.ModuleID, &l.ModuleTitle, &l.Title, &l.Description, &l.Content, &l.PracticeQuery, &l.ExpectedOutputJSON, &l.TableSchema, &l.SeedData, &l.SortOrder, &l.CreatedAt, &l.IsCompleted); err != nil {
+			return nil, err
+		}
+		lessons = append(lessons, l)
+	}
+	if lessons == nil {
+		lessons = []models.SqlLesson{}
+	}
+	return lessons, rows.Err()
+}
+
+func (r *SqlPracticeRepo) GetLessonByID(ctx context.Context, id string, userID uuid.UUID) (*models.SqlLesson, error) {
+	var l models.SqlLesson
+	err := r.pool.QueryRow(ctx,
+		`SELECT l.id, l.module_id, l.module_title, l.title, l.description, l.content, l.practice_query, l.expected_output_json, l.table_schema, l.seed_data, l.sort_order, l.created_at,
+		        COALESCE(p.is_completed, false) as is_completed
+		 FROM sql_lessons l
+		 LEFT JOIN sql_lesson_progress p ON l.id = p.lesson_id AND p.user_id = $1
+		 WHERE l.id = $2`, userID, id,
+	).Scan(&l.ID, &l.ModuleID, &l.ModuleTitle, &l.Title, &l.Description, &l.Content, &l.PracticeQuery, &l.ExpectedOutputJSON, &l.TableSchema, &l.SeedData, &l.SortOrder, &l.CreatedAt, &l.IsCompleted)
+	if err != nil {
+		return nil, err
+	}
+	return &l, nil
+}
+
+func (r *SqlPracticeRepo) UpsertLessonProgress(ctx context.Context, userID uuid.UUID, lessonID string, isCompleted bool) error {
+	now := time.Now()
+	var completedAt *time.Time
+	if isCompleted {
+		completedAt = &now
+	}
+
+	_, err := r.pool.Exec(ctx,
+		`INSERT INTO sql_lesson_progress (user_id, lesson_id, is_completed, completed_at, last_accessed_at)
+		 VALUES ($1, $2, $3, $4, $5)
+		 ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+		   is_completed = sql_lesson_progress.is_completed OR EXCLUDED.is_completed,
+		   completed_at = COALESCE(sql_lesson_progress.completed_at, EXCLUDED.completed_at),
+		   last_accessed_at = EXCLUDED.last_accessed_at`,
+		userID, lessonID, isCompleted, completedAt, now,
+	)
+	return err
 }

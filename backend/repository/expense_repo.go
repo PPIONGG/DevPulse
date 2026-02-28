@@ -82,6 +82,16 @@ func (r *ExpenseRepo) CountByUser(ctx context.Context, userID uuid.UUID) (int, e
 	return count, err
 }
 
+func (r *ExpenseRepo) MonthlyTotal(ctx context.Context, userID uuid.UUID) (float64, error) {
+	var total float64
+	err := r.pool.QueryRow(ctx,
+		`SELECT COALESCE(SUM(amount), 0) FROM expenses 
+		 WHERE user_id = $1 AND date >= DATE_TRUNC('month', CURRENT_DATE)::text`,
+		userID,
+	).Scan(&total)
+	return total, err
+}
+
 func (r *ExpenseRepo) Delete(ctx context.Context, id, userID uuid.UUID) error {
 	tag, err := r.pool.Exec(ctx,
 		`DELETE FROM expenses WHERE id = $1 AND user_id = $2`,

@@ -110,6 +110,42 @@ func (r *HabitRepo) CountByUser(ctx context.Context, userID uuid.UUID) (int, err
 	return count, err
 }
 
+func (r *HabitRepo) GetTodayStats(ctx context.Context, userID uuid.UUID) (total, completed int, err error) {
+	err = r.pool.QueryRow(ctx,
+		`SELECT 
+			COUNT(h.id) as total,
+			COUNT(hc.id) as completed
+		 FROM habits h
+		 LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.completed_date = CURRENT_DATE
+		 WHERE h.user_id = $1 AND h.is_archived = false`,
+		userID,
+	).Scan(&total, &completed)
+	return
+}
+
+func (r *HabitRepo) ListTodayActive(ctx context.Context, userID uuid.UUID) ([]models.Habit, error) {
+	rows, err := r.pool.Query(ctx,
+		fmt.Sprintf(`SELECT %s FROM habits 
+		 WHERE user_id = $1 AND is_archived = false 
+		 ORDER BY created_at ASC`, habitColumns),
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var habits []models.Habit
+	for rows.Next() {
+		var h models.Habit
+		if err := scanHabit(rows, &h); err != nil {
+			return nil, err
+		}
+		habits = append(habits, h)
+	}
+	return habits, rows.Err()
+}
+
 // --- Completions ---
 
 func (r *HabitRepo) GetCompletions(ctx context.Context, userID uuid.UUID, startDate, endDate string) ([]models.HabitCompletion, error) {

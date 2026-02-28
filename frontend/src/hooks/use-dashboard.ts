@@ -7,11 +7,14 @@ import {
   type DashboardStats,
 } from "@/lib/services/dashboard";
 import { useAuth } from "@/providers/auth-provider";
-import type { CodeSnippet } from "@/lib/types/database";
+import type { CodeSnippet, KanbanCard, Habit, SqlChallenge } from "@/lib/types/database";
 
 interface DashboardData {
   stats: DashboardStats;
   recentSnippets: CodeSnippet[];
+  upcomingTasks: KanbanCard[];
+  todayHabits: Habit[];
+  dailyChallenge?: SqlChallenge;
 }
 
 const defaultStats: DashboardStats = {
@@ -19,6 +22,9 @@ const defaultStats: DashboardStats = {
   expenses: 0,
   habits: 0,
   boards: 0,
+  monthlyExpenses: 0,
+  habitsToday: 0,
+  habitsCompleted: 0,
 };
 
 export function useDashboard() {
@@ -26,6 +32,8 @@ export function useDashboard() {
   const [data, setData] = useState<DashboardData>({
     stats: defaultStats,
     recentSnippets: [],
+    upcomingTasks: [],
+    todayHabits: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,11 +72,14 @@ export function useDashboard() {
         const recent =
           results[1].status === "fulfilled"
             ? results[1].value
-            : { recentSnippets: [] };
+            : { recentSnippets: [], upcomingTasks: [], todayHabits: [] };
 
         setData({
           stats,
-          recentSnippets: recent.recentSnippets,
+          recentSnippets: recent.recentSnippets ?? [],
+          upcomingTasks: recent.upcomingTasks ?? [],
+          todayHabits: recent.todayHabits ?? [],
+          dailyChallenge: recent.dailyChallenge,
         });
 
         const hasPartialError = results.some((r) => r.status === "rejected");

@@ -1,17 +1,19 @@
 # DevPulse
 
-Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, SQL practice, and a calculator.
+Developer productivity hub — a personal dashboard with code snippets, expense tracking, habit tracking, kanban boards, pomodoro timer, environment vault, JSON tools, SQL practice & academy, admin panel, and a calculator.
+
+Detailed references: [API Endpoints](docs/api-endpoints.md) | [Database Schema](docs/database-schema.md)
 
 ## Tech Stack
 
 - **Frontend:** Next.js 16.1.6 (App Router), React 19.2.3, TypeScript 5, Tailwind CSS v4, shadcn/ui (Radix primitives)
 - **Backend:** Go 1.24 (net/http), PostgreSQL 16, Docker
-- **Auth:** Session-based cookies (HttpOnly, 30-day expiry), GitHub OAuth via Go backend
+- **Auth:** Session-based cookies (HttpOnly, 30-day expiry), GitHub OAuth, RBAC (user/admin roles)
 - **Icons:** lucide-react
 - **Syntax highlighting:** Shiki (github-dark theme)
 - **Toasts:** sonner
 - **Theme:** next-themes (light/dark mode)
-- **Avatar crop:** react-image-crop (circular 256×256 JPEG)
+- **Avatar crop:** react-image-crop (circular 256x256 JPEG)
 - **Package manager:** npm (not yarn/pnpm/bun)
 
 ## Project Structure
@@ -38,16 +40,24 @@ DevPulse/
 │       │   │   ├── pomodoro/           # Pomodoro timer with stats
 │       │   │   ├── env-vault/          # Environment variable vault
 │       │   │   ├── json-tools/         # JSON/YAML formatter, converter, diff, tree
-│       │   │   ├── sql-practice/        # SQL Practice challenge list + [slug] detail
+│       │   │   ├── sql-practice/       # SQL Practice + Academy + Cheat Sheet
+│       │   │   │   ├── page.tsx        # Challenge list (100+ challenges)
+│       │   │   │   ├── [slug]/         # Challenge detail + SQL editor
+│       │   │   │   ├── learn/          # SQL Academy — structured lessons
+│       │   │   │   │   ├── page.tsx    # Module browser
+│       │   │   │   │   └── [id]/       # Individual lesson + practice editor
+│       │   │   │   └── cheat-sheet/    # SQL quick reference (searchable)
 │       │   │   ├── calculator/         # Calculator with history
+│       │   │   ├── admin/              # Admin panel (admin role only)
+│       │   │   │   └── navigation/     # Menu Manager — toggle sidebar items
 │       │   │   └── settings/           # Profile management + avatar upload/crop
 │       │   └── auth/
 │       │       └── login/              # Login + register + GitHub OAuth
 │       ├── proxy.ts          # Middleware — checks session_token cookie, redirects to /auth/login
 │       ├── components/
-│       │   ├── layout/       # AppSidebar, MobileSidebar, UserMenu, NavItem, NavGroup, AuthGuard
-│       │   ├── ui/           # shadcn/ui primitives (20 components — do not edit by hand)
-│       │   ├── skeletons.tsx         # All skeleton loading components
+│       │   ├── layout/       # AppSidebar, MobileSidebar, MobileSidebarWrapper, UserMenu, NavItem, NavGroup, AuthGuard
+│       │   ├── ui/           # shadcn/ui primitives — do not edit by hand
+│       │   ├── skeletons.tsx
 │       │   ├── snippet-card.tsx / snippet-form.tsx
 │       │   ├── expense-card.tsx / expense-form.tsx / expense-summary.tsx
 │       │   ├── habit-card.tsx / habit-form.tsx
@@ -56,56 +66,57 @@ DevPulse/
 │       │   ├── vault-card.tsx / vault-form.tsx / vault-detail.tsx / vault-import-dialog.tsx / variable-row.tsx
 │       │   ├── json-formatter.tsx / json-converter.tsx / json-diff.tsx / json-tree-view.tsx / json-document-card.tsx / json-document-form.tsx
 │       │   ├── challenge-card.tsx / challenge-editor.tsx / challenge-result.tsx
-│       │   ├── calculator-display.tsx  # Calculator UI + safe expression evaluator
-│       │   └── code-block.tsx       # Shiki syntax-highlighted code display
+│       │   ├── calculator-display.tsx
+│       │   └── code-block.tsx
 │       ├── config/
-│       │   ├── navigation.ts # Sidebar nav items (hierarchical with NavGroups)
+│       │   ├── navigation.ts # Static nav fallback (dynamic nav loaded from DB via useNavigation)
 │       │   ├── languages.ts  # 30+ programming languages for snippet selector
-│       │   ├── expense-categories.ts  # Expense category definitions
-│       │   ├── habit-colors.ts        # Habit color palette
-│       │   ├── kanban-config.ts       # Kanban board configuration
-│       │   ├── pomodoro.ts            # Pomodoro timer defaults
-│       │   ├── environments.ts        # Env vault environment types
-│       │   └── sql-practice.ts        # SQL challenge difficulty/category/status configs
-│       ├── hooks/            # Custom React hooks (use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents, use-sql-practice)
+│       │   ├── expense-categories.ts
+│       │   ├── habit-colors.ts
+│       │   ├── kanban-config.ts
+│       │   ├── pomodoro.ts
+│       │   ├── environments.ts
+│       │   └── sql-practice.ts  # Difficulty/category/status configs (8 categories incl. analytics)
+│       ├── hooks/            # use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents, use-sql-practice, use-navigation
 │       ├── lib/
-│       │   ├── api/          # API client (fetch wrapper with credentials, 15s default timeout)
-│       │   ├── services/     # API service functions (snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents, sql-practice)
+│       │   ├── api/          # API client (fetch wrapper with credentials, 15s timeout)
+│       │   ├── services/     # snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents, sql-practice, navigation, admin
 │       │   ├── types/        # Shared TypeScript types (database.ts)
 │       │   └── utils/        # cn() class merger, withTimeout() helper
 │       └── providers/        # AuthProvider (wraps entire app)
 ├── backend/                  # Go API server
-│   ├── main.go              # Entry point — wires config, DB, repos, handlers, router + session cleanup goroutine
+│   ├── main.go              # Entry point — wires config, DB, repos, handlers, router
 │   ├── config/              # Env var loading (reads .env and ../.env)
-│   ├── database/            # pgxpool connection + embedded SQL migrations (auto-run on startup)
-│   ├── models/              # Go structs (json tags match frontend types)
-│   ├── repository/          # DB queries (all include user_id WHERE for authz)
-│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health, expenses, habits, kanban, pomodoro, env_vault, json_document, sql_practice)
-│   ├── helpers/             # JSON response/request/context helpers
-│   ├── middleware/          # CORS, auth (session cookie), logger, JSON content-type
+│   ├── database/            # pgxpool + embedded SQL migrations (auto-run on startup)
+│   ├── models/              # Go structs (user, session, navigation, sql_practice, dashboard, etc.)
+│   ├── repository/          # DB queries (user_id WHERE for authz)
+│   ├── handlers/            # HTTP handlers (auth, profile, snippets, calculations, dashboard, health, expenses, habits, kanban, pomodoro, env_vault, json_document, sql_practice, admin)
+│   ├── helpers/             # JSON response/request/context helpers (incl. role context)
+│   ├── middleware/          # CORS, auth, admin-only, logger, JSON content-type
 │   ├── router/              # All route definitions
 │   ├── uploads/avatars/     # Runtime avatar storage (gitignored)
 │   ├── Dockerfile           # Multi-stage build (Go 1.24 Alpine → minimal runtime)
 │   └── go.mod               # pgx/v5, google/uuid, x/crypto, x/oauth2
 ├── docs/                     # Project documentation
-│   ├── 2026-02-25-bug-log.md  # Phase 1 bug chronicle (12 bugs, all resolved)
-│   └── modules/             # Planned feature specs
+│   ├── api-endpoints.md     # Full API reference
+│   └── database-schema.md   # Database tables & migrations
 └── docker-compose.yml        # PostgreSQL 16 + backend
 ```
 
 ## Key Conventions
 
 - **UI components:** Use `npx shadcn@latest add <component>` — never hand-edit files in `components/ui/`
-- **API calls:** All backend calls go through `lib/api/client.ts` (fetch with `credentials: "include"` and `withTimeout`). Service files in `lib/services/` use `api.get/post/put/delete`. Components use custom hooks from `hooks/`, not direct API calls.
+- **API calls:** All backend calls go through `lib/api/client.ts` (fetch with `credentials: "include"` and `withTimeout`). Service files use `api.get/post/put/delete`. Components use hooks, not direct API calls.
 - **Types:** Database table types live in `lib/types/database.ts`
-- **Auth:** Session-based cookies via Go backend. `AuthProvider` calls `GET /api/auth/me` on mount. Use `useAuth()` to access user/profile.
+- **Auth:** Session-based cookies via Go backend. `AuthProvider` calls `GET /api/auth/me` on mount. Use `useAuth()` to access user/profile/role.
+- **RBAC:** Users have `role` field (`"user"` or `"admin"`). Backend uses `AdminOnly()` middleware. Frontend checks `user.role === "admin"` for admin UI.
+- **Navigation:** Sidebar items stored in `navigation_items` DB table. Admin can toggle visibility via Menu Manager (`/admin/navigation`). Frontend loads dynamically via `useNavigation()` hook. Icon mapping in AppSidebar/MobileSidebar.
 - **Routing:** App Router with `(app)` route group for authenticated pages. Proxy (`src/proxy.ts`) checks `session_token` cookie. Next.js `rewrites` proxy `/api/*` and `/uploads/*` to Go backend (localhost:8080).
-- **Error handling:** Custom error/not-found pages at root (`app/not-found.tsx`, `app/global-error.tsx`) and app level (`app/(app)/error.tsx`, `app/(app)/not-found.tsx`). Fetch errors show inline banners with "Try again" button on pages. Mutation errors use `toast.error()` from sonner.
-- **Hooks pattern:** All data hooks use `mountedRef` to guard `setState` after unmount. Mutations call `toast.success()` on success. `toggleFavorite` (snippets) uses optimistic update with `toast.error()` on revert. Dashboard uses `Promise.allSettled` for partial failure resilience.
-- **Navigation:** Sidebar nav items are defined in `config/navigation.ts` — add new pages there.
-- **Loading states:** All list pages use skeleton card components from `components/skeletons.tsx` instead of text spinners. New skeletons should match the shape of their corresponding card component.
-- **Styling:** Tailwind CSS v4 with CSS variables for theming. Use `cn()` from `lib/utils` for conditional classes. Light/dark mode via `next-themes`.
-- **Forms:** Dialog-based (create/edit share same form component). Delete uses `AlertDialog` for confirmation.
+- **Error handling:** Custom error/not-found pages at root and app level. Fetch errors show inline banners with "Try again". Mutation errors use `toast.error()`.
+- **Hooks pattern:** All data hooks use `mountedRef` to guard `setState` after unmount. Mutations call `toast.success()` on success. Dashboard uses `Promise.allSettled` for partial failure resilience.
+- **Loading states:** All list pages use skeleton cards from `components/skeletons.tsx`.
+- **Styling:** Tailwind CSS v4 with CSS variables. Use `cn()` for conditional classes. Light/dark mode via `next-themes`.
+- **Forms:** Dialog-based (create/edit share same form component). Delete uses `AlertDialog`.
 - **Data flow:** Pages → hooks → services → API client. Never skip layers.
 
 ## Commands
@@ -146,111 +157,28 @@ Frontend (`frontend/.env.local`):
 NEXT_PUBLIC_API_URL=     # empty = use Next.js rewrites (default for dev)
 ```
 
-## API Endpoints
-
-### Public
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check (`{"status":"ok"}`) |
-| POST | `/api/auth/register` | Register with email/password |
-| POST | `/api/auth/login` | Login with email/password |
-| POST | `/api/auth/logout` | Clear session |
-| GET | `/api/auth/github` | Redirect to GitHub OAuth |
-| GET | `/api/auth/github/callback` | GitHub OAuth callback |
-
-### Protected (session cookie required)
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/auth/me` | Get current user + profile |
-| GET/PUT | `/api/profile` | Get/update profile |
-| POST | `/api/profile/avatar` | Upload avatar (multipart) |
-| GET/POST | `/api/snippets` | List/create snippets |
-| GET | `/api/snippets/shared` | List public snippets from others |
-| POST | `/api/snippets/copy/{id}` | Copy a shared snippet |
-| PUT/DELETE | `/api/snippets/{id}` | Update/delete snippet |
-| GET/POST | `/api/calculations` | List/create calculations |
-| DELETE | `/api/calculations/{id}` | Delete single calculation |
-| DELETE | `/api/calculations` | Clear all calculations |
-| GET/POST | `/api/expenses` | List/create expenses |
-| PUT/DELETE | `/api/expenses/{id}` | Update/delete expense |
-| GET/POST | `/api/habits` | List/create habits |
-| PUT/DELETE | `/api/habits/{id}` | Update/delete habit |
-| PATCH | `/api/habits/{id}/archive` | Archive/unarchive habit |
-| POST | `/api/habits/{id}/toggle` | Toggle today's completion |
-| GET | `/api/habits/completions` | Get completions for date range |
-| GET/POST | `/api/kanban/boards` | List/create boards |
-| GET/PUT/DELETE | `/api/kanban/boards/{id}` | Get/update/delete board (with columns & cards) |
-| POST | `/api/kanban/boards/{boardId}/columns` | Create column |
-| PUT/DELETE | `/api/kanban/columns/{id}` | Update/delete column |
-| POST | `/api/kanban/columns/{colId}/cards` | Create card |
-| PUT/DELETE | `/api/kanban/cards/{id}` | Update/delete card |
-| PUT | `/api/kanban/cards/reorder` | Reorder cards (drag & drop) |
-| GET/POST | `/api/pomodoro/sessions` | List/create sessions |
-| DELETE | `/api/pomodoro/sessions/{id}` | Delete session |
-| DELETE | `/api/pomodoro/sessions` | Clear all sessions |
-| GET | `/api/pomodoro/stats` | Get pomodoro stats (today/week/total/streak) |
-| GET/POST | `/api/env-vaults` | List/create vaults |
-| GET/PUT/DELETE | `/api/env-vaults/{id}` | Get/update/delete vault |
-| POST | `/api/env-vaults/{id}/variables` | Add variable to vault |
-| POST | `/api/env-vaults/{id}/import` | Import variables from .env format |
-| PUT/DELETE | `/api/env-variables/{id}` | Update/delete variable |
-| GET/POST | `/api/json-documents` | List/create JSON documents |
-| PUT/DELETE | `/api/json-documents/{id}` | Update/delete document |
-| GET | `/api/sql-practice/challenges` | List all challenges + user progress |
-| GET | `/api/sql-practice/challenges/{slug}` | Get challenge detail + submissions |
-| POST | `/api/sql-practice/submit` | Submit SQL answer (judge) |
-| GET | `/api/sql-practice/stats` | Get practice stats (solved/total per difficulty) |
-| GET | `/api/sql-practice/submissions/{challengeId}` | List submissions for a challenge |
-| GET | `/api/dashboard/stats` | Dashboard stats (snippets, expenses, habits, boards) |
-| GET | `/api/dashboard/recent` | Recent snippets |
-
 ## Architecture Rules
 
 1. **New pages:** Create under `app/(app)/your-page/page.tsx` — they automatically get the sidebar layout.
-2. **New nav items:** Add to `config/navigation.ts`.
+2. **New nav items:** Insert into `navigation_items` DB table via migration. Set `icon` (Lucide name), `path`, `min_role`, `sort_order`.
 3. **New tables:** Add migration SQL in `backend/database/migrations/`, model in `backend/models/`, repo in `backend/repository/`, handler in `backend/handlers/`, routes in `backend/router/router.go`. On frontend: add type in `lib/types/database.ts`, service in `lib/services/`, hook in `hooks/` (use `mountedRef` + toast pattern).
 4. **Components that need auth:** Use `useAuth()` from `providers/auth-provider`.
 5. **Server components** are the default. Add `"use client"` only when you need hooks/interactivity.
-
-## Database Tables
-
-All IDs are UUID (`gen_random_uuid()`). All timestamps are `TIMESTAMPTZ`. Content tables have `user_id` FK with `ON DELETE CASCADE`.
-
-| Table | Description | Key columns |
-|-------|-------------|-------------|
-| `users` | User accounts | email (unique), password_hash (nullable), github_id (unique, nullable) |
-| `sessions` | Session tokens | token (PK, 64-hex), user_id, expires_at (30 days) |
-| `profiles` | User profiles | id (FK → users.id), display_name, avatar_url, email |
-| `snippets` | Code snippets | title, code, language, description, tags (TEXT[]), is_public, is_favorite |
-| `calculations` | Calculator history | expression, result |
-| `expenses` | Expense tracking | title, amount (NUMERIC 10,2), currency, category, date, notes, is_recurring |
-| `habits` | Habit definitions | title, description, color, frequency, target_days, is_archived |
-| `habit_completions` | Habit completion records | habit_id, completed_date (unique per habit/date) |
-| `kanban_boards` | Kanban boards | title, description, is_favorite |
-| `kanban_columns` | Board columns | board_id, title, color, position |
-| `kanban_cards` | Column cards | column_id, title, description, priority, labels (TEXT[]), due_date, position |
-| `pomodoro_sessions` | Pomodoro timer sessions | duration, target_duration, task_label, completed_at |
-| `env_vaults` | Environment variable vaults | name, environment, description, is_favorite |
-| `env_variables` | Vault key-value pairs | vault_id, key, value, is_secret, position (unique per vault/key) |
-| `json_documents` | JSON/YAML documents | title, content, format, description, tags (TEXT[]), is_favorite |
-| `sql_challenges` | SQL practice challenges (seeded, read-only) | slug (unique), title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order |
-| `sql_submissions` | User SQL submissions | user_id, challenge_id, query, status (correct/wrong/error), execution_time_ms, error_message |
-| `sql_challenge_progress` | Per-user challenge progress (composite PK) | user_id, challenge_id, is_solved, best_time_ms, attempts, first_solved_at |
-
-Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all queries. Migrations are embedded SQL files that run automatically on backend startup.
+6. **Admin-only features:** Use `AdminOnly()` middleware on Go routes + check `user.role === "admin"` on frontend.
 
 ## Backend Middleware Stack
 
-Applied in order (outermost → innermost): Logger → CORS → JSONContentType. Auth middleware wraps only protected routes.
+Applied in order: Logger → CORS → JSONContentType. Auth middleware wraps protected routes. AdminOnly wraps admin-specific routes.
 
-- **Auth:** Reads `session_token` cookie → validates via `SessionRepo.FindValid()` → sets `userID` in context
+- **Auth:** Reads `session_token` cookie → validates via `SessionRepo.FindValid()` → sets `userID` + `userRole` in context
+- **AdminOnly:** Checks `userRole == "admin"` → returns 403 if not
 - **CORS:** Allows `FRONTEND_URL` origin with credentials
 - **Logger:** Logs `METHOD PATH DURATION` per request
-- **JSONContentType:** Sets `Content-Type: application/json` on all responses
+- **JSONContentType:** Sets `Content-Type: application/json`
 
-## Backend Background Tasks
+## Background Tasks
 
-- **Session cleanup:** Goroutine runs every 1 hour, deletes expired sessions from DB
+- **Session cleanup:** Goroutine runs every 1 hour, deletes expired sessions
 
 ## Things to Avoid
 
@@ -258,52 +186,53 @@ Applied in order (outermost → innermost): Logger → CORS → JSONContentType.
 - Do not edit `components/ui/` files — they are managed by shadcn CLI.
 - Do not use `yarn`, `pnpm`, or `bun` — this project uses `npm`.
 - Do not store secrets in code — all env vars go in `.env` / `.env.local`.
-- Do not `setState` in hooks without checking `mountedRef.current` — prevents React warnings on unmount.
-- Do not add API calls without going through `lib/api/client.ts` — it handles credentials, timeouts, and error parsing.
+- Do not `setState` in hooks without checking `mountedRef.current`.
+- Do not add API calls without going through `lib/api/client.ts`.
 
 ## Implemented Feature Modules
 
-All implemented modules are spec'd in `docs/modules/`. Each follows the same architecture (migration → model → repo → handler → route + type → service → hook → page).
+Each follows the architecture: migration → model → repo → handler → route + type → service → hook → page.
 
 | Module | Route | Status |
 |--------|-------|--------|
-| Calculator | `/calculator` | ✅ Done |
-| Expense Tracker | `/expenses` | ✅ Done |
-| Habit Tracker | `/habits` | ✅ Done |
-| Kanban Board | `/kanban` | ✅ Done |
-| Pomodoro Timer | `/pomodoro` | ✅ Done |
-| Env Vault | `/env-vault` | ✅ Done |
-| JSON Tools | `/json-tools` | ✅ Done |
-| SQL Practice | `/sql-practice` | ✅ Done |
-
-### Skipped / Not Implemented
-
-| Module | Status |
-|--------|--------|
-| URL Shortener | ⏭️ Skipped |
-| Markdown Blog | ⏭️ Skipped |
-| Polls / Voting | ⏭️ Skipped |
-| Flashcards (SM-2) | ⏭️ Skipped |
-| Regex Playground | 📝 Draft only |
+| Calculator | `/calculator` | Done |
+| Expense Tracker | `/expenses` | Done |
+| Habit Tracker | `/habits` | Done |
+| Kanban Board | `/kanban` | Done |
+| Pomodoro Timer | `/pomodoro` | Done |
+| Env Vault | `/env-vault` | Done |
+| JSON Tools | `/json-tools` | Done |
+| SQL Practice | `/sql-practice` | Done |
+| SQL Academy | `/sql-practice/learn` | Done |
+| SQL Cheat Sheet | `/sql-practice/cheat-sheet` | Done |
+| Admin Menu Manager | `/admin/navigation` | Done |
 
 ## Calculator
 
-The calculator uses a **recursive descent parser** for safe expression evaluation (no `eval`/`new Function`). Key features:
-- Operators: `+`, `−`, `×`, `÷`, `%` (percentage = ÷100)
-- Auto-close unclosed parentheses, strip trailing operators
-- Implicit multiplication: `2(3)` = 6
-- Input validation: prevents consecutive operators, duplicate decimals, invalid leading operators
-- Keyboard support: 0-9, +, -, *, /, ., %, (, ), Enter, Escape, Backspace
-- Calculation history persisted to DB via `/api/calculations`
+Recursive descent parser for safe expression evaluation (no `eval`/`new Function`):
+- Operators: `+`, `-`, `*`, `/`, `%` (percentage = /100)
+- Auto-close parentheses, strip trailing operators, implicit multiplication
+- Keyboard support: 0-9, operators, Enter, Escape, Backspace
+- History persisted to DB via `/api/calculations`
 
-## SQL Practice
+## SQL Practice & Academy
 
-Interactive SQL learning module (LeetCode-style) with 35 challenges across 7 categories. Key features:
-- **Categories:** SELECT basics, WHERE & filtering, JOINs, aggregation, subqueries, window functions, CTEs
-- **Difficulties:** Easy (14), Medium (14), Hard (7) — color-coded green/yellow/red
-- **Sandbox judge:** Go backend creates temp tables in a transaction, runs user query + reference solution, compares results, then always rolls back (full isolation)
-- **Result comparison:** Column names (case-insensitive) + row data. `order_sensitive` flag controls whether row order matters
-- **Query validation:** Only SELECT/WITH queries allowed (read-only enforcement)
-- **Progress tracking:** Per-user solve status, attempt count, best execution time
-- **Frontend:** Split layout with problem description + schema on left, SQL editor + results on right. Ctrl+Enter to submit. Submission history collapsible
-- **Challenges seeded via migration** (`022_create_sql_practice.up.sql`) using `ON CONFLICT DO NOTHING` — no admin UI needed
+**SQL Practice** — LeetCode-style SQL challenges (100+ across 8 categories):
+- **Categories:** SELECT, WHERE & filtering, JOINs, aggregation, subqueries, window functions, CTEs, analytics
+- **Difficulties:** Easy, Medium, Hard — color-coded green/yellow/red
+- **Sandbox judge:** Transaction isolation + 5s timeout + auto-rollback
+- **Features:** Run (preview), Submit (judge), EXPLAIN ANALYZE, table preview, top solutions leaderboard, daily challenge on dashboard
+- **Progress:** Per-user solve status, attempt count, best execution time, practice streak
+
+**SQL Academy** — Structured learning path:
+- Lessons grouped by module (intro, filtering, aggregation, joins, subqueries, window functions, CTEs, data modification)
+- Interactive editor with practice queries and expected output validation
+- Per-lesson completion tracking
+
+**SQL Cheat Sheet** — Quick reference with 8 categories, searchable, copy-to-clipboard
+
+## Admin System
+
+- **RBAC:** Users have `role` field. First registered user auto-promoted to admin (migration 030).
+- **Menu Manager** (`/admin/navigation`): Toggle visibility of sidebar items for all users. Dashboard is locked (cannot hide).
+- **Admin middleware:** `AdminOnly()` wraps admin-only routes, returns 403 for non-admin users.

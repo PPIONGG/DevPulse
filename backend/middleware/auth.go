@@ -23,7 +23,19 @@ func Auth(sessionRepo *repository.SessionRepo) func(http.Handler) http.Handler {
 			}
 
 			ctx := helpers.WithUserID(r.Context(), session.UserID)
+			ctx = helpers.WithUserRole(ctx, session.UserRole)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func AdminOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		role := helpers.UserRoleFromContext(r.Context())
+		if role != "admin" {
+			helpers.Error(w, http.StatusForbidden, "forbidden: admin only")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

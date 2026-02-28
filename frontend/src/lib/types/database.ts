@@ -756,3 +756,37 @@ export interface SqlChallengeDetail {
   next_slug: string;
   solution_sql: string | null;
 }
+
+export interface SqlLesson {
+  id: string;
+  module_id: string;
+  module_title: string;
+  title: string;
+  description: string;
+  content: string;
+  practice_query: string;
+  expected_output_json: string | null;
+  table_schema: string;
+  seed_data: string;
+  sort_order: number;
+  created_at: string;
+  is_completed: boolean;
+}
+
+export interface SqlModuleWithLessons {
+  id: string;
+  title: string;
+  lessons: SqlLesson[];
+}
+
+export interface NavigationItem {
+  id: string;
+  label: string;
+  icon: string;
+  path: string;
+  is_hidden: boolean;
+  min_role: "user" | "admin";
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}

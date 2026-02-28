@@ -1,23 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { Menu } from "lucide-react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { Menu, LayoutDashboard, Code2, DollarSign, Target, Kanban, Clock, ShieldCheck, Binary, Zap, History, Database, Workflow, ShoppingBag, SearchCode, Calculator, Settings, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
-import { navigationItems } from "@/config/navigation";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NavItem } from "./nav-item";
-import { NavGroup } from "./nav-group";
-import { UserMenu } from "./user-menu";
+import { useNavigation } from "@/hooks/use-navigation";
+import { useAuth } from "@/providers/auth-provider";
+
+const iconMap: Record<string, any> = {
+  LayoutDashboard,
+  Code2,
+  DollarSign,
+  Target,
+  Kanban,
+  Clock,
+  ShieldCheck,
+  Binary,
+  Zap,
+  History,
+  Database,
+  Workflow,
+  ShoppingBag,
+  SearchCode,
+  Calculator,
+  Settings,
+};
 
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const { items } = useNavigation();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -28,23 +47,39 @@ export function MobileSidebar() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
-        <SheetHeader className="border-b p-4">
-          <SheetTitle className="text-lg font-bold">DevPulse</SheetTitle>
+        <SheetHeader className="border-b h-14 justify-center px-4">
+          <SheetTitle className="text-left font-bold">DevPulse</SheetTitle>
         </SheetHeader>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3" onClick={(e) => {
-          const target = (e.target as HTMLElement).closest("a");
-          if (target) setOpen(false);
-        }}>
-          {navigationItems.map((item) =>
-            item.children ? (
-              <NavGroup key={item.href} item={item} />
-            ) : (
-              <NavItem key={item.href} item={item} />
-            )
+        <div className="flex-1 space-y-1 overflow-y-auto p-3">
+          {items.map((item) => (
+            <NavItem 
+              key={item.path} 
+              item={{
+                title: item.label,
+                href: item.path,
+                icon: iconMap[item.icon] || Code2,
+              }} 
+            />
+          ))}
+
+          {/* Admin Section */}
+          {user?.role === "admin" && (
+            <>
+              <div className="mt-6 px-3 mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-1.5">
+                  <Lock className="size-2.5" /> Admin Panel
+                </p>
+              </div>
+              <NavItem 
+                item={{
+                  title: "Menu Manager",
+                  href: "/admin/navigation",
+                  icon: Settings,
+                }} 
+              />
+            </>
           )}
-        </nav>
-        <Separator />
-        <UserMenu />
+        </div>
       </SheetContent>
     </Sheet>
   );

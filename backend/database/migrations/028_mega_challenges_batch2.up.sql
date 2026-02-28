@@ -1,0 +1,75 @@
+-- Expand category constraint to include 'analytics'
+ALTER TABLE sql_challenges DROP CONSTRAINT IF EXISTS sql_challenges_category_check;
+ALTER TABLE sql_challenges ADD CONSTRAINT sql_challenges_category_check
+  CHECK (category IN ('select', 'filtering', 'joins', 'aggregate', 'subquery', 'window', 'cte', 'analytics'));
+
+-- Mega Challenges Batch 2 (30 More Challenges to reach 100!)
+INSERT INTO sql_challenges (slug, title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order)
+VALUES 
+-- 71
+('active-courses', 'Active Courses', 'easy', 'filtering', 'Find all courses that are currently active.', 'CREATE TABLE courses (id INT, title TEXT, is_active BOOLEAN);', 'INSERT INTO courses VALUES (1, ''SQL 101'', true), (2, ''JS Basics'', false), (3, ''Go Advanced'', true);', 'SELECT * FROM courses WHERE is_active = true;', 'Filter where is_active is true.', false, 71),
+-- 72
+('total-withdrawals', 'Total Withdrawals', 'easy', 'aggregate', 'Calculate the total amount withdrawn from all accounts.', 'CREATE TABLE transactions (id INT, type TEXT, amount DECIMAL);', 'INSERT INTO transactions VALUES (1, ''deposit'', 100), (2, ''withdrawal'', 50), (3, ''withdrawal'', 30);', 'SELECT SUM(amount) FROM transactions WHERE type = ''withdrawal'';', 'Filter by type and then use SUM().', false, 72),
+-- 73
+('high-rated-movies', 'High Rated Movies', 'easy', 'filtering', 'List movies with a rating higher than 8.5.', 'CREATE TABLE movies (id INT, title TEXT, rating DECIMAL);', 'INSERT INTO movies VALUES (1, ''Inception'', 8.8), (2, ''The Room'', 3.7), (3, ''Interstellar'', 8.6);', 'SELECT title FROM movies WHERE rating > 8.5;', 'Filter by rating > 8.5.', false, 73),
+-- 74
+('user-churn-rate', 'Monthly Churn Rate', 'hard', 'analytics', 'Calculate the churn rate for the current month. Churn rate = (Users who cancelled) / (Total users at start of month).', 'CREATE TABLE users (id INT, status TEXT);', 'INSERT INTO users VALUES (1, ''active''), (2, ''cancelled''), (3, ''active''), (4, ''cancelled''), (5, ''active'');', 'SELECT (COUNT(*) FILTER (WHERE status = ''cancelled'')::DECIMAL / COUNT(*)) * 100 as churn_rate FROM users;', 'Use COUNT with FILTER and cast to DECIMAL for division.', false, 74),
+-- 75
+('top-category-sales', 'Top Category by Sales', 'medium', 'aggregate', 'Find the category with the highest total sales amount.', 'CREATE TABLE sales (amount DECIMAL, category TEXT);', 'INSERT INTO sales VALUES (100, ''Books''), (200, ''Electronics''), (50, ''Books''), (300, ''Electronics'');', 'SELECT category FROM sales GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1;', 'Group by category, order by sum descending, and limit 1.', false, 75),
+-- 76
+('multi-booking-passengers', 'Frequent Flyers', 'medium', 'filtering', 'Find passengers who have booked more than 2 flights.', 'CREATE TABLE bookings (passenger_id INT, flight_id INT);', 'INSERT INTO bookings VALUES (1, 101), (1, 102), (1, 103), (2, 101), (2, 104);', 'SELECT passenger_id FROM bookings GROUP BY passenger_id HAVING COUNT(*) > 2;', 'Use GROUP BY and HAVING COUNT(*) > 2.', false, 76),
+-- 77
+('out-of-stock-soon', 'Low Stock Alert', 'medium', 'filtering', 'Find products where stock is less than 5 and they are in the ''Electronics'' category.', 'CREATE TABLE products (name TEXT, stock INT, category TEXT);', 'INSERT INTO products VALUES (''Phone'', 2, ''Electronics''), (''Cable'', 50, ''Electronics''), (''Book'', 1, ''Books'');', 'SELECT name FROM products WHERE stock < 5 AND category = ''Electronics'';', 'Use AND to combine conditions.', false, 77),
+-- 78
+('dept-switchers', 'Department Switchers', 'medium', 'joins', 'Find employees who have changed their department. (Assume multiple entries in history means a change).', 'CREATE TABLE emp_history (emp_id INT, dept_id INT);', 'INSERT INTO emp_history VALUES (1, 10), (1, 20), (2, 10), (3, 30);', 'SELECT emp_id FROM emp_history GROUP BY emp_id HAVING COUNT(DISTINCT dept_id) > 1;', 'Group by emp_id and check if COUNT(DISTINCT dept_id) > 1.', false, 78),
+-- 79
+('peak-booking-hours', 'Peak Booking Hour', 'medium', 'aggregate', 'Find the hour of the day (0-23) when most flight bookings occur.', 'CREATE TABLE bookings (id INT, booking_time TIMESTAMP);', 'INSERT INTO bookings VALUES (1, ''2023-01-01 10:30:00''), (2, ''2023-01-01 10:45:00''), (3, ''2023-01-01 14:00:00'');', 'SELECT EXTRACT(HOUR FROM booking_time) as peak_hour FROM bookings GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1;', 'Use EXTRACT(HOUR FROM ...), group by it, and find the top count.', false, 79),
+-- 80
+('running-total-balance', 'Running Balance', 'hard', 'window', 'Calculate the running total of the balance for each transaction, ordered by date.', 'CREATE TABLE account_tx (id INT, amount DECIMAL, tx_date DATE);', 'INSERT INTO account_tx VALUES (1, 100, ''2023-01-01''), (2, -50, ''2023-01-02''), (3, 200, ''2023-01-03'');', 'SELECT tx_date, amount, SUM(amount) OVER (ORDER BY tx_date) as running_balance FROM account_tx;', 'Use SUM() OVER (ORDER BY tx_date).', true, 80),
+-- 81
+('retention-yoy', 'Year-over-Year Retention', 'hard', 'analytics', 'Calculate how many users from 2022 also made a purchase in 2023.', 'CREATE TABLE sales (user_id INT, sale_year INT);', 'INSERT INTO sales VALUES (1, 2022), (2, 2022), (1, 2023), (3, 2023);', 'SELECT COUNT(DISTINCT user_id) FROM sales WHERE sale_year = 2023 AND user_id IN (SELECT user_id FROM sales WHERE sale_year = 2022);', 'Use a subquery to find 2022 users.', false, 81),
+-- 82
+('median-salary', 'Median Salary', 'hard', 'aggregate', 'Calculate the median salary of all employees. Use PERCENTILE_CONT(0.5).', 'CREATE TABLE employees (salary DECIMAL);', 'INSERT INTO employees VALUES (1000), (2000), (3000), (4000), (5000);', 'SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) as median FROM employees;', 'PostgreSQL has a special syntax for percentiles.', false, 82),
+-- 83
+('consecutive-logins', 'Login Streak', 'hard', 'window', 'Find users who logged in on two consecutive days.', 'CREATE TABLE logins (user_id INT, login_date DATE);', 'INSERT INTO logins VALUES (1, ''2023-01-01''), (1, ''2023-01-02''), (2, ''2023-01-01''), (2, ''2023-01-03'');', 'SELECT DISTINCT l1.user_id FROM logins l1 JOIN logins l2 ON l1.user_id = l2.user_id AND l1.login_date = l2.login_date - INTERVAL ''1 day'';', 'Self-join on user_id and date diff of 1 day.', false, 83),
+-- 84
+('market-basket-analysis', 'Market Basket Analysis', 'hard', 'joins', 'Find pairs of products that are often bought together in the same order. Show the product IDs and the frequency.', 'CREATE TABLE order_items (order_id INT, product_id INT);', 'INSERT INTO order_items VALUES (1, 101), (1, 102), (2, 101), (2, 103), (3, 101), (3, 102);', 'SELECT a.product_id, b.product_id, COUNT(*) as freq FROM order_items a JOIN order_items b ON a.order_id = b.order_id AND a.product_id < b.product_id GROUP BY 1, 2 ORDER BY freq DESC;', 'Self-join order_items where a.product_id < b.product_id.', false, 84),
+-- 85
+('most-improved-student', 'Most Improved Student', 'medium', 'analytics', 'Find the student whose score increased the most between their first and last test.', 'CREATE TABLE test_scores (student_id INT, score INT, test_date DATE);', 'INSERT INTO test_scores VALUES (1, 50, ''2023-01-01''), (1, 80, ''2023-02-01''), (2, 70, ''2023-01-01''), (2, 75, ''2023-02-01'');', 'WITH first_last AS (SELECT student_id, FIRST_VALUE(score) OVER (PARTITION BY student_id ORDER BY test_date) as first_score, LAST_VALUE(score) OVER (PARTITION BY student_id ORDER BY test_date ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_score FROM test_scores) SELECT student_id, (last_score - first_score) as improvement FROM first_last GROUP BY 1, 2 ORDER BY improvement DESC LIMIT 1;', 'Use window functions or subqueries to find first and last scores.', false, 85),
+-- 86
+('expired-subscriptions', 'Expired Subscriptions', 'easy', 'filtering', 'Find all subscribers whose end_date is in the past.', 'CREATE TABLE subs (user_id INT, end_date DATE);', 'INSERT INTO subs VALUES (1, ''2020-01-01''), (2, ''2099-12-31'');', 'SELECT user_id FROM subs WHERE end_date < CURRENT_DATE;', 'Compare end_date with CURRENT_DATE.', false, 86),
+-- 87
+('first-and-last-purchase', 'First and Last Purchase', 'medium', 'aggregate', 'For each user, find their very first and very last purchase date.', 'CREATE TABLE purchases (user_id INT, purchase_date DATE);', 'INSERT INTO purchases VALUES (1, ''2023-01-01''), (1, ''2023-05-01''), (2, ''2023-02-01'');', 'SELECT user_id, MIN(purchase_date), MAX(purchase_date) FROM purchases GROUP BY user_id;', 'Use MIN() and MAX() with GROUP BY.', false, 87),
+-- 88
+('avg-tx-size', 'Avg Transaction Size', 'medium', 'aggregate', 'Calculate the average transaction amount for each user, but only include users with more than 1 transaction.', 'CREATE TABLE tx (user_id INT, amount DECIMAL);', 'INSERT INTO tx VALUES (1, 100), (1, 200), (2, 500);', 'SELECT user_id, AVG(amount) FROM tx GROUP BY user_id HAVING COUNT(*) > 1;', 'Use HAVING COUNT(*) > 1.', false, 88),
+-- 89
+('multi-account-users', 'Multi-Account Users', 'hard', 'filtering', 'Find users who have both a ''Checking'' and a ''Savings'' account.', 'CREATE TABLE accounts (user_id INT, type TEXT);', 'INSERT INTO accounts VALUES (1, ''Checking''), (1, ''Savings''), (2, ''Checking''), (3, ''Savings'');', 'SELECT user_id FROM accounts WHERE type = ''Checking'' INTERSECT SELECT user_id FROM accounts WHERE type = ''Savings'';', 'Use INTERSECT or a self-join.', false, 89),
+-- 90
+('popular-authors', 'Popular Authors', 'easy', 'aggregate', 'Find authors who have written more than 5 books.', 'CREATE TABLE books (author TEXT, title TEXT);', 'INSERT INTO books VALUES (''A'', ''B1''), (''A'', ''B2''), (''A'', ''B3''), (''A'', ''B4''), (''A'', ''B5''), (''A'', ''B6''), (''B'', ''B1'');', 'SELECT author FROM books GROUP BY author HAVING COUNT(*) > 5;', 'Group by author and filter with HAVING.', false, 90),
+-- 91
+('slow-pages', 'Slowest Pages', 'medium', 'analytics', 'Find the top 3 slowest pages based on average load time.', 'CREATE TABLE page_views (url TEXT, load_time_ms INT);', 'INSERT INTO page_views VALUES (''/home'', 100), (''/home'', 120), (''/shop'', 500), (''/shop'', 600), (''/cart'', 300);', 'SELECT url, AVG(load_time_ms) as avg_time FROM page_views GROUP BY url ORDER BY avg_time DESC LIMIT 3;', 'Group by URL, calc average, order by it desc, limit 3.', false, 91),
+-- 92
+('fraud-detection', 'Fraud Detection', 'hard', 'analytics', 'Find any user who made a transaction of more than 5000 twice within 10 minutes.', 'CREATE TABLE tx (user_id INT, amount INT, tx_time TIMESTAMP);', 'INSERT INTO tx VALUES (1, 6000, ''2023-01-01 10:00:00''), (1, 7000, ''2023-01-01 10:05:00''), (2, 6000, ''2023-01-01 11:00:00'');', 'SELECT DISTINCT t1.user_id FROM tx t1 JOIN tx t2 ON t1.user_id = t2.user_id AND t1.id < t2.id WHERE t1.amount > 5000 AND t2.amount > 5000 AND t2.tx_time - t1.tx_time <= INTERVAL ''10 minutes'';', 'Self-join where times are close and amounts are high.', false, 92),
+-- 93
+('weekend-sales', 'Weekend vs Weekday Sales', 'medium', 'analytics', 'Find the total sales amount for Weekends (Sat/Sun) vs Weekdays.', 'CREATE TABLE sales (amount INT, sale_date DATE);', 'INSERT INTO sales VALUES (100, ''2023-01-01''), (200, ''2023-01-02'');', 'SELECT CASE WHEN EXTRACT(DOW FROM sale_date) IN (0, 6) THEN ''Weekend'' ELSE ''Weekday'' END as day_type, SUM(amount) FROM sales GROUP BY 1;', 'Use EXTRACT(DOW FROM ...). 0 is Sunday, 6 is Saturday.', false, 93),
+-- 94
+('region-sales-summary', 'Sales Summary by Region', 'hard', 'aggregate', 'Show total sales by Region and Category. Include a grand total row.', 'CREATE TABLE sales (region TEXT, category TEXT, amount INT);', 'INSERT INTO sales VALUES (''North'', ''A'', 100), (''North'', ''B'', 50), (''South'', ''A'', 200);', 'SELECT region, category, SUM(amount) FROM sales GROUP BY ROLLUP(region, category);', 'Use the ROLLUP operator.', true, 94),
+-- 95
+('high-margin-products', 'High Margin Products', 'easy', 'filtering', 'Find products where (price - cost) is greater than 100.', 'CREATE TABLE products (name TEXT, price INT, cost INT);', 'INSERT INTO products VALUES (''A'', 500, 350), (''B'', 200, 150);', 'SELECT name FROM products WHERE price - cost > 100;', 'Calculate the difference in the WHERE clause.', false, 95),
+-- 96
+('refund-rate', 'Refund Rate by Product', 'medium', 'analytics', 'Calculate the refund rate for each product. Refund rate = (refunds / total sales) * 100.', 'CREATE TABLE orders (product_id INT, status TEXT);', 'INSERT INTO orders VALUES (1, ''completed''), (1, ''refunded''), (2, ''completed'');', 'SELECT product_id, (COUNT(*) FILTER (WHERE status = ''refunded'')::DECIMAL / COUNT(*)) * 100 as refund_rate FROM orders GROUP BY product_id;', 'Group by product_id and use FILTER.', false, 96),
+-- 97
+('referral-chain', 'Referral Chain', 'hard', 'joins', 'Find users who referred at least one person, who then also referred someone else.', 'CREATE TABLE users (id INT, referred_by INT);', 'INSERT INTO users VALUES (1, NULL), (2, 1), (3, 2), (4, 3);', 'SELECT DISTINCT u1.referred_by FROM users u1 JOIN users u2 ON u1.id = u2.referred_by WHERE u1.referred_by IS NOT NULL;', 'Join the users table twice to trace the referral chain.', false, 97),
+-- 98
+('top-5-percent', 'Top 5% Earners', 'hard', 'window', 'Find the IDs of the top 5% highest earners in the company.', 'CREATE TABLE employees (id INT, salary INT);', 'INSERT INTO employees SELECT i, i*100 FROM generate_series(1, 100) i;', 'WITH ranked AS (SELECT id, PERCENT_RANK() OVER (ORDER BY salary DESC) as rank FROM employees) SELECT id FROM ranked WHERE rank <= 0.05;', 'Use PERCENT_RANK().', false, 98),
+-- 99
+('reordered-products', 'Frequently Reordered', 'medium', 'aggregate', 'Find products that have been ordered by the same user more than once.', 'CREATE TABLE orders (user_id INT, product_id INT);', 'INSERT INTO orders VALUES (1, 101), (1, 101), (2, 101), (2, 102);', 'SELECT DISTINCT product_id FROM orders GROUP BY user_id, product_id HAVING COUNT(*) > 1;', 'Group by both user and product.', false, 99),
+-- 100
+('analytics-dashboard', 'The Final Boss: Analytics', 'hard', 'analytics', 'Generate a report showing each category, its total sales, its rank by sales, and its percentage of global sales.', 'CREATE TABLE sales (category TEXT, amount INT);', 'INSERT INTO sales VALUES (''Electronics'', 1000), (''Books'', 500), (''Clothing'', 500);', 'WITH cat_sales AS (SELECT category, SUM(amount) as total FROM sales GROUP BY category), global_total AS (SELECT SUM(amount) as grand_total FROM sales) SELECT category, total, RANK() OVER (ORDER BY total DESC), (total::DECIMAL / (SELECT grand_total FROM global_total)) * 100 as pct FROM cat_sales;', 'Use CTEs and window functions together for a complex report.', true, 100)
+ON CONFLICT (slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    description = EXCLUDED.description,
+    table_schema = EXCLUDED.table_schema,
+    seed_data = EXCLUDED.seed_data,
+    solution_sql = EXCLUDED.solution_sql,
+    hint = EXCLUDED.hint;

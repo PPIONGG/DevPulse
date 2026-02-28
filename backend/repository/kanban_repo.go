@@ -398,3 +398,30 @@ func (r *KanbanRepo) ReorderCards(ctx context.Context, userID uuid.UUID, updates
 
 	return tx.Commit(ctx)
 }
+
+func (r *KanbanRepo) GetUpcomingTasks(ctx context.Context, userID uuid.UUID, limit int) ([]models.KanbanCard, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT c.id, c.column_id, c.title, c.description, c.priority, c.labels, c.position, c.due_date::text, c.created_at, c.updated_at
+		 FROM kanban_cards c
+		 JOIN kanban_columns col ON c.column_id = col.id
+		 JOIN kanban_boards b ON col.board_id = b.id
+		 WHERE b.user_id = $1 AND c.due_date IS NOT NULL AND c.due_date >= CURRENT_DATE
+		 ORDER BY c.due_date ASC
+		 LIMIT $2`,
+		userID, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cards []models.KanbanCard
+	for rows.Next() {
+		var c models.KanbanCard
+		if err := rows.Scan(&c.ID, &c.ColumnID, &c.Title, &c.Description, &c.Priority, &c.Labels, &c.Position, &c.DueDate, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		cards = append(cards, c)
+	}
+	return cards, rows.Err()
+}

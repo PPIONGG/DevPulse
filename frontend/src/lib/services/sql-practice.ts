@@ -6,6 +6,10 @@ import type {
   SqlSubmitResult,
   SqlPracticeStats,
   SqlSubmission,
+  QueryResult,
+  SqlTopSolution,
+  SqlModuleWithLessons,
+  SqlLesson,
 } from "@/lib/types/database";
 
 export async function getChallenges(): Promise<SqlChallengeWithProgress[]> {
@@ -42,4 +46,21 @@ export async function explainQuery(req: SqlSubmitRequest): Promise<{ plan: strin
 
 export async function getTopSolutions(challengeId: string): Promise<SqlTopSolution[]> {
   return api.get<SqlTopSolution[]>(`/api/sql-practice/top-solutions/${challengeId}`);
+}
+
+// Academy
+export async function getLessons(): Promise<SqlModuleWithLessons[]> {
+  return api.get<SqlModuleWithLessons[]>("/api/sql-practice/lessons");
+}
+
+export async function getLesson(id: string): Promise<SqlLesson> {
+  return api.get<SqlLesson>(`/api/sql-practice/lessons/${id}`);
+}
+
+export async function runLessonQuery(lessonId: string, query: string): Promise<SqlSubmitResult> {
+  return api.post<SqlSubmitResult>("/api/sql-practice/lessons/run", { lesson_id: lessonId, query });
+}
+
+export async function completeLesson(id: string): Promise<void> {
+  await api.post(`/api/sql-practice/lessons/${id}/complete`, {});
 }

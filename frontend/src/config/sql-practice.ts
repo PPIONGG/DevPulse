@@ -18,6 +18,7 @@ export const challengeCategories = [
   { value: "subquery", label: "Subqueries" },
   { value: "window", label: "Window Functions" },
   { value: "cte", label: "CTEs" },
+  { value: "analytics", label: "Analytics" },
 ] as const;
 
 export type ChallengeCategory = (typeof challengeCategories)[number]["value"];

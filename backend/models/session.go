@@ -9,6 +9,7 @@ import (
 type Session struct {
 	Token     string    `json:"-"`
 	UserID    uuid.UUID `json:"-"`
+	UserRole  string    `json:"-"`
 	ExpiresAt time.Time `json:"-"`
 	CreatedAt time.Time `json:"-"`
 }

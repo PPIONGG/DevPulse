@@ -26,6 +26,7 @@ func New(
 	sqlPractice *handlers.SqlPracticeHandler,
 	dashboard *handlers.DashboardHandler,
 	calculation *handlers.CalculationHandler,
+	admin *handlers.AdminHandler,
 	sessionRepo *repository.SessionRepo,
 	frontendURL string,
 	uploadsDir string,
@@ -210,6 +211,12 @@ func New(
 	mux.Handle("POST /api/sql-practice/explain", authMW(http.HandlerFunc(sqlPractice.ExplainQuery)))
 	mux.Handle("GET /api/sql-practice/top-solutions/{challengeId}", authMW(http.HandlerFunc(sqlPractice.ListTopSolutions)))
 
+	// Academy
+	mux.Handle("GET /api/sql-practice/lessons", authMW(http.HandlerFunc(sqlPractice.ListLessons)))
+	mux.Handle("GET /api/sql-practice/lessons/{id}", authMW(http.HandlerFunc(sqlPractice.GetLesson)))
+	mux.Handle("POST /api/sql-practice/lessons/run", authMW(http.HandlerFunc(sqlPractice.RunLessonQuery)))
+	mux.Handle("POST /api/sql-practice/lessons/{id}/complete", authMW(http.HandlerFunc(sqlPractice.CompleteLesson)))
+
 	mux.Handle("GET /api/dashboard/stats", authMW(http.HandlerFunc(dashboard.Stats)))
 	mux.Handle("GET /api/dashboard/recent", authMW(http.HandlerFunc(dashboard.Recent)))
 
@@ -217,6 +224,11 @@ func New(
 	mux.Handle("POST /api/calculations", authMW(http.HandlerFunc(calculation.Create)))
 	mux.Handle("DELETE /api/calculations/{id}", authMW(http.HandlerFunc(calculation.Delete)))
 	mux.Handle("DELETE /api/calculations", authMW(http.HandlerFunc(calculation.ClearAll)))
+
+	// Admin & System
+	mux.Handle("GET /api/admin/navigation", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ListNavigation))))
+	mux.Handle("PATCH /api/admin/navigation/{id}/toggle", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ToggleNavigationVisibility))))
+	mux.Handle("GET /api/navigation", authMW(http.HandlerFunc(admin.GetVisibleNavigation)))
 
 	// Apply global middleware
 	var handler http.Handler = mux

@@ -46,6 +46,7 @@ type SqlSubmission struct {
 	ExecutionTimeMs *int      `json:"execution_time_ms"`
 	ErrorMessage    string    `json:"error_message"`
 	SubmittedAt     time.Time `json:"submitted_at"`
+	QueryPlan       *string   `json:"query_plan,omitempty"`
 }
 
 type SqlChallengeProgress struct {
@@ -102,4 +103,45 @@ type SqlPracticeStats struct {
 	PracticeStreak   int                        `json:"practice_streak"`
 	TotalSubmissions int                        `json:"total_submissions"`
 	DailyChallenge   *SqlChallenge              `json:"daily_challenge,omitempty"`
+}
+
+type SqlChallengeDetail struct {
+	Challenge   SqlChallenge          `json:"challenge"`
+	Submissions []SqlSubmission        `json:"submissions"`
+	Progress    *SqlChallengeProgress `json:"progress"`
+	PrevSlug    string                `json:"prev_slug"`
+	NextSlug    string                `json:"next_slug"`
+	SolutionSQL *string               `json:"solution_sql"`
+}
+
+// SQL Academy Models
+
+type SqlLesson struct {
+	ID                 string    `json:"id"`
+	ModuleID           string    `json:"module_id"`
+	ModuleTitle        string    `json:"module_title"`
+	Title              string    `json:"title"`
+	Description        string    `json:"description"`
+	Content            string    `json:"content"`
+	PracticeQuery      string    `json:"practice_query"`
+	ExpectedOutputJSON *string   `json:"expected_output_json"`
+	TableSchema        string    `json:"table_schema"`
+	SeedData           string    `json:"seed_data"`
+	SortOrder          int       `json:"sort_order"`
+	CreatedAt          time.Time `json:"created_at"`
+	IsCompleted        bool      `json:"is_completed"`
+}
+
+type SqlLessonProgress struct {
+	UserID         uuid.UUID  `json:"user_id"`
+	LessonID       string     `json:"lesson_id"`
+	IsCompleted    bool       `json:"is_completed"`
+	CompletedAt    *time.Time `json:"completed_at"`
+	LastAccessedAt time.Time  `json:"last_accessed_at"`
+}
+
+type SqlModuleWithLessons struct {
+	ID      string      `json:"id"`
+	Title   string      `json:"title"`
+	Lessons []SqlLesson `json:"lessons"`
 }

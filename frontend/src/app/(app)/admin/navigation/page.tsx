@@ -1,0 +1,153 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { 
+  Settings, 
+  Eye, 
+  EyeOff, 
+  GripVertical, 
+  AlertTriangle,
+  Loader2,
+  RefreshCcw,
+} from "lucide-react";
+import { toast } from "sonner";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { getAdminNavigation, toggleNavigationVisibility } from "@/lib/services/admin";
+import type { NavigationItem } from "@/lib/types/database";
+import { useAuth } from "@/providers/auth-provider";
+import { redirect } from "next/navigation";
+
+export default function NavigationManagerPage() {
+  const { user, loading: authLoading } = useAuth();
+  const [items, setItems] = useState<NavigationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const fetchNav = async () => {
+    try {
+      setLoading(true);
+      const data = await getAdminNavigation();
+      setItems(data);
+    } catch (err) {
+      toast.error("Failed to load navigation items");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (user?.role !== "admin") {
+        redirect("/dashboard");
+      }
+      fetchNav();
+    }
+  }, [user, authLoading]);
+
+  const handleToggleVisibility = async (id: string, currentHidden: boolean) => {
+    try {
+      setUpdatingId(id);
+      await toggleNavigationVisibility(id, !currentHidden);
+      setItems(items.map(item => 
+        item.id === id ? { ...item, is_hidden: !currentHidden } : item
+      ));
+      toast.success("Navigation updated");
+    } catch (err) {
+      toast.error("Failed to update visibility");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Menu Manager</h2>
+        <p className="text-muted-foreground">
+          Control which modules are visible in the sidebar for all users.
+        </p>
+      </div>
+
+      <div className="grid gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle className="text-xl">Sidebar Items</CardTitle>
+              <CardDescription>Toggle visibility of project modules.</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={fetchNav} className="h-8 gap-2">
+              <RefreshCcw className="size-3" /> Refresh
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y border-t">
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Settings className="size-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">{item.label}</span>
+                        {item.is_hidden && (
+                          <Badge variant="secondary" className="h-4 text-[10px] uppercase">Hidden</Badge>
+                        )}
+                        <Badge variant="outline" className="h-4 text-[10px] text-muted-foreground">{item.min_role}+</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{item.path}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                          {item.is_hidden ? "Hidden" : "Visible"}
+                        </span>
+                        <Switch 
+                          checked={!item.is_hidden}
+                          onCheckedChange={() => handleToggleVisibility(item.id, item.is_hidden)}
+                          disabled={updatingId === item.id || item.path === "/dashboard"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900/30 dark:bg-yellow-950/20">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="size-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-yellow-800 dark:text-yellow-200">Admin Note</h4>
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 leading-relaxed">
+                Hiding a menu item only removes it from the sidebar. The direct URL path will still be accessible.
+                To completely disable a module, additional permission checks on the route level are required.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

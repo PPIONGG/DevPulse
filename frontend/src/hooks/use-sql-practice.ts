@@ -11,6 +11,10 @@ import {
   previewTable as previewTableService,
   explainQuery as explainQueryService,
   getTopSolutions as getTopSolutionsService,
+  getLessons,
+  getLesson as getLessonService,
+  runLessonQuery,
+  completeLesson,
 } from "@/lib/services/sql-practice";
 import { useAuth } from "@/providers/auth-provider";
 import type {
@@ -20,6 +24,8 @@ import type {
   SqlPracticeStats,
   QueryResult,
   SqlTopSolution,
+  SqlModuleWithLessons,
+  SqlLesson,
 } from "@/lib/types/database";
 
 export function useSqlPractice() {
@@ -265,5 +271,120 @@ export function useSqlChallenge(slug: string) {
     explain,
     getTopSolutions,
     refetch: fetchChallenge,
+  };
+}
+
+export function useSqlAcademy() {
+  const { user } = useAuth();
+  const [modules, setModules] = useState<SqlModuleWithLessons[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const data = await getLessons();
+      if (mountedRef.current) {
+        setModules(data);
+        setError(null);
+      }
+    } catch (err) {
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to fetch lessons");
+      }
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return {
+    modules,
+    loading,
+    error,
+    refetch: fetchData,
+  };
+}
+
+export function useSqlAcademyLesson(id: string) {
+  const { user } = useAuth();
+  const [lesson, setLesson] = useState<SqlLesson | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<SqlSubmitResult | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const fetchLesson = useCallback(async () => {
+    if (!user || !id) return;
+    try {
+      setLoading(true);
+      const data = await getLessonService(id);
+      if (mountedRef.current) {
+        setLesson(data);
+        setError(null);
+      }
+    } catch (err) {
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to fetch lesson");
+      }
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [user, id]);
+
+  useEffect(() => {
+    fetchLesson();
+  }, [fetchLesson]);
+
+  const run = useCallback(async (query: string) => {
+    if (!id) return;
+    try {
+      setRunning(true);
+      setResult(null);
+      const res = await runLessonQuery(id, query);
+      if (mountedRef.current) {
+        setResult(res);
+        if (res.status === "correct") {
+          await completeLesson(id);
+          // Optional: refresh lesson to update is_completed
+          setLesson(prev => prev ? { ...prev, is_completed: true } : null);
+        }
+      }
+      return res;
+    } catch (err) {
+      toast.error("Failed to run query");
+    } finally {
+      if (mountedRef.current) setRunning(false);
+    }
+  }, [id]);
+
+  return {
+    lesson,
+    loading,
+    error,
+    running,
+    result,
+    run,
+    refetch: fetchLesson,
   };
 }

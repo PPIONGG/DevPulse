@@ -15,6 +15,7 @@ import type { Profile } from "@/lib/types/database";
 interface AuthUser {
   id: string;
   email: string;
+  role: "user" | "admin";
 }
 
 interface AuthContextType {
