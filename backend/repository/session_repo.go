@@ -51,15 +51,19 @@ func (r *SessionRepo) Create(ctx context.Context, userID uuid.UUID) (*models.Ses
 
 func (r *SessionRepo) FindValid(ctx context.Context, token string) (*models.Session, error) {
 	var s models.Session
+	var isActive bool
 	err := r.pool.QueryRow(ctx,
-		`SELECT s.token, s.user_id, u.role, s.expires_at, s.created_at
+		`SELECT s.token, s.user_id, u.role, s.expires_at, s.created_at, u.is_active
 		 FROM sessions s
 		 JOIN users u ON s.user_id = u.id
 		 WHERE s.token = $1 AND s.expires_at > now()`,
 		token,
-	).Scan(&s.Token, &s.UserID, &s.UserRole, &s.ExpiresAt, &s.CreatedAt)
+	).Scan(&s.Token, &s.UserID, &s.UserRole, &s.ExpiresAt, &s.CreatedAt, &isActive)
 	if err != nil {
 		return nil, err
+	}
+	if !isActive {
+		return nil, ErrNotFound
 	}
 	return &s, nil
 }
@@ -75,6 +79,11 @@ func (r *SessionRepo) DeleteExpired(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return tag.RowsAffected(), nil
+}
+
+func (r *SessionRepo) DeleteByUserID(ctx context.Context, userID uuid.UUID) error {
+	_, err := r.pool.Exec(ctx, `DELETE FROM sessions WHERE user_id = $1`, userID)
+	return err
 }
 
 func generateToken() (string, error) {

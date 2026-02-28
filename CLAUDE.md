@@ -49,13 +49,18 @@ DevPulse/
 │       │   │   │   └── cheat-sheet/    # SQL quick reference (searchable)
 │       │   │   ├── calculator/         # Calculator with history
 │       │   │   ├── admin/              # Admin panel (admin role only)
-│       │   │   │   └── navigation/     # Menu Manager — toggle sidebar items
+│       │   │   │   ├── navigation/     # Menu Manager — toggle sidebar items + group assignment
+│       │   │   │   ├── users/          # User Management — roles, active toggle, delete
+│       │   │   │   ├── snippets/       # Snippets Moderation — verify/delete public snippets
+│       │   │   │   ├── challenges/     # SQL Challenges — CRUD + test solution
+│       │   │   │   ├── stats/          # System Stats — overview, growth, feature usage
+│       │   │   │   └── settings/       # Admin Settings — maintenance, announcements, feature toggles
 │       │   │   └── settings/           # Profile management + avatar upload/crop
 │       │   └── auth/
 │       │       └── login/              # Login + register + GitHub OAuth
 │       ├── proxy.ts          # Middleware — checks session_token cookie, redirects to /auth/login
 │       ├── components/
-│       │   ├── layout/       # AppSidebar, MobileSidebar, MobileSidebarWrapper, UserMenu, NavItem, NavGroup, AuthGuard
+│       │   ├── layout/       # AppSidebar, MobileSidebar, MobileSidebarWrapper, UserMenu, NavItem, NavGroup, AuthGuard, AnnouncementBar
 │       │   ├── ui/           # shadcn/ui primitives — do not edit by hand
 │       │   ├── skeletons.tsx
 │       │   ├── snippet-card.tsx / snippet-form.tsx
@@ -77,7 +82,7 @@ DevPulse/
 │       │   ├── pomodoro.ts
 │       │   ├── environments.ts
 │       │   └── sql-practice.ts  # Difficulty/category/status configs (8 categories incl. analytics)
-│       ├── hooks/            # use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents, use-sql-practice, use-navigation
+│       ├── hooks/            # use-snippets, use-shared-snippets, use-calculator, use-dashboard, use-profile, use-avatar-upload, use-expenses, use-habits, use-kanban, use-pomodoro, use-env-vaults, use-json-documents, use-sql-practice, use-navigation, use-admin-users, use-admin-snippets, use-admin-challenges, use-admin-stats, use-announcement
 │       ├── lib/
 │       │   ├── api/          # API client (fetch wrapper with credentials, 15s timeout)
 │       │   ├── services/     # snippets, calculations, dashboard, profiles, storage, expenses, habits, kanban, pomodoro, env-vaults, json-documents, sql-practice, navigation, admin

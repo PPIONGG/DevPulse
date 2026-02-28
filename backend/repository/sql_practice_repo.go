@@ -393,3 +393,44 @@ func (r *SqlPracticeRepo) UpsertLessonProgress(ctx context.Context, userID uuid.
 	)
 	return err
 }
+
+// Admin Challenge CRUD
+
+func (r *SqlPracticeRepo) CreateChallenge(ctx context.Context, input models.SqlChallengeInput) (*models.SqlChallenge, error) {
+	var c models.SqlChallenge
+	err := r.pool.QueryRow(ctx,
+		`INSERT INTO sql_challenges (slug, title, difficulty, category, description, table_schema, seed_data, solution_sql, hint, order_sensitive, sort_order)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		 RETURNING id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at`,
+		input.Slug, input.Title, input.Difficulty, input.Category, input.Description, input.TableSchema, input.SeedData, input.SolutionSQL, input.Hint, input.OrderSensitive, input.SortOrder,
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (r *SqlPracticeRepo) UpdateChallenge(ctx context.Context, id uuid.UUID, input models.SqlChallengeInput) (*models.SqlChallenge, error) {
+	var c models.SqlChallenge
+	err := r.pool.QueryRow(ctx,
+		`UPDATE sql_challenges SET slug=$2, title=$3, difficulty=$4, category=$5, description=$6, table_schema=$7, seed_data=$8, solution_sql=$9, hint=$10, order_sensitive=$11, sort_order=$12
+		 WHERE id = $1
+		 RETURNING id, slug, title, difficulty, category, description, table_schema, seed_data, hint, order_sensitive, sort_order, created_at`,
+		id, input.Slug, input.Title, input.Difficulty, input.Category, input.Description, input.TableSchema, input.SeedData, input.SolutionSQL, input.Hint, input.OrderSensitive, input.SortOrder,
+	).Scan(&c.ID, &c.Slug, &c.Title, &c.Difficulty, &c.Category, &c.Description, &c.TableSchema, &c.SeedData, &c.Hint, &c.OrderSensitive, &c.SortOrder, &c.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (r *SqlPracticeRepo) DeleteChallenge(ctx context.Context, id uuid.UUID) error {
+	tag, err := r.pool.Exec(ctx, `DELETE FROM sql_challenges WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}

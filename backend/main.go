@@ -62,6 +62,9 @@ func main() {
 	queryHistoryRepo := repository.NewQueryHistoryRepo(pool)
 	sqlPracticeRepo := repository.NewSqlPracticeRepo(pool)
 	navRepo := repository.NewNavigationRepo(pool)
+	auditRepo := repository.NewAuditRepo(pool)
+	statsRepo := repository.NewStatsRepo(pool)
+	systemRepo := repository.NewSystemRepo(pool)
 	dashboardRepo := repository.NewDashboardRepo(snippetRepo, expenseRepo, habitRepo, kanbanRepo, sqlPracticeRepo)
 
 	// Create engines
@@ -80,7 +83,7 @@ func main() {
 	kanbanHandler := handlers.NewKanbanHandler(kanbanRepo)
 	calculationHandler := handlers.NewCalculationHandler(calculationRepo)
 	pomodoroHandler := handlers.NewPomodoroHandler(pomodoroRepo)
-	envVaultHandler := handlers.NewEnvVaultHandler(envVaultRepo)
+	envVaultHandler := handlers.NewEnvVaultHandler(envVaultRepo, auditRepo)
 	jsonDocumentHandler := handlers.NewJsonDocumentHandler(jsonDocumentRepo)
 	apiPlaygroundHandler := handlers.NewApiPlaygroundHandler(apiPlaygroundRepo, envVaultRepo)
 	timeTrackerHandler := handlers.NewTimeTrackerHandler(clientRepo, projectRepo, timeEntryRepo, invoiceRepo)
@@ -89,7 +92,7 @@ func main() {
 	dbExplorerHandler := handlers.NewDatabaseExplorerHandler(dbConnRepo, savedQueryRepo, queryHistoryRepo, connManager)
 	sqlPracticeHandler := handlers.NewSqlPracticeHandler(sqlPracticeRepo, pool)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardRepo)
-	adminHandler := handlers.NewAdminHandler(navRepo)
+	adminHandler := handlers.NewAdminHandler(navRepo, userRepo, sessionRepo, snippetRepo, sqlPracticeRepo, statsRepo, auditRepo, systemRepo, pool)
 
 	// Create router
 	handler := router.New(

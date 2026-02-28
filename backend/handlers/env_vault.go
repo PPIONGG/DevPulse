@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/thammasornlueadtaharn/devpulse-backend/helpers"
@@ -11,11 +12,22 @@ import (
 )
 
 type EnvVaultHandler struct {
-	repo *repository.EnvVaultRepo
+	repo      *repository.EnvVaultRepo
+	auditRepo *repository.AuditRepo
 }
 
-func NewEnvVaultHandler(repo *repository.EnvVaultRepo) *EnvVaultHandler {
-	return &EnvVaultHandler{repo: repo}
+func NewEnvVaultHandler(repo *repository.EnvVaultRepo, auditRepo *repository.AuditRepo) *EnvVaultHandler {
+	return &EnvVaultHandler{repo: repo, auditRepo: auditRepo}
+}
+
+func getClientIP(r *http.Request) string {
+	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
+		return strings.Split(fwd, ",")[0]
+	}
+	if ip := r.Header.Get("X-Real-IP"); ip != "" {
+		return ip
+	}
+	return r.RemoteAddr
 }
 
 func (h *EnvVaultHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +52,10 @@ func (h *EnvVaultHandler) Get(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusNotFound, "vault not found")
 		return
 	}
+
+	// Audit log
+	_ = h.auditRepo.LogVaultAccess(r.Context(), id, userID, "view", "Viewed vault details", getClientIP(r))
+
 	helpers.JSON(w, http.StatusOK, vault)
 }
 
@@ -135,6 +151,9 @@ func (h *EnvVaultHandler) AddVariable(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusInternalServerError, "failed to add variable")
 		return
 	}
+
+	_ = h.auditRepo.LogVaultAccess(r.Context(), vaultID, userID, "add_variable", "Added variable: "+input.Key, getClientIP(r))
+
 	helpers.JSON(w, http.StatusCreated, variable)
 }
 
@@ -159,6 +178,9 @@ func (h *EnvVaultHandler) UpdateVariable(w http.ResponseWriter, r *http.Request)
 		helpers.Error(w, http.StatusInternalServerError, "failed to update variable")
 		return
 	}
+
+	_ = h.auditRepo.LogVaultAccess(r.Context(), variable.VaultID, userID, "update_variable", "Updated variable: "+input.Key, getClientIP(r))
+
 	helpers.JSON(w, http.StatusOK, variable)
 }
 
@@ -205,5 +227,31 @@ func (h *EnvVaultHandler) Import(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusInternalServerError, "failed to import variables")
 		return
 	}
+
+	_ = h.auditRepo.LogVaultAccess(r.Context(), vaultID, userID, "import", "Imported variables from .env", getClientIP(r))
+
 	helpers.JSON(w, http.StatusOK, variables)
+}
+
+func (h *EnvVaultHandler) GetAuditLog(w http.ResponseWriter, r *http.Request) {
+	userID := helpers.UserIDFromContext(r.Context())
+	vaultID, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "invalid vault ID")
+		return
+	}
+
+	// Verify the user owns the vault
+	_, err = h.repo.GetByID(r.Context(), userID, vaultID)
+	if err != nil {
+		helpers.Error(w, http.StatusNotFound, "vault not found")
+		return
+	}
+
+	logs, err := h.auditRepo.ListVaultLogs(r.Context(), vaultID, 50)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "failed to fetch audit log")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, logs)
 }

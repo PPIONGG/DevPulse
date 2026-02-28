@@ -43,7 +43,7 @@ export function ChallengeEditor({
     try {
       const formatted = format(value, {
         language: "postgresql",
-        uppercase: true,
+        keywordCase: "upper",
       });
       onChange(formatted);
     } catch (err) {

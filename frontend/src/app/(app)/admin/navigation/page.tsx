@@ -1,30 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Settings, 
-  Eye, 
-  EyeOff, 
-  GripVertical, 
+import {
+  Settings,
   AlertTriangle,
   Loader2,
   RefreshCcw,
 } from "lucide-react";
 import { toast } from "sonner";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { getAdminNavigation, toggleNavigationVisibility } from "@/lib/services/admin";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getAdminNavigation, toggleNavigationVisibility, updateNavigationGroup } from "@/lib/services/admin";
+import { NAV_UPDATED_EVENT } from "@/hooks/use-navigation";
 import type { NavigationItem } from "@/lib/types/database";
 import { useAuth } from "@/providers/auth-provider";
 import { redirect } from "next/navigation";
+
+const GROUP_OPTIONS = ["Overview", "Development", "Projects", "Lifestyle", "System", "Ungrouped"];
 
 export default function NavigationManagerPage() {
   const { user, loading: authLoading } = useAuth();
@@ -57,12 +58,29 @@ export default function NavigationManagerPage() {
     try {
       setUpdatingId(id);
       await toggleNavigationVisibility(id, !currentHidden);
-      setItems(items.map(item => 
+      setItems(items.map(item =>
         item.id === id ? { ...item, is_hidden: !currentHidden } : item
       ));
+      window.dispatchEvent(new Event(NAV_UPDATED_EVENT));
       toast.success("Navigation updated");
     } catch (err) {
       toast.error("Failed to update visibility");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleGroupChange = async (id: string, groupName: string) => {
+    try {
+      setUpdatingId(id);
+      await updateNavigationGroup(id, groupName);
+      setItems(items.map(item =>
+        item.id === id ? { ...item, group_name: groupName } : item
+      ));
+      window.dispatchEvent(new Event(NAV_UPDATED_EVENT));
+      toast.success("Group updated");
+    } catch (err) {
+      toast.error("Failed to update group");
     } finally {
       setUpdatingId(null);
     }
@@ -90,7 +108,7 @@ export default function NavigationManagerPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="space-y-1">
               <CardTitle className="text-xl">Sidebar Items</CardTitle>
-              <CardDescription>Toggle visibility of project modules.</CardDescription>
+              <CardDescription>Toggle visibility and assign groups.</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={fetchNav} className="h-8 gap-2">
               <RefreshCcw className="size-3" /> Refresh
@@ -115,18 +133,30 @@ export default function NavigationManagerPage() {
                       <p className="text-xs text-muted-foreground">{item.path}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase">
-                          {item.is_hidden ? "Hidden" : "Visible"}
-                        </span>
-                        <Switch 
-                          checked={!item.is_hidden}
-                          onCheckedChange={() => handleToggleVisibility(item.id, item.is_hidden)}
-                          disabled={updatingId === item.id || item.path === "/dashboard"}
-                        />
-                      </div>
+                  <div className="flex items-center gap-4">
+                    <Select
+                      value={item.group_name}
+                      onValueChange={(val) => handleGroupChange(item.id, val)}
+                      disabled={updatingId === item.id}
+                    >
+                      <SelectTrigger className="h-8 w-[140px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GROUP_OPTIONS.map(g => (
+                          <SelectItem key={g} value={g} className="text-xs">{g}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                        {item.is_hidden ? "Hidden" : "Visible"}
+                      </span>
+                      <Switch
+                        checked={!item.is_hidden}
+                        onCheckedChange={() => handleToggleVisibility(item.id, item.is_hidden)}
+                        disabled={updatingId === item.id || item.path === "/dashboard"}
+                      />
                     </div>
                   </div>
                 </div>
@@ -142,7 +172,7 @@ export default function NavigationManagerPage() {
               <h4 className="text-sm font-bold text-yellow-800 dark:text-yellow-200">Admin Note</h4>
               <p className="text-xs text-yellow-700 dark:text-yellow-300 leading-relaxed">
                 Hiding a menu item only removes it from the sidebar. The direct URL path will still be accessible.
-                To completely disable a module, additional permission checks on the route level are required.
+                To completely disable a module, use the Feature Toggles in Settings.
               </p>
             </div>
           </div>

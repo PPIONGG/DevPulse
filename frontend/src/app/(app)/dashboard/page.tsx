@@ -30,7 +30,7 @@ import { DashboardSkeleton } from "@/components/skeletons";
 export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { stats, recentSnippets, upcomingTasks, todayHabits, dailyChallenge, loading, error, refetch } =
     useDashboard();
 
@@ -59,7 +59,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
-            Welcome back, {user?.display_name || user?.email?.split('@')[0] || 'Developer'}!
+            Welcome back, {profile?.display_name || user?.email?.split('@')[0] || 'Developer'}!
           </h2>
           <p className="text-muted-foreground">
             Here's what's happening with your projects today.

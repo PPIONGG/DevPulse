@@ -8,7 +8,7 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 
 | Table | Description | Key columns |
 |-------|-------------|-------------|
-| `users` | User accounts | email (unique), password_hash (nullable), github_id (unique, nullable), role (TEXT, default `'user'`) |
+| `users` | User accounts | email (unique), password_hash (nullable), github_id (unique, nullable), role (TEXT, default `'user'`), is_active (BOOLEAN, default `true`) |
 | `sessions` | Session tokens | token (PK, 64-hex), user_id, expires_at (30 days) |
 | `profiles` | User profiles | id (FK → users.id), display_name, avatar_url, email |
 
@@ -16,7 +16,7 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 
 | Table | Description | Key columns |
 |-------|-------------|-------------|
-| `snippets` | Code snippets | title, code, language, description, tags (TEXT[]), is_public, is_favorite |
+| `snippets` | Code snippets | title, code, language, description, tags (TEXT[]), is_public, is_favorite, is_verified (BOOLEAN), verified_by (UUID FK), verified_at |
 | `calculations` | Calculator history | expression, result |
 | `expenses` | Expense tracking | title, amount (NUMERIC 10,2), currency, category, date, notes, is_recurring |
 | `habits` | Habit definitions | title, description, color, frequency, target_days, is_archived |
@@ -43,7 +43,15 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 
 | Table | Description | Key columns |
 |-------|-------------|-------------|
-| `navigation_items` | Sidebar nav config | id (UUID), label, icon (Lucide name), path (unique), is_hidden, min_role (TEXT: `'user'`/`'admin'`), sort_order |
+| `navigation_items` | Sidebar nav config | id (UUID), label, icon (Lucide name), path (unique), is_hidden, min_role (TEXT: `'user'`/`'admin'`), sort_order, group_name (TEXT, default `'Ungrouped'`) |
+
+## Admin & System Tables
+
+| Table | Description | Key columns |
+|-------|-------------|-------------|
+| `vault_audit_logs` | Env vault access audit trail | vault_id (FK), user_id (FK), action, details, ip_address, created_at. Indexed on vault_id, user_id, created_at DESC |
+| `system_settings` | Key-value system config | key (PK), value, updated_at, updated_by (FK → users.id). Seeded: maintenance_mode, maintenance_message, announcement_enabled, announcement_message, announcement_type |
+| `feature_toggles` | Per-module enable/disable | id (UUID), module_path (unique), is_enabled, disabled_message, updated_at, updated_by (FK → users.id). Seeded from navigation_items |
 
 ## Migration History
 
@@ -59,6 +67,11 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 | 029 | `add_admin_and_navigation` | `users.role` column, `navigation_items` table, 14 nav items seeded |
 | 030 | `promote_first_admin` | First user (by created_at) promoted to admin |
 | 031 | `add_settings_to_nav` | Settings navigation item added |
+| 032 | `add_nav_groups` | `navigation_items.group_name` column, assign groups (Overview, Development, Projects, Lifestyle, System) |
+| 033 | `add_user_management` | `users.is_active` column for account deactivation |
+| 034 | `add_content_moderation` | `snippets.is_verified`, `verified_by`, `verified_at` columns + index |
+| 035 | `create_audit_and_stats` | `vault_audit_logs` table with indexes |
+| 036 | `create_system_settings` | `system_settings` + `feature_toggles` tables with seeds |
 
 ## Challenge Categories
 
@@ -79,21 +92,21 @@ Authorization is enforced in Go repository layer via `WHERE user_id = $1` on all
 
 ## Seeded Navigation Items
 
-| Sort | Label | Icon | Path |
-|------|-------|------|------|
-| 10 | Dashboard | LayoutDashboard | /dashboard |
-| 20 | Code Snippets | Code2 | /code-snippets |
-| 30 | Expenses | DollarSign | /expenses |
-| 40 | Habits | Target | /habits |
-| 50 | Kanban | Kanban | /kanban |
-| 60 | Pomodoro | Clock | /pomodoro |
-| 70 | Env Vault | ShieldCheck | /env-vault |
-| 80 | JSON Tools | Binary | /json-tools |
-| 90 | API Playground | Zap | /api-playground |
-| 100 | Time Tracker | History | /time-tracker |
-| 110 | SQL Practice | Database | /sql-practice |
-| 120 | Workflows | Workflow | /workflows |
-| 130 | Marketplace | ShoppingBag | /marketplace |
-| 140 | DB Explorer | SearchCode | /db-explorer |
-| 150 | Calculator | Calculator | /calculator |
-| 160 | Settings | Settings | /settings |
+| Sort | Label | Icon | Path | Group |
+|------|-------|------|------|-------|
+| 10 | Dashboard | LayoutDashboard | /dashboard | Overview |
+| 20 | Code Snippets | Code2 | /code-snippets | Development |
+| 30 | Expenses | DollarSign | /expenses | Lifestyle |
+| 40 | Habits | Target | /habits | Lifestyle |
+| 50 | Kanban | Kanban | /kanban | Projects |
+| 60 | Pomodoro | Clock | /pomodoro | Lifestyle |
+| 70 | Env Vault | ShieldCheck | /env-vault | System |
+| 80 | JSON Tools | Binary | /json-tools | Development |
+| 90 | API Playground | Zap | /api-playground | Development |
+| 100 | Time Tracker | History | /time-tracker | Projects |
+| 110 | SQL Practice | Database | /sql-practice | Development |
+| 120 | Workflows | Workflow | /workflows | Projects |
+| 130 | Marketplace | ShoppingBag | /marketplace | Projects |
+| 140 | DB Explorer | SearchCode | /db-explorer | Development |
+| 150 | Calculator | Calculator | /calculator | Development |
+| 160 | Settings | Settings | /settings | System |

@@ -14,6 +14,7 @@ type NavigationItem struct {
 	IsHidden  bool      `json:"is_hidden"`
 	MinRole   string    `json:"min_role"`
 	SortOrder int       `json:"sort_order"`
+	GroupName string    `json:"group_name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

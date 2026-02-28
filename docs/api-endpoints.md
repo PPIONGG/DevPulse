@@ -85,6 +85,7 @@ All endpoints return JSON. Protected endpoints require `session_token` cookie. A
 | POST | `/api/env-vaults/{id}/variables` | Add variable to vault |
 | POST | `/api/env-vaults/{id}/import` | Import variables from .env format |
 | PUT/DELETE | `/api/env-variables/{id}` | Update/delete variable |
+| GET | `/api/env-vaults/{id}/audit` | Get audit log for vault (owner only) |
 
 ## Protected — JSON Documents
 
@@ -120,7 +121,7 @@ All endpoints return JSON. Protected endpoints require `session_token` cookie. A
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/navigation` | Get visible nav items (filtered by user role) |
+| GET | `/api/navigation` | Get visible nav items (filtered by user role, grouped) |
 
 ## Protected — Dashboard
 
@@ -129,7 +130,14 @@ All endpoints return JSON. Protected endpoints require `session_token` cookie. A
 | GET | `/api/dashboard/stats` | Dashboard stats (snippets, expenses, habits, boards) |
 | GET | `/api/dashboard/recent` | Recent snippets + daily SQL challenge |
 
-## Admin Only
+## Protected — System (All Users)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/system/announcement` | Get current announcement banner |
+| GET | `/api/system/features` | Get feature toggle statuses |
+
+## Admin Only — Navigation
 
 Requires `role = "admin"`. Returns 403 for non-admin users.
 
@@ -137,3 +145,44 @@ Requires `role = "admin"`. Returns 403 for non-admin users.
 |--------|------|-------------|
 | GET | `/api/admin/navigation` | List all navigation items (including hidden) |
 | PATCH | `/api/admin/navigation/{id}/toggle` | Toggle navigation item visibility |
+| PATCH | `/api/admin/navigation/{id}/group` | Update navigation item group |
+| GET | `/api/admin/navigation/groups` | List distinct group names |
+
+## Admin Only — User Management
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/admin/users` | List all users with profiles |
+| PATCH | `/api/admin/users/{id}/role` | Change user role (user/admin) |
+| PATCH | `/api/admin/users/{id}/active` | Toggle user active status |
+| DELETE | `/api/admin/users/{id}` | Delete user account |
+
+## Admin Only — Content Moderation
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/admin/snippets` | List all public snippets |
+| PATCH | `/api/admin/snippets/{id}/verify` | Toggle snippet verification |
+| DELETE | `/api/admin/snippets/{id}` | Delete any snippet (no user_id check) |
+| POST | `/api/admin/challenges` | Create SQL challenge |
+| PUT | `/api/admin/challenges/{id}` | Update SQL challenge |
+| DELETE | `/api/admin/challenges/{id}` | Delete SQL challenge |
+| POST | `/api/admin/challenges/test` | Test challenge schema + solution |
+
+## Admin Only — Stats & Audit
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/admin/stats` | System-wide stats (users, content counts, growth, feature usage) |
+| GET | `/api/admin/audit/vaults` | Global vault audit logs (last 100) |
+
+## Admin Only — System Settings & Features
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/admin/settings` | List all system settings |
+| PUT | `/api/admin/settings` | Update a system setting (key/value) |
+| GET | `/api/admin/features` | List all feature toggles |
+| PATCH | `/api/admin/features/{id}` | Update feature toggle (enable/disable + message) |
+| PUT | `/api/admin/announcement` | Set announcement banner (enabled, message, type) |
+| PUT | `/api/admin/maintenance` | Set maintenance mode (enabled, message) |

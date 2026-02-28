@@ -145,3 +145,17 @@ type SqlModuleWithLessons struct {
 	Title   string      `json:"title"`
 	Lessons []SqlLesson `json:"lessons"`
 }
+
+type SqlChallengeInput struct {
+	Slug           string `json:"slug"`
+	Title          string `json:"title"`
+	Difficulty     string `json:"difficulty"`
+	Category       string `json:"category"`
+	Description    string `json:"description"`
+	TableSchema    string `json:"table_schema"`
+	SeedData       string `json:"seed_data"`
+	SolutionSQL    string `json:"solution_sql"`
+	Hint           string `json:"hint"`
+	OrderSensitive bool   `json:"order_sensitive"`
+	SortOrder      int    `json:"sort_order"`
+}

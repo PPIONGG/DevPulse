@@ -104,6 +104,7 @@ func New(
 	mux.Handle("PUT /api/env-variables/{id}", authMW(http.HandlerFunc(envVault.UpdateVariable)))
 	mux.Handle("DELETE /api/env-variables/{id}", authMW(http.HandlerFunc(envVault.DeleteVariable)))
 	mux.Handle("POST /api/env-vaults/{id}/import", authMW(http.HandlerFunc(envVault.Import)))
+	mux.Handle("GET /api/env-vaults/{id}/audit", authMW(http.HandlerFunc(envVault.GetAuditLog)))
 
 	mux.Handle("GET /api/json-documents", authMW(http.HandlerFunc(jsonDoc.List)))
 	mux.Handle("POST /api/json-documents", authMW(http.HandlerFunc(jsonDoc.Create)))
@@ -225,10 +226,45 @@ func New(
 	mux.Handle("DELETE /api/calculations/{id}", authMW(http.HandlerFunc(calculation.Delete)))
 	mux.Handle("DELETE /api/calculations", authMW(http.HandlerFunc(calculation.ClearAll)))
 
-	// Admin & System
+	// Public system endpoints (for all authenticated users)
+	mux.Handle("GET /api/system/announcement", authMW(http.HandlerFunc(admin.GetAnnouncement)))
+	mux.Handle("GET /api/system/features", authMW(http.HandlerFunc(admin.GetFeatureStatuses)))
+
+	// Navigation (for all authenticated users)
+	mux.Handle("GET /api/navigation", authMW(http.HandlerFunc(admin.GetVisibleNavigation)))
+
+	// Admin routes
 	mux.Handle("GET /api/admin/navigation", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ListNavigation))))
 	mux.Handle("PATCH /api/admin/navigation/{id}/toggle", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ToggleNavigationVisibility))))
-	mux.Handle("GET /api/navigation", authMW(http.HandlerFunc(admin.GetVisibleNavigation)))
+	mux.Handle("PATCH /api/admin/navigation/{id}/group", authMW(middleware.AdminOnly(http.HandlerFunc(admin.UpdateNavigationGroup))))
+	mux.Handle("GET /api/admin/navigation/groups", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ListNavigationGroups))))
+
+	// Admin — User Management
+	mux.Handle("GET /api/admin/users", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ListUsers))))
+	mux.Handle("PATCH /api/admin/users/{id}/role", authMW(middleware.AdminOnly(http.HandlerFunc(admin.UpdateUserRole))))
+	mux.Handle("PATCH /api/admin/users/{id}/active", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ToggleUserActive))))
+	mux.Handle("DELETE /api/admin/users/{id}", authMW(middleware.AdminOnly(http.HandlerFunc(admin.DeleteUser))))
+
+	// Admin — Content Moderation
+	mux.Handle("GET /api/admin/snippets", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ListPublicSnippets))))
+	mux.Handle("PATCH /api/admin/snippets/{id}/verify", authMW(middleware.AdminOnly(http.HandlerFunc(admin.VerifySnippet))))
+	mux.Handle("DELETE /api/admin/snippets/{id}", authMW(middleware.AdminOnly(http.HandlerFunc(admin.DeleteSnippet))))
+	mux.Handle("POST /api/admin/challenges", authMW(middleware.AdminOnly(http.HandlerFunc(admin.CreateChallenge))))
+	mux.Handle("PUT /api/admin/challenges/{id}", authMW(middleware.AdminOnly(http.HandlerFunc(admin.UpdateChallenge))))
+	mux.Handle("DELETE /api/admin/challenges/{id}", authMW(middleware.AdminOnly(http.HandlerFunc(admin.DeleteChallenge))))
+	mux.Handle("POST /api/admin/challenges/test", authMW(middleware.AdminOnly(http.HandlerFunc(admin.TestChallenge))))
+
+	// Admin — Stats & Audit
+	mux.Handle("GET /api/admin/stats", authMW(middleware.AdminOnly(http.HandlerFunc(admin.GetSystemStats))))
+	mux.Handle("GET /api/admin/audit/vaults", authMW(middleware.AdminOnly(http.HandlerFunc(admin.GetVaultAuditLogs))))
+
+	// Admin — System Settings & Features
+	mux.Handle("GET /api/admin/settings", authMW(middleware.AdminOnly(http.HandlerFunc(admin.GetSystemSettings))))
+	mux.Handle("PUT /api/admin/settings", authMW(middleware.AdminOnly(http.HandlerFunc(admin.UpdateSystemSetting))))
+	mux.Handle("GET /api/admin/features", authMW(middleware.AdminOnly(http.HandlerFunc(admin.ListFeatureToggles))))
+	mux.Handle("PATCH /api/admin/features/{id}", authMW(middleware.AdminOnly(http.HandlerFunc(admin.UpdateFeatureToggle))))
+	mux.Handle("PUT /api/admin/announcement", authMW(middleware.AdminOnly(http.HandlerFunc(admin.SetAnnouncement))))
+	mux.Handle("PUT /api/admin/maintenance", authMW(middleware.AdminOnly(http.HandlerFunc(admin.SetMaintenanceMode))))
 
 	// Apply global middleware
 	var handler http.Handler = mux

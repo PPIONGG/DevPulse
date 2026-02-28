@@ -17,6 +17,9 @@ export interface CodeSnippet {
   is_favorite: boolean;
   copied_from: string | null;
   owner_name?: string | null;
+  is_verified: boolean;
+  verified_by?: string | null;
+  verified_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -787,6 +790,92 @@ export interface NavigationItem {
   is_hidden: boolean;
   min_role: "user" | "admin";
   sort_order: number;
+  group_name: string;
   created_at: string;
   updated_at: string;
+}
+
+// --- Admin Types ---
+
+export interface AdminUserView {
+  id: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VaultAuditLog {
+  id: string;
+  vault_id: string;
+  user_id: string;
+  action: string;
+  details: string;
+  ip_address: string;
+  user_email: string;
+  display_name: string;
+  created_at: string;
+}
+
+export interface DailyCountStat {
+  date: string;
+  count: number;
+}
+
+export interface FeatureUsageStat {
+  feature: string;
+  count: number;
+}
+
+export interface SystemStats {
+  total_users: number;
+  active_users: number;
+  total_snippets: number;
+  total_expenses: number;
+  total_habits: number;
+  total_boards: number;
+  total_vaults: number;
+  total_challenges: number;
+  total_sessions: number;
+  user_growth: DailyCountStat[];
+  feature_usage: FeatureUsageStat[];
+}
+
+export interface SystemSetting {
+  key: string;
+  value: string;
+  updated_at: string;
+  updated_by?: string;
+}
+
+export interface FeatureToggle {
+  id: string;
+  module_path: string;
+  is_enabled: boolean;
+  disabled_message: string;
+  updated_at: string;
+  updated_by?: string;
+}
+
+export interface AnnouncementBanner {
+  enabled: boolean;
+  message: string;
+  type: "info" | "warning" | "error" | "success";
+}
+
+export interface SqlChallengeInput {
+  slug: string;
+  title: string;
+  difficulty: string;
+  category: string;
+  description: string;
+  table_schema: string;
+  seed_data: string;
+  solution_sql: string;
+  hint: string;
+  order_sensitive: boolean;
+  sort_order: number;
 }
