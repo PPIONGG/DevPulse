@@ -45,6 +45,7 @@ import { InvoicePreview } from "@/components/time-tracker/invoice-preview";
 import { TimeTrackerSkeleton } from "@/components/skeletons";
 import { useTimeTracker } from "@/hooks/use-time-tracker";
 import { getInvoicePdfUrl } from "@/lib/services/time-tracker";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type {
   Client,
@@ -82,6 +83,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function TimeTrackerPage() {
+  const { t } = useTranslation();
   const {
     clients,
     createClient,
@@ -197,7 +199,7 @@ export default function TimeTrackerPage() {
     try {
       await deleteClient(deletingClient.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete client");
+      toast.error(err instanceof Error ? err.message : t("timeTracker.deleteClientFailed"));
     } finally {
       setDeletingClient(null);
     }
@@ -216,7 +218,7 @@ export default function TimeTrackerPage() {
     try {
       await deleteProject(deletingProject.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete project");
+      toast.error(err instanceof Error ? err.message : t("timeTracker.deleteProjectFailed"));
     } finally {
       setDeletingProject(null);
     }
@@ -225,7 +227,7 @@ export default function TimeTrackerPage() {
     try {
       await archiveProject(id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to archive project");
+      toast.error(err instanceof Error ? err.message : t("timeTracker.archiveProjectFailed"));
     }
   };
 
@@ -242,7 +244,7 @@ export default function TimeTrackerPage() {
     try {
       await deleteEntry(deletingEntry.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete entry");
+      toast.error(err instanceof Error ? err.message : t("timeTracker.deleteEntryFailed"));
     } finally {
       setDeletingEntry(null);
     }
@@ -261,7 +263,7 @@ export default function TimeTrackerPage() {
     try {
       await deleteInvoice(deletingInvoice.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete invoice");
+      toast.error(err instanceof Error ? err.message : t("timeTracker.deleteInvoiceFailed"));
     } finally {
       setDeletingInvoice(null);
     }
@@ -270,7 +272,7 @@ export default function TimeTrackerPage() {
     try {
       await updateInvoiceStatus(id, status);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update status");
+      toast.error(err instanceof Error ? err.message : t("timeTracker.updateStatusFailed"));
     }
   };
 
@@ -279,9 +281,9 @@ export default function TimeTrackerPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Time Tracker</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("timeTracker.pageTitle")}</h2>
         <p className="mt-1 text-muted-foreground">
-          Track time, manage projects, and generate invoices.
+          {t("timeTracker.pageSubtitle")}
         </p>
       </div>
 
@@ -292,7 +294,7 @@ export default function TimeTrackerPage() {
             onClick={refetch}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("timeTracker.tryAgain")}
           </button>
         </div>
       )}
@@ -307,28 +309,28 @@ export default function TimeTrackerPage() {
 
       <Tabs defaultValue="timer">
         <TabsList>
-          <TabsTrigger value="timer">Timer</TabsTrigger>
-          <TabsTrigger value="entries">Entries</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
+          <TabsTrigger value="timer">{t("timeTracker.tabTimer")}</TabsTrigger>
+          <TabsTrigger value="entries">{t("timeTracker.tabEntries")}</TabsTrigger>
+          <TabsTrigger value="reports">{t("timeTracker.tabReports")}</TabsTrigger>
+          <TabsTrigger value="invoices">{t("timeTracker.tabInvoices")}</TabsTrigger>
+          <TabsTrigger value="clients">{t("timeTracker.tabClients")}</TabsTrigger>
+          <TabsTrigger value="projects">{t("timeTracker.tabProjects")}</TabsTrigger>
         </TabsList>
 
         {/* ─── Timer Tab ─── */}
         <TabsContent value="timer" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Today</h3>
+            <h3 className="text-lg font-semibold">{t("timeTracker.today")}</h3>
             <span className="text-sm text-muted-foreground">
-              Total: {formatDuration(todayTotal)}
+              {t("timeTracker.total")} {formatDuration(todayTotal)}
             </span>
           </div>
           {todayEntries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="mb-4 size-12 text-muted-foreground/50" />
-              <h3 className="text-lg font-medium">No entries today</h3>
+              <h3 className="text-lg font-medium">{t("timeTracker.noEntriesToday")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Start a timer or add a manual entry to get going.
+                {t("timeTracker.noEntriesTodayDesc")}
               </p>
             </div>
           ) : (
@@ -347,7 +349,7 @@ export default function TimeTrackerPage() {
                         )}
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">
-                            {project?.title || "Unknown project"}
+                            {project?.title || t("timeTracker.unknownProject")}
                           </p>
                           {entry.description && (
                             <p className="truncate text-xs text-muted-foreground">
@@ -390,7 +392,7 @@ export default function TimeTrackerPage() {
             }}
           >
             <Plus className="mr-2 size-4" />
-            Add Manual Entry
+            {t("timeTracker.addManualEntry")}
           </Button>
         </TabsContent>
 
@@ -400,7 +402,7 @@ export default function TimeTrackerPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search entries..."
+                placeholder={t("timeTracker.searchEntries")}
                 className="pl-9"
                 value={entrySearch}
                 onChange={(e) => setEntrySearch(e.target.value)}
@@ -411,10 +413,10 @@ export default function TimeTrackerPage() {
               onValueChange={setEntryProjectFilter}
             >
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="All projects" />
+                <SelectValue placeholder={t("timeTracker.allProjects")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All projects</SelectItem>
+                <SelectItem value="all">{t("timeTracker.allProjects")}</SelectItem>
                 {projects
                   .filter((p) => !p.is_archived)
                   .map((p) => (
@@ -431,16 +433,16 @@ export default function TimeTrackerPage() {
               }}
             >
               <Plus className="mr-2 size-4" />
-              New Entry
+              {t("timeTracker.newEntry")}
             </Button>
           </div>
 
           {filteredEntries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="mb-4 size-12 text-muted-foreground/50" />
-              <h3 className="text-lg font-medium">No time entries</h3>
+              <h3 className="text-lg font-medium">{t("timeTracker.noTimeEntries")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Start tracking your time to see entries here.
+                {t("timeTracker.noTimeEntriesDesc")}
               </p>
             </div>
           ) : (
@@ -459,10 +461,10 @@ export default function TimeTrackerPage() {
                         )}
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">
-                            {project?.title || "Unknown project"}
+                            {project?.title || t("timeTracker.unknownProject")}
                           </p>
                           <p className="truncate text-xs text-muted-foreground">
-                            {entry.description || "No description"} &middot;{" "}
+                            {entry.description || t("timeTracker.noDescription")} &middot;{" "}
                             {formatDate(entry.start_time)}
                           </p>
                         </div>
@@ -487,7 +489,7 @@ export default function TimeTrackerPage() {
                         <span className="font-mono text-sm">
                           {entry.end_time
                             ? formatDuration(entry.duration)
-                            : "running"}
+                            : t("timeTracker.running")}
                         </span>
                         <Button
                           variant="ghost"
@@ -529,7 +531,7 @@ export default function TimeTrackerPage() {
                 }
                 className="w-40"
               />
-              <span className="text-muted-foreground">to</span>
+              <span className="text-muted-foreground">{t("timeTracker.to")}</span>
               <Input
                 type="date"
                 value={reportRange.to}
@@ -540,7 +542,7 @@ export default function TimeTrackerPage() {
               />
             </div>
             <Button variant="outline" onClick={fetchReport}>
-              Refresh
+              {t("timeTracker.refresh")}
             </Button>
           </div>
           <TimeReport report={report} />
@@ -554,15 +556,15 @@ export default function TimeTrackerPage() {
               onValueChange={setInvoiceStatusFilter}
             >
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="All statuses" />
+                <SelectValue placeholder={t("timeTracker.allStatuses")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t("timeTracker.allStatuses")}</SelectItem>
+                <SelectItem value="draft">{t("timeTracker.statusDraft")}</SelectItem>
+                <SelectItem value="sent">{t("timeTracker.statusSent")}</SelectItem>
+                <SelectItem value="paid">{t("timeTracker.statusPaid")}</SelectItem>
+                <SelectItem value="overdue">{t("timeTracker.statusOverdue")}</SelectItem>
+                <SelectItem value="cancelled">{t("timeTracker.statusCancelled")}</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex-1" />
@@ -573,16 +575,16 @@ export default function TimeTrackerPage() {
               }}
             >
               <Plus className="mr-2 size-4" />
-              New Invoice
+              {t("timeTracker.newInvoice")}
             </Button>
           </div>
 
           {filteredInvoices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="mb-4 size-12 text-muted-foreground/50" />
-              <h3 className="text-lg font-medium">No invoices</h3>
+              <h3 className="text-lg font-medium">{t("timeTracker.noInvoices")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Create an invoice from your tracked time.
+                {t("timeTracker.noInvoicesDesc")}
               </p>
             </div>
           ) : (
@@ -600,7 +602,7 @@ export default function TimeTrackerPage() {
                             {inv.invoice_number}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {client?.name || "No client"} &middot; Due{" "}
+                            {client?.name || t("timeTracker.noClient")} &middot; {t("timeTracker.due")}{" "}
                             {inv.due_date}
                           </p>
                         </div>
@@ -625,11 +627,11 @@ export default function TimeTrackerPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="sent">Sent</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="overdue">Overdue</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="draft">{t("timeTracker.statusDraft")}</SelectItem>
+                            <SelectItem value="sent">{t("timeTracker.statusSent")}</SelectItem>
+                            <SelectItem value="paid">{t("timeTracker.statusPaid")}</SelectItem>
+                            <SelectItem value="overdue">{t("timeTracker.statusOverdue")}</SelectItem>
+                            <SelectItem value="cancelled">{t("timeTracker.statusCancelled")}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -678,7 +680,7 @@ export default function TimeTrackerPage() {
         {/* ─── Clients Tab ─── */}
         <TabsContent value="clients" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Clients</h3>
+            <h3 className="text-lg font-semibold">{t("timeTracker.clients")}</h3>
             <Button
               onClick={() => {
                 setEditingClient(null);
@@ -686,16 +688,16 @@ export default function TimeTrackerPage() {
               }}
             >
               <Plus className="mr-2 size-4" />
-              New Client
+              {t("timeTracker.newClient")}
             </Button>
           </div>
 
           {clients.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="mb-4 size-12 text-muted-foreground/50" />
-              <h3 className="text-lg font-medium">No clients yet</h3>
+              <h3 className="text-lg font-medium">{t("timeTracker.noClientsYet")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Add clients to link them with projects and invoices.
+                {t("timeTracker.noClientsDesc")}
               </p>
             </div>
           ) : (
@@ -708,7 +710,7 @@ export default function TimeTrackerPage() {
                       <p className="text-xs text-muted-foreground">
                         {[client.company, client.email]
                           .filter(Boolean)
-                          .join(" · ") || "No details"}
+                          .join(" · ") || t("timeTracker.noDetails")}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -747,7 +749,7 @@ export default function TimeTrackerPage() {
         {/* ─── Projects Tab ─── */}
         <TabsContent value="projects" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Projects</h3>
+            <h3 className="text-lg font-semibold">{t("timeTracker.projects")}</h3>
             <Button
               onClick={() => {
                 setEditingProject(null);
@@ -755,16 +757,16 @@ export default function TimeTrackerPage() {
               }}
             >
               <Plus className="mr-2 size-4" />
-              New Project
+              {t("timeTracker.newProject")}
             </Button>
           </div>
 
           {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="mb-4 size-12 text-muted-foreground/50" />
-              <h3 className="text-lg font-medium">No projects yet</h3>
+              <h3 className="text-lg font-medium">{t("timeTracker.noProjectsYet")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Create a project to start tracking time.
+                {t("timeTracker.noProjectsDesc")}
               </p>
             </div>
           ) : (
@@ -792,16 +794,16 @@ export default function TimeTrackerPage() {
                                 variant="secondary"
                                 className="ml-2 text-xs"
                               >
-                                Archived
+                                {t("timeTracker.archived")}
                               </Badge>
                             )}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {client ? client.name : "No client"}
+                            {client ? client.name : t("timeTracker.noClient")}
                             {project.hourly_rate != null &&
                               ` · $${project.hourly_rate}/hr`}
                             {project.budget_hours != null &&
-                              ` · ${project.budget_hours}h budget`}
+                              ` · ${project.budget_hours}h ${t("timeTracker.budget")}`}
                           </p>
                         </div>
                       </div>
@@ -812,7 +814,7 @@ export default function TimeTrackerPage() {
                           className="size-8"
                           onClick={() => handleArchiveProject(project.id)}
                           title={
-                            project.is_archived ? "Unarchive" : "Archive"
+                            project.is_archived ? t("timeTracker.unarchive") : t("timeTracker.archive")
                           }
                         >
                           <Archive className="size-3.5" />
@@ -905,16 +907,15 @@ export default function TimeTrackerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete client?</AlertDialogTitle>
+            <AlertDialogTitle>{t("timeTracker.deleteClientTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingClient?.name}&quot;.
-              Projects linked to this client will lose their client reference.
+              {t("timeTracker.deleteClientDesc").replace("{name}", deletingClient?.name ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteClient}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -926,16 +927,15 @@ export default function TimeTrackerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogTitle>{t("timeTracker.deleteProjectTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingProject?.title}&quot;
-              and all its time entries. This action cannot be undone.
+              {t("timeTracker.deleteProjectDesc").replace("{name}", deletingProject?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProject}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -947,16 +947,15 @@ export default function TimeTrackerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete time entry?</AlertDialogTitle>
+            <AlertDialogTitle>{t("timeTracker.deleteEntryTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this time entry. This action cannot
-              be undone.
+              {t("timeTracker.deleteEntryDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteEntry}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -968,16 +967,15 @@ export default function TimeTrackerPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete invoice?</AlertDialogTitle>
+            <AlertDialogTitle>{t("timeTracker.deleteInvoiceTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete invoice{" "}
-              {deletingInvoice?.invoice_number}. This action cannot be undone.
+              {t("timeTracker.deleteInvoiceDesc").replace("{number}", deletingInvoice?.invoice_number ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteInvoice}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

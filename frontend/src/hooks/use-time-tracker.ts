@@ -27,6 +27,7 @@ import {
   deleteInvoice as deleteInvoiceService,
 } from "@/lib/services/time-tracker";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import type {
   Client,
   ClientInput,
@@ -53,6 +54,7 @@ function getWeekRange() {
 
 export function useTimeTracker() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
@@ -113,12 +115,12 @@ export function useTimeTracker() {
       }
     } catch (err) {
       if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data");
+        setError(err instanceof Error ? err.message : t("timeTracker.fetchFailed"));
       }
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, t]);
 
   useEffect(() => {
     fetchAll();
@@ -147,11 +149,11 @@ export function useTimeTracker() {
       const created = await createClientService(input);
       if (mountedRef.current) {
         setClients((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
-        toast.success("Client created");
+        toast.success(t("timeTracker.toastClientCreated"));
       }
       return created;
     },
-    [user]
+    [user, t]
   );
 
   const updateClient = useCallback(
@@ -161,20 +163,20 @@ export function useTimeTracker() {
         setClients((prev) =>
           prev.map((c) => (c.id === id ? updated : c)).sort((a, b) => a.name.localeCompare(b.name))
         );
-        toast.success("Client updated");
+        toast.success(t("timeTracker.toastClientUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const deleteClient = useCallback(async (id: string) => {
     await deleteClientService(id);
     if (mountedRef.current) {
       setClients((prev) => prev.filter((c) => c.id !== id));
-      toast.success("Client deleted");
+      toast.success(t("timeTracker.toastClientDeleted"));
     }
-  }, []);
+  }, [t]);
 
   // ─── Projects ───
 
@@ -184,11 +186,11 @@ export function useTimeTracker() {
       const created = await createProjectService(input);
       if (mountedRef.current) {
         setProjects((prev) => [created, ...prev]);
-        toast.success("Project created");
+        toast.success(t("timeTracker.toastProjectCreated"));
       }
       return created;
     },
-    [user]
+    [user, t]
   );
 
   const updateProject = useCallback(
@@ -196,11 +198,11 @@ export function useTimeTracker() {
       const updated = await updateProjectService(id, input);
       if (mountedRef.current) {
         setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
-        toast.success("Project updated");
+        toast.success(t("timeTracker.toastProjectUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const archiveProject = useCallback(async (id: string) => {
@@ -209,17 +211,17 @@ export function useTimeTracker() {
       setProjects((prev) =>
         prev.map((p) => (p.id === id ? { ...p, is_archived: !p.is_archived } : p))
       );
-      toast.success("Project archive toggled");
+      toast.success(t("timeTracker.toastProjectArchiveToggled"));
     }
-  }, []);
+  }, [t]);
 
   const deleteProject = useCallback(async (id: string) => {
     await deleteProjectService(id);
     if (mountedRef.current) {
       setProjects((prev) => prev.filter((p) => p.id !== id));
-      toast.success("Project deleted");
+      toast.success(t("timeTracker.toastProjectDeleted"));
     }
-  }, []);
+  }, [t]);
 
   // ─── Timer ───
 
@@ -229,10 +231,10 @@ export function useTimeTracker() {
       const entry = await startTimerService({ project_id: projectId, description });
       if (mountedRef.current) {
         setRunningEntry(entry);
-        toast.success("Timer started");
+        toast.success(t("timeTracker.toastTimerStarted"));
       }
     },
-    [user]
+    [user, t]
   );
 
   const stopTimerFn = useCallback(async () => {
@@ -241,9 +243,9 @@ export function useTimeTracker() {
     if (mountedRef.current) {
       setRunningEntry(null);
       setEntries((prev) => [stopped, ...prev]);
-      toast.success("Timer stopped");
+      toast.success(t("timeTracker.toastTimerStopped"));
     }
-  }, [runningEntry]);
+  }, [runningEntry, t]);
 
   // ─── Time Entries ───
 
@@ -253,11 +255,11 @@ export function useTimeTracker() {
       const created = await createEntryService(input);
       if (mountedRef.current) {
         setEntries((prev) => [created, ...prev]);
-        toast.success("Time entry created");
+        toast.success(t("timeTracker.toastEntryCreated"));
       }
       return created;
     },
-    [user]
+    [user, t]
   );
 
   const updateEntry = useCallback(
@@ -265,20 +267,20 @@ export function useTimeTracker() {
       const updated = await updateEntryService(id, input);
       if (mountedRef.current) {
         setEntries((prev) => prev.map((e) => (e.id === id ? updated : e)));
-        toast.success("Time entry updated");
+        toast.success(t("timeTracker.toastEntryUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const deleteEntry = useCallback(async (id: string) => {
     await deleteEntryService(id);
     if (mountedRef.current) {
       setEntries((prev) => prev.filter((e) => e.id !== id));
-      toast.success("Time entry deleted");
+      toast.success(t("timeTracker.toastEntryDeleted"));
     }
-  }, []);
+  }, [t]);
 
   // ─── Invoices ───
 
@@ -288,11 +290,11 @@ export function useTimeTracker() {
       const created = await createInvoiceService(input);
       if (mountedRef.current) {
         setInvoices((prev) => [created, ...prev]);
-        toast.success("Invoice created");
+        toast.success(t("timeTracker.toastInvoiceCreated"));
       }
       return created;
     },
-    [user]
+    [user, t]
   );
 
   const updateInvoice = useCallback(
@@ -300,11 +302,11 @@ export function useTimeTracker() {
       const updated = await updateInvoiceService(id, input);
       if (mountedRef.current) {
         setInvoices((prev) => prev.map((i) => (i.id === id ? updated : i)));
-        toast.success("Invoice updated");
+        toast.success(t("timeTracker.toastInvoiceUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const updateInvoiceStatusFn = useCallback(
@@ -312,20 +314,20 @@ export function useTimeTracker() {
       const updated = await updateInvoiceStatusService(id, status);
       if (mountedRef.current) {
         setInvoices((prev) => prev.map((i) => (i.id === id ? updated : i)));
-        toast.success("Invoice status updated");
+        toast.success(t("timeTracker.toastInvoiceStatusUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const deleteInvoice = useCallback(async (id: string) => {
     await deleteInvoiceService(id);
     if (mountedRef.current) {
       setInvoices((prev) => prev.filter((i) => i.id !== id));
-      toast.success("Invoice deleted");
+      toast.success(t("timeTracker.toastInvoiceDeleted"));
     }
-  }, []);
+  }, [t]);
 
   return {
     clients,

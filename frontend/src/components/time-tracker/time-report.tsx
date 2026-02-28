@@ -14,6 +14,7 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/providers/language-provider";
 import type { TimeReport as TimeReportType } from "@/lib/types/database";
 
 interface TimeReportProps {
@@ -34,10 +35,12 @@ function formatHours(h: number): string {
 }
 
 export function TimeReport({ report }: TimeReportProps) {
+  const { t } = useTranslation();
+
   if (!report) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-sm text-muted-foreground">No report data available.</p>
+        <p className="text-sm text-muted-foreground">{t("timeTracker.noReportData")}</p>
       </div>
     );
   }
@@ -59,7 +62,7 @@ export function TimeReport({ report }: TimeReportProps) {
         <Card className="gap-0 py-0">
           <CardHeader className="px-4 py-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Hours
+              {t("timeTracker.totalHours")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
@@ -69,7 +72,7 @@ export function TimeReport({ report }: TimeReportProps) {
         <Card className="gap-0 py-0">
           <CardHeader className="px-4 py-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Billable Hours
+              {t("timeTracker.billableHours")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
@@ -79,7 +82,7 @@ export function TimeReport({ report }: TimeReportProps) {
         <Card className="gap-0 py-0">
           <CardHeader className="px-4 py-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Amount
+              {t("timeTracker.totalAmount")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
@@ -93,11 +96,11 @@ export function TimeReport({ report }: TimeReportProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="gap-0 py-0">
           <CardHeader className="px-4 py-3">
-            <CardTitle className="text-sm font-medium">Hours by Day</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("timeTracker.hoursByDay")}</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
             {barData.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No data</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">{t("timeTracker.noData")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={barData}>
@@ -110,7 +113,7 @@ export function TimeReport({ report }: TimeReportProps) {
                       borderColor: "hsl(var(--border))",
                       borderRadius: "0.5rem",
                     }}
-                    formatter={(value) => [`${value}h`, "Hours"]}
+                    formatter={(value) => [`${value}h`, t("timeTracker.hours")]}
                   />
                   <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -121,11 +124,11 @@ export function TimeReport({ report }: TimeReportProps) {
 
         <Card className="gap-0 py-0">
           <CardHeader className="px-4 py-3">
-            <CardTitle className="text-sm font-medium">Hours by Project</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("timeTracker.hoursByProject")}</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-4 pt-0">
             {pieData.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No data</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">{t("timeTracker.noData")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -149,7 +152,7 @@ export function TimeReport({ report }: TimeReportProps) {
                       borderColor: "hsl(var(--border))",
                       borderRadius: "0.5rem",
                     }}
-                    formatter={(value) => [`${value}h`, "Hours"]}
+                    formatter={(value) => [`${value}h`, t("timeTracker.hours")]}
                   />
                   <Legend />
                 </PieChart>

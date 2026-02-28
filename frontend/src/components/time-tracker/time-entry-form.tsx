@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/providers/language-provider";
 import type { Project, TimeEntry, TimeEntryInput } from "@/lib/types/database";
 
 interface TimeEntryFormProps {
@@ -50,6 +51,7 @@ export function TimeEntryForm({
   projects,
   onSubmit,
 }: TimeEntryFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!entry;
   const [projectId, setProjectId] = useState("");
   const [description, setDescription] = useState("");
@@ -112,7 +114,7 @@ export function TimeEntryForm({
       await onSubmit(input);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save time entry");
+      setError(err instanceof Error ? err.message : t("timeTracker.saveEntryFailed"));
     } finally {
       setSaving(false);
     }
@@ -123,7 +125,7 @@ export function TimeEntryForm({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Time Entry" : "New Time Entry"}
+            {isEditing ? t("timeTracker.editTimeEntry") : t("timeTracker.newTimeEntry")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,10 +135,10 @@ export function TimeEntryForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label>Project</Label>
+            <Label>{t("timeTracker.entryProject")}</Label>
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select project" />
+                <SelectValue placeholder={t("timeTracker.selectProject")} />
               </SelectTrigger>
               <SelectContent>
                 {activeProjects.map((p) => (
@@ -154,17 +156,17 @@ export function TimeEntryForm({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="entry-description">Description</Label>
+            <Label htmlFor="entry-description">{t("timeTracker.entryDescription")}</Label>
             <Input
               id="entry-description"
-              placeholder="What did you work on?"
+              placeholder={t("timeTracker.entryDescPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="entry-start">Start Time</Label>
+              <Label htmlFor="entry-start">{t("timeTracker.startTime")}</Label>
               <Input
                 id="entry-start"
                 type="datetime-local"
@@ -174,7 +176,7 @@ export function TimeEntryForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="entry-end">End Time</Label>
+              <Label htmlFor="entry-end">{t("timeTracker.endTime")}</Label>
               <Input
                 id="entry-end"
                 type="datetime-local"
@@ -184,7 +186,7 @@ export function TimeEntryForm({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="entry-duration">Duration (minutes)</Label>
+            <Label htmlFor="entry-duration">{t("timeTracker.durationMinutes")}</Label>
             <Input
               id="entry-duration"
               type="number"
@@ -195,10 +197,10 @@ export function TimeEntryForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="entry-tags">Tags (comma-separated)</Label>
+            <Label htmlFor="entry-tags">{t("timeTracker.tags")}</Label>
             <Input
               id="entry-tags"
-              placeholder="bug, feature, meeting"
+              placeholder={t("timeTracker.tagsPlaceholder")}
               value={tagsStr}
               onChange={(e) => setTagsStr(e.target.value)}
             />
@@ -210,15 +212,15 @@ export function TimeEntryForm({
               onCheckedChange={(checked) => setIsBillable(checked === true)}
             />
             <Label htmlFor="is-billable" className="font-normal">
-              Billable
+              {t("timeTracker.billable")}
             </Label>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

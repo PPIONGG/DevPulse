@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/providers/language-provider";
 import type { Client, ClientInput } from "@/lib/types/database";
 
 interface ClientFormProps {
@@ -33,6 +34,7 @@ const defaultValues: ClientInput = {
 };
 
 export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!client;
   const [form, setForm] = useState<ClientInput>(defaultValues);
   const [rateStr, setRateStr] = useState("");
@@ -78,7 +80,7 @@ export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormP
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save client");
+      setError(err instanceof Error ? err.message : t("timeTracker.saveClientFailed"));
     } finally {
       setSaving(false);
     }
@@ -88,7 +90,7 @@ export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Client" : "New Client"}</DialogTitle>
+          <DialogTitle>{isEditing ? t("timeTracker.editClient") : t("timeTracker.newClientTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -97,10 +99,10 @@ export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormP
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="client-name">Name</Label>
+            <Label htmlFor="client-name">{t("timeTracker.clientName")}</Label>
             <Input
               id="client-name"
-              placeholder="Client name"
+              placeholder={t("timeTracker.clientNamePlaceholder")}
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               required
@@ -108,39 +110,39 @@ export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormP
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="client-email">Email</Label>
+              <Label htmlFor="client-email">{t("timeTracker.email")}</Label>
               <Input
                 id="client-email"
                 type="email"
-                placeholder="email@example.com"
+                placeholder={t("timeTracker.emailPlaceholder")}
                 value={form.email}
                 onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="client-phone">Phone</Label>
+              <Label htmlFor="client-phone">{t("timeTracker.phone")}</Label>
               <Input
                 id="client-phone"
-                placeholder="Phone number"
+                placeholder={t("timeTracker.phonePlaceholder")}
                 value={form.phone}
                 onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="client-company">Company</Label>
+            <Label htmlFor="client-company">{t("timeTracker.company")}</Label>
             <Input
               id="client-company"
-              placeholder="Company name"
+              placeholder={t("timeTracker.companyPlaceholder")}
               value={form.company}
               onChange={(e) => setForm((prev) => ({ ...prev, company: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="client-address">Address</Label>
+            <Label htmlFor="client-address">{t("timeTracker.address")}</Label>
             <Textarea
               id="client-address"
-              placeholder="Address"
+              placeholder={t("timeTracker.addressPlaceholder")}
               className="min-h-[60px]"
               value={form.address}
               onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
@@ -148,31 +150,31 @@ export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormP
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="client-rate">Hourly Rate</Label>
+              <Label htmlFor="client-rate">{t("timeTracker.hourlyRate")}</Label>
               <Input
                 id="client-rate"
                 type="text"
                 inputMode="decimal"
-                placeholder="0.00"
+                placeholder={t("timeTracker.hourlyRatePlaceholder")}
                 value={rateStr}
                 onChange={(e) => handleRateChange(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="client-currency">Currency</Label>
+              <Label htmlFor="client-currency">{t("timeTracker.currency")}</Label>
               <Input
                 id="client-currency"
-                placeholder="USD"
+                placeholder={t("timeTracker.currencyPlaceholder")}
                 value={form.currency}
                 onChange={(e) => setForm((prev) => ({ ...prev, currency: e.target.value }))}
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="client-notes">Notes</Label>
+            <Label htmlFor="client-notes">{t("timeTracker.notes")}</Label>
             <Textarea
               id="client-notes"
-              placeholder="Optional notes"
+              placeholder={t("timeTracker.notesPlaceholder")}
               className="min-h-[60px]"
               value={form.notes}
               onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
@@ -180,10 +182,10 @@ export function ClientForm({ open, onOpenChange, client, onSubmit }: ClientFormP
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

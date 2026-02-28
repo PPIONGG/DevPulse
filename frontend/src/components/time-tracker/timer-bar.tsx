@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/providers/language-provider";
 import type { Project, TimeEntry } from "@/lib/types/database";
 
 function formatDuration(seconds: number): string {
@@ -35,6 +36,7 @@ export function TimerBar({
   onStart,
   onStop,
 }: TimerBarProps) {
+  const { t } = useTranslation();
   const [projectId, setProjectId] = useState("");
   const [description, setDescription] = useState("");
   const [starting, setStarting] = useState(false);
@@ -76,7 +78,7 @@ export function TimerBar({
           </div>
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="text-sm font-medium">
-              {runningEntry.description || "No description"}
+              {runningEntry.description || t("timeTracker.noDescription")}
             </span>
             <span className="text-xs text-muted-foreground">
               {runningProject && (
@@ -100,14 +102,14 @@ export function TimerBar({
             disabled={stopping}
           >
             <Square className="mr-1 size-3.5 fill-current" />
-            Stop
+            {t("timeTracker.timerStop")}
           </Button>
         </div>
       ) : (
         <div className="flex items-center gap-3">
           <Select value={projectId} onValueChange={setProjectId}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select project" />
+              <SelectValue placeholder={t("timeTracker.selectProject")} />
             </SelectTrigger>
             <SelectContent>
               {activeProjects.map((p) => (
@@ -124,7 +126,7 @@ export function TimerBar({
             </SelectContent>
           </Select>
           <Input
-            placeholder="What are you working on?"
+            placeholder={t("timeTracker.whatAreYouWorkingOn")}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="flex-1"
@@ -137,7 +139,7 @@ export function TimerBar({
             disabled={!projectId || starting}
           >
             <Play className="mr-1 size-3.5 fill-current" />
-            Start
+            {t("timeTracker.timerStart")}
           </Button>
         </div>
       )}

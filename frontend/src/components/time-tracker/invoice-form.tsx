@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/providers/language-provider";
 import type { Client, Invoice, InvoiceInput, InvoiceLineItem } from "@/lib/types/database";
 
 interface InvoiceFormProps {
@@ -55,6 +56,7 @@ export function InvoiceForm({
   clients,
   onSubmit,
 }: InvoiceFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!invoice;
   const [clientId, setClientId] = useState<string>("none");
   const [dueDate, setDueDate] = useState(thirtyDaysLater());
@@ -138,7 +140,7 @@ export function InvoiceForm({
       await onSubmit(input);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save invoice");
+      setError(err instanceof Error ? err.message : t("timeTracker.saveInvoiceFailed"));
     } finally {
       setSaving(false);
     }
@@ -148,7 +150,7 @@ export function InvoiceForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Invoice" : "New Invoice"}</DialogTitle>
+          <DialogTitle>{isEditing ? t("timeTracker.editInvoice") : t("timeTracker.newInvoiceTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -159,13 +161,13 @@ export function InvoiceForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Client</Label>
+              <Label>{t("timeTracker.invoiceClient")}</Label>
               <Select value={clientId} onValueChange={setClientId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="No client" />
+                  <SelectValue placeholder={t("timeTracker.noClientOption")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No client</SelectItem>
+                  <SelectItem value="none">{t("timeTracker.noClientOption")}</SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -175,7 +177,7 @@ export function InvoiceForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inv-due-date">Due Date</Label>
+              <Label htmlFor="inv-due-date">{t("timeTracker.dueDate")}</Label>
               <Input
                 id="inv-due-date"
                 type="date"
@@ -188,16 +190,16 @@ export function InvoiceForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="inv-currency">Currency</Label>
+              <Label htmlFor="inv-currency">{t("timeTracker.currency")}</Label>
               <Input
                 id="inv-currency"
-                placeholder="USD"
+                placeholder={t("timeTracker.currencyPlaceholder")}
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inv-tax-rate">Tax Rate (%)</Label>
+              <Label htmlFor="inv-tax-rate">{t("timeTracker.taxRate")}</Label>
               <Input
                 id="inv-tax-rate"
                 type="text"
@@ -211,18 +213,18 @@ export function InvoiceForm({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Line Items</Label>
+              <Label>{t("timeTracker.lineItems")}</Label>
               <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
                 <Plus className="mr-1 size-3" />
-                Add Item
+                {t("timeTracker.addItem")}
               </Button>
             </div>
             <div className="space-y-2">
               <div className="grid grid-cols-[1fr_80px_80px_90px_32px] gap-2 text-xs font-medium text-muted-foreground">
-                <span>Description</span>
-                <span>Hours</span>
-                <span>Rate</span>
-                <span>Amount</span>
+                <span>{t("timeTracker.lineDescription")}</span>
+                <span>{t("timeTracker.lineHours")}</span>
+                <span>{t("timeTracker.lineRate")}</span>
+                <span>{t("timeTracker.lineAmount")}</span>
                 <span />
               </div>
               {lineItems.map((item, i) => (
@@ -231,7 +233,7 @@ export function InvoiceForm({
                   className="grid grid-cols-[1fr_80px_80px_90px_32px] items-center gap-2"
                 >
                   <Input
-                    placeholder="Description"
+                    placeholder={t("timeTracker.lineDescPlaceholder")}
                     value={item.description}
                     onChange={(e) => updateLineItem(i, "description", e.target.value)}
                   />
@@ -275,26 +277,26 @@ export function InvoiceForm({
 
           <div className="rounded-md border p-3 text-sm">
             <div className="flex justify-between">
-              <span>Subtotal</span>
+              <span>{t("timeTracker.subtotal")}</span>
               <span>{subtotal.toFixed(2)} {currency}</span>
             </div>
             {taxRate > 0 && (
               <div className="flex justify-between text-muted-foreground">
-                <span>Tax ({taxRate}%)</span>
+                <span>{t("timeTracker.tax")} ({taxRate}%)</span>
                 <span>{taxAmount.toFixed(2)} {currency}</span>
               </div>
             )}
             <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
-              <span>Total</span>
+              <span>{t("timeTracker.totalLabel")}</span>
               <span>{total.toFixed(2)} {currency}</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="inv-notes">Notes</Label>
+            <Label htmlFor="inv-notes">{t("timeTracker.invoiceNotes")}</Label>
             <Textarea
               id="inv-notes"
-              placeholder="Payment terms, thank you note, etc."
+              placeholder={t("timeTracker.invoiceNotesPlaceholder")}
               className="min-h-[60px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -303,10 +305,10 @@ export function InvoiceForm({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/providers/language-provider";
 import type { Client, Project, ProjectInput } from "@/lib/types/database";
 
 interface ProjectFormProps {
@@ -50,6 +51,7 @@ export function ProjectForm({
   clients,
   onSubmit,
 }: ProjectFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!project;
   const [form, setForm] = useState<ProjectInput>(defaultValues);
   const [rateStr, setRateStr] = useState("");
@@ -100,7 +102,7 @@ export function ProjectForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save project");
+      setError(err instanceof Error ? err.message : t("timeTracker.saveProjectFailed"));
     } finally {
       setSaving(false);
     }
@@ -110,7 +112,7 @@ export function ProjectForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Project" : "New Project"}</DialogTitle>
+          <DialogTitle>{isEditing ? t("timeTracker.editProject") : t("timeTracker.newProjectTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -119,27 +121,27 @@ export function ProjectForm({
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="project-title">Title</Label>
+            <Label htmlFor="project-title">{t("timeTracker.projectTitle")}</Label>
             <Input
               id="project-title"
-              placeholder="Project title"
+              placeholder={t("timeTracker.projectTitlePlaceholder")}
               value={form.title}
               onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="project-description">Description</Label>
+            <Label htmlFor="project-description">{t("timeTracker.projectDescription")}</Label>
             <Textarea
               id="project-description"
-              placeholder="Optional description"
+              placeholder={t("timeTracker.projectDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
-            <Label>Color</Label>
+            <Label>{t("timeTracker.projectColor")}</Label>
             <div className="flex flex-wrap gap-2">
               {projectColors.map((color) => (
                 <button
@@ -155,7 +157,7 @@ export function ProjectForm({
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Client</Label>
+            <Label>{t("timeTracker.projectClient")}</Label>
             <Select
               value={form.client_id ?? "none"}
               onValueChange={(v) =>
@@ -163,10 +165,10 @@ export function ProjectForm({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="No client" />
+                <SelectValue placeholder={t("timeTracker.noClientOption")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No client</SelectItem>
+                <SelectItem value="none">{t("timeTracker.noClientOption")}</SelectItem>
                 {clients.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
@@ -177,23 +179,23 @@ export function ProjectForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="project-rate">Hourly Rate</Label>
+              <Label htmlFor="project-rate">{t("timeTracker.projectRate")}</Label>
               <Input
                 id="project-rate"
                 type="text"
                 inputMode="decimal"
-                placeholder="Inherits from client"
+                placeholder={t("timeTracker.projectRatePlaceholder")}
                 value={rateStr}
                 onChange={(e) => handleNumberChange(e.target.value, setRateStr, "hourly_rate")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project-budget">Budget Hours</Label>
+              <Label htmlFor="project-budget">{t("timeTracker.budgetHours")}</Label>
               <Input
                 id="project-budget"
                 type="text"
                 inputMode="decimal"
-                placeholder="No budget"
+                placeholder={t("timeTracker.budgetHoursPlaceholder")}
                 value={budgetStr}
                 onChange={(e) => handleNumberChange(e.target.value, setBudgetStr, "budget_hours")}
               />
@@ -201,10 +203,10 @@ export function ProjectForm({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>
