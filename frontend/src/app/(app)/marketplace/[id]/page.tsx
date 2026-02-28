@@ -29,6 +29,7 @@ import { CodeBlock } from "@/components/code-block";
 import { ReviewForm } from "@/components/review-form";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { formatPrice, formatRating } from "@/config/marketplace";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ export default function ListingDetailPage() {
   const params = useParams();
   const listingId = params.id as string;
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const {
     currentListing: listing,
@@ -72,10 +74,10 @@ export default function ListingDetailPage() {
       fetchListing(listingId);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to purchase listing"
+        err instanceof Error ? err.message : t("marketplace.purchaseFailed")
       );
     }
-  }, [listing, purchaseListing, fetchListing, listingId]);
+  }, [listing, purchaseListing, fetchListing, listingId, t]);
 
   const handleCreateReview = async (input: ReviewInput) => {
     await createReview(listingId, input);
@@ -96,7 +98,7 @@ export default function ListingDetailPage() {
       fetchReviews(listingId);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete review"
+        err instanceof Error ? err.message : t("marketplace.deleteReviewFailed")
       );
     } finally {
       setDeletingReview(null);
@@ -134,7 +136,7 @@ export default function ListingDetailPage() {
         <Button variant="ghost" size="sm" asChild>
           <Link href="/marketplace">
             <ArrowLeft className="mr-2 size-4" />
-            Back to Marketplace
+            {t("marketplace.backToMarketplace")}
           </Link>
         </Button>
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -143,7 +145,7 @@ export default function ListingDetailPage() {
             onClick={() => fetchListing(listingId)}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       </div>
@@ -157,7 +159,7 @@ export default function ListingDetailPage() {
       <Button variant="ghost" size="sm" asChild>
         <Link href="/marketplace">
           <ArrowLeft className="mr-2 size-4" />
-          Back to Marketplace
+          {t("marketplace.backToMarketplace")}
         </Link>
       </Button>
 
@@ -170,25 +172,25 @@ export default function ListingDetailPage() {
           <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <User className="size-4" />
-              {listing.seller_name || "Anonymous"}
+              {listing.seller_name || t("marketplace.anonymous")}
             </div>
             {listing.review_count > 0 && (
               <div className="flex items-center gap-1">
                 <Star className="size-4 fill-yellow-400 text-yellow-400" />
-                {formatRating(listing.avg_rating)} ({listing.review_count}{" "}
-                {listing.review_count === 1 ? "review" : "reviews"})
+                {formatRating(listing.avg_rating, t("marketplace.noRatings"))} ({listing.review_count}{" "}
+                {listing.review_count === 1 ? t("marketplace.review") : t("marketplace.reviews")})
               </div>
             )}
             <div className="flex items-center gap-1">
               <Download className="size-4" />
               {listing.download_count}{" "}
-              {listing.download_count === 1 ? "download" : "downloads"}
+              {listing.download_count === 1 ? t("marketplace.download") : t("marketplace.downloads")}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xl font-bold">
-            {formatPrice(listing.price_cents, listing.currency)}
+            {formatPrice(listing.price_cents, listing.currency, t("marketplace.free"))}
           </span>
           {!isOwner &&
             (listing.is_purchased ? (
@@ -196,11 +198,11 @@ export default function ListingDetailPage() {
                 variant="secondary"
                 className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400"
               >
-                Purchased
+                {t("marketplace.purchased")}
               </Badge>
             ) : (
               <Button onClick={handlePurchase}>
-                {listing.price_cents === 0 ? "Get Free" : "Buy Now"}
+                {listing.price_cents === 0 ? t("marketplace.getFree") : t("marketplace.buyNow")}
               </Button>
             ))}
         </div>
@@ -220,7 +222,7 @@ export default function ListingDetailPage() {
       {listing.description && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Description</CardTitle>
+            <CardTitle className="text-base">{t("marketplace.description")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap text-sm text-muted-foreground">
@@ -234,7 +236,7 @@ export default function ListingDetailPage() {
       {listing.preview_code && (
         <Card className="overflow-hidden py-0">
           <CardHeader className="py-3">
-            <CardTitle className="text-base">Preview</CardTitle>
+            <CardTitle className="text-base">{t("marketplace.preview")}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <CodeBlock
@@ -248,7 +250,7 @@ export default function ListingDetailPage() {
       {/* Full Code */}
       <Card className="overflow-hidden py-0">
         <CardHeader className="py-3">
-          <CardTitle className="text-base">Full Code</CardTitle>
+          <CardTitle className="text-base">{t("marketplace.fullCode")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {canAccessFullCode && listing.full_code ? (
@@ -260,11 +262,11 @@ export default function ListingDetailPage() {
             <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
               <Lock className="size-8 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                Purchase this listing to access the full source code.
+                {t("marketplace.fullCodeLocked")}
               </p>
               {!isOwner && !listing.is_purchased && (
                 <Button onClick={handlePurchase}>
-                  {listing.price_cents === 0 ? "Get Free" : "Buy to Unlock"}
+                  {listing.price_cents === 0 ? t("marketplace.getFree") : t("marketplace.buyToUnlock")}
                 </Button>
               )}
             </div>
@@ -276,7 +278,7 @@ export default function ListingDetailPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">
-            Reviews ({reviews.length})
+            {t("marketplace.reviewsTitle")} ({reviews.length})
           </h3>
           {canReview && (
             <Button
@@ -284,14 +286,14 @@ export default function ListingDetailPage() {
               size="sm"
               onClick={() => setReviewFormOpen(true)}
             >
-              Write a Review
+              {t("marketplace.writeReview")}
             </Button>
           )}
         </div>
 
         {reviews.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            No reviews yet.
+            {t("marketplace.noReviews")}
           </p>
         ) : (
           <div className="space-y-3">
@@ -302,7 +304,7 @@ export default function ListingDetailPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
-                          {review.buyer_name || "Anonymous"}
+                          {review.buyer_name || t("marketplace.anonymous")}
                         </span>
                         <div className="flex gap-0.5">
                           {[1, 2, 3, 4, 5].map((v) => (
@@ -377,16 +379,15 @@ export default function ListingDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete review?</AlertDialogTitle>
+            <AlertDialogTitle>{t("marketplace.deleteReviewTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete your review. This action cannot be
-              undone.
+              {t("marketplace.deleteReviewDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteReview}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

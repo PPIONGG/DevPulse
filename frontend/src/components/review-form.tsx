@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/providers/language-provider";
 import { cn } from "@/lib/utils";
 import type { Review, ReviewInput } from "@/lib/types/database";
 
@@ -28,6 +29,7 @@ export function ReviewForm({
   review,
   onSubmit,
 }: ReviewFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!review;
   const [rating, setRating] = useState(review?.rating ?? 0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -62,7 +64,7 @@ export function ReviewForm({
       await onSubmit({ rating, comment });
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save review");
+      setError(err instanceof Error ? err.message : t("marketplace.saveReviewFailed"));
     } finally {
       setSaving(false);
     }
@@ -75,7 +77,7 @@ export function ReviewForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Review" : "Write a Review"}
+            {isEditing ? t("marketplace.editReviewTitle") : t("marketplace.writeReviewTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -87,7 +89,7 @@ export function ReviewForm({
           )}
 
           <div className="space-y-2">
-            <Label>Rating</Label>
+            <Label>{t("marketplace.formRating")}</Label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
@@ -112,10 +114,10 @@ export function ReviewForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="comment">Comment</Label>
+            <Label htmlFor="comment">{t("marketplace.formComment")}</Label>
             <Textarea
               id="comment"
-              placeholder="Share your thoughts about this snippet..."
+              placeholder={t("marketplace.formCommentPlaceholder")}
               className="min-h-[100px]"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -128,14 +130,14 @@ export function ReviewForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving || rating === 0}>
               {saving
-                ? "Saving..."
+                ? t("common.saving")
                 : isEditing
-                  ? "Update Review"
-                  : "Submit Review"}
+                  ? t("marketplace.updateReview")
+                  : t("marketplace.submitReview")}
             </Button>
           </DialogFooter>
         </form>

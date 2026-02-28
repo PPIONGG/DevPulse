@@ -14,10 +14,21 @@ import {
 import { ListingCard } from "@/components/listing-card";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { sortOptions } from "@/config/marketplace";
+import type { SortOption } from "@/config/marketplace";
+import { useTranslation } from "@/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import { languages } from "@/config/languages";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+
+const sortLabelKeys: Record<SortOption, TranslationKey> = {
+  newest: "marketplace.sortNewest",
+  price_asc: "marketplace.sortPriceAsc",
+  price_desc: "marketplace.sortPriceDesc",
+  rating: "marketplace.sortRating",
+  downloads: "marketplace.sortDownloads",
+};
 
 function ListingCardSkeleton() {
   return (
@@ -49,6 +60,7 @@ function ListingCardSkeleton() {
 }
 
 export default function MarketplacePage() {
+  const { t } = useTranslation();
   const {
     listings,
     loading,
@@ -83,7 +95,7 @@ export default function MarketplacePage() {
       await purchaseListing(listing.id);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to purchase listing"
+        err instanceof Error ? err.message : t("marketplace.purchaseFailed")
       );
     }
   };
@@ -92,22 +104,22 @@ export default function MarketplacePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Marketplace</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("marketplace.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Browse and purchase code snippets from other developers.
+            {t("marketplace.subtitle")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
             <Link href="/marketplace/purchases">
               <ShoppingBag className="mr-2 size-4" />
-              Purchases
+              {t("marketplace.purchases")}
             </Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/marketplace/my-listings">
               <Package className="mr-2 size-4" />
-              My Listings
+              {t("marketplace.myListings")}
             </Link>
           </Button>
         </div>
@@ -117,7 +129,7 @@ export default function MarketplacePage() {
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search listings..."
+            placeholder={t("marketplace.searchPlaceholder")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -125,10 +137,10 @@ export default function MarketplacePage() {
         </div>
         <Select value={language} onValueChange={setLanguage}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Languages" />
+            <SelectValue placeholder={t("marketplace.allLanguages")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Languages</SelectItem>
+            <SelectItem value="all">{t("marketplace.allLanguages")}</SelectItem>
             {availableLanguages.map((lang) => (
               <SelectItem key={lang} value={lang}>
                 {languageLabelMap[lang] ?? lang}
@@ -138,12 +150,12 @@ export default function MarketplacePage() {
         </Select>
         <Select value={sort} onValueChange={setSort}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
+            <SelectValue placeholder={t("marketplace.sortBy")} />
           </SelectTrigger>
           <SelectContent>
             {sortOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+                {t(sortLabelKeys[opt.value])}
               </SelectItem>
             ))}
           </SelectContent>
@@ -157,7 +169,7 @@ export default function MarketplacePage() {
             onClick={() => fetchListings({ search: search.trim() || undefined, language, sort })}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -172,16 +184,16 @@ export default function MarketplacePage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Store className="mb-4 size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-medium">
-            {hasFilters ? "No matching listings" : "No listings yet"}
+            {hasFilters ? t("marketplace.noMatch") : t("marketplace.empty")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFilters
-              ? "Try a different search term or language."
-              : "Be the first to list a snippet on the marketplace."}
+              ? t("marketplace.noMatchDesc")
+              : t("marketplace.emptyDesc")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" asChild>
-              <Link href="/marketplace/my-listings">Create a Listing</Link>
+              <Link href="/marketplace/my-listings">{t("marketplace.createListing")}</Link>
             </Button>
           )}
         </div>

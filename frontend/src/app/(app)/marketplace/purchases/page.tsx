@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useTranslation } from "@/providers/language-provider";
 import { formatPrice } from "@/config/marketplace";
 import Link from "next/link";
 
@@ -25,6 +26,7 @@ function PurchaseCardSkeleton() {
 }
 
 export default function PurchasesPage() {
+  const { t } = useTranslation();
   const { purchases, loading, error, fetchPurchases } = useMarketplace();
 
   useEffect(() => {
@@ -35,13 +37,13 @@ export default function PurchasesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">My Purchases</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("marketplace.purchasesTitle")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Snippets you have purchased from the marketplace.
+            {t("marketplace.purchasesSubtitle")}
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link href="/marketplace">Browse Marketplace</Link>
+          <Link href="/marketplace">{t("marketplace.browseMarketplace")}</Link>
         </Button>
       </div>
 
@@ -52,7 +54,7 @@ export default function PurchasesPage() {
             onClick={fetchPurchases}
             className="mt-2 text-sm font-medium underline underline-offset-4"
           >
-            Try again
+            {t("common.tryAgain")}
           </button>
         </div>
       )}
@@ -66,12 +68,12 @@ export default function PurchasesPage() {
       ) : purchases.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <ShoppingBag className="mb-4 size-12 text-muted-foreground/50" />
-          <h3 className="text-lg font-medium">No purchases yet</h3>
+          <h3 className="text-lg font-medium">{t("marketplace.noPurchases")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Browse the marketplace to find useful code snippets.
+            {t("marketplace.noPurchasesDesc")}
           </p>
           <Button className="mt-4" asChild>
-            <Link href="/marketplace">Browse Marketplace</Link>
+            <Link href="/marketplace">{t("marketplace.browseMarketplace")}</Link>
           </Button>
         </div>
       ) : (
@@ -86,7 +88,7 @@ export default function PurchasesPage() {
                         href={`/marketplace/${purchase.listing_id}`}
                         className="hover:underline"
                       >
-                        {purchase.listing_title || "Listing"}
+                        {purchase.listing_title || t("marketplace.listing")}
                       </Link>
                     </CardTitle>
                     <Badge
@@ -98,7 +100,7 @@ export default function PurchasesPage() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <User className="size-3" />
-                    <span>{purchase.seller_name || "Anonymous"}</span>
+                    <span>{purchase.seller_name || t("marketplace.anonymous")}</span>
                     <span className="text-border">|</span>
                     <span>
                       {purchase.purchased_at
@@ -116,7 +118,7 @@ export default function PurchasesPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="text-sm font-semibold">
-                    {formatPrice(purchase.amount_cents, purchase.currency)}
+                    {formatPrice(purchase.amount_cents, purchase.currency, t("marketplace.free"))}
                   </span>
                   <Badge
                     variant="secondary"

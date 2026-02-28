@@ -1,5 +1,5 @@
-export function formatPrice(cents: number, currency: string): string {
-  if (cents === 0) return "Free";
+export function formatPrice(cents: number, currency: string, freeLabel?: string): string {
+  if (cents === 0) return freeLabel ?? "Free";
   const amount = cents / 100;
   try {
     return new Intl.NumberFormat("en-US", {
@@ -11,8 +11,8 @@ export function formatPrice(cents: number, currency: string): string {
   }
 }
 
-export function formatRating(avg: number): string {
-  if (avg === 0) return "No ratings";
+export function formatRating(avg: number, noRatingsLabel?: string): string {
+  if (avg === 0) return noRatingsLabel ?? "No ratings";
   return avg.toFixed(1);
 }
 

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/providers/language-provider";
 import { languages } from "@/config/languages";
 import type { Listing, ListingInput } from "@/lib/types/database";
 
@@ -50,6 +51,7 @@ export function ListingForm({
   listing,
   onSubmit,
 }: ListingFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!listing;
   const initial: ListingInput = listing
     ? {
@@ -163,7 +165,7 @@ export function ListingForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save listing");
+      setError(err instanceof Error ? err.message : t("marketplace.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -174,7 +176,7 @@ export function ListingForm({
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Listing" : "New Listing"}
+            {isEditing ? t("marketplace.editListingTitle") : t("marketplace.newListingTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -186,10 +188,10 @@ export function ListingForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("marketplace.formTitle")}</Label>
             <Input
               id="title"
-              placeholder="Listing title"
+              placeholder={t("marketplace.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -199,10 +201,10 @@ export function ListingForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("marketplace.formDescription")}</Label>
             <Textarea
               id="description"
-              placeholder="Describe what this snippet does..."
+              placeholder={t("marketplace.formDescPlaceholder")}
               className="min-h-[80px]"
               value={form.description}
               onChange={(e) =>
@@ -213,7 +215,7 @@ export function ListingForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="language">Language</Label>
+              <Label htmlFor="language">{t("marketplace.formLanguage")}</Label>
               <Select
                 value={form.language}
                 onValueChange={(value) =>
@@ -233,12 +235,12 @@ export function ListingForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">Price (USD)</Label>
+              <Label htmlFor="price">{t("marketplace.formPrice")}</Label>
               <Input
                 id="price"
                 type="text"
                 inputMode="decimal"
-                placeholder="0.00 (free)"
+                placeholder={t("marketplace.formPricePlaceholder")}
                 value={priceStr}
                 onChange={(e) => handlePriceChange(e.target.value)}
               />
@@ -246,10 +248,10 @@ export function ListingForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="preview_code">Preview Code</Label>
+            <Label htmlFor="preview_code">{t("marketplace.formPreviewCode")}</Label>
             <Textarea
               id="preview_code"
-              placeholder="Code visible to all browsers..."
+              placeholder={t("marketplace.formPreviewCodePlaceholder")}
               className="min-h-[120px] font-mono text-sm"
               value={form.preview_code}
               onChange={(e) =>
@@ -259,10 +261,10 @@ export function ListingForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="full_code">Full Code</Label>
+            <Label htmlFor="full_code">{t("marketplace.formFullCode")}</Label>
             <Textarea
               id="full_code"
-              placeholder="Complete code (only visible after purchase)..."
+              placeholder={t("marketplace.formFullCodePlaceholder")}
               className="min-h-[200px] font-mono text-sm"
               value={form.full_code}
               onChange={(e) =>
@@ -272,17 +274,17 @@ export function ListingForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags">{t("marketplace.formTags")}</Label>
             <div className="flex gap-2">
               <Input
                 id="tags"
-                placeholder="Type a tag and press Enter"
+                placeholder={t("marketplace.formTagsPlaceholder")}
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
               />
               <Button type="button" variant="outline" onClick={addTag}>
-                Add
+                {t("common.add")}
               </Button>
             </div>
             {form.tags.length > 0 && (
@@ -315,7 +317,7 @@ export function ListingForm({
               }
             />
             <Label htmlFor="is_published" className="font-normal">
-              Published (visible in marketplace)
+              {t("marketplace.formPublished")}
             </Label>
           </div>
 
@@ -325,10 +327,10 @@ export function ListingForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.create")}
             </Button>
           </DialogFooter>
         </form>

@@ -26,9 +26,11 @@ import type {
   SellerStats,
 } from "@/lib/types/database";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 
 export function useMarketplace() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [listings, setListings] = useState<Listing[]>([]);
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -62,14 +64,14 @@ export function useMarketplace() {
       } catch (err) {
         if (mountedRef.current) {
           setError(
-            err instanceof Error ? err.message : "Failed to fetch listings"
+            err instanceof Error ? err.message : t("marketplace.fetchFailed")
           );
         }
       } finally {
         if (mountedRef.current) setLoading(false);
       }
     },
-    [user, authLoading]
+    [user, authLoading, t]
   );
 
   const fetchMyListings = useCallback(async () => {
@@ -84,13 +86,13 @@ export function useMarketplace() {
     } catch (err) {
       if (mountedRef.current) {
         setError(
-          err instanceof Error ? err.message : "Failed to fetch your listings"
+          err instanceof Error ? err.message : t("marketplace.fetchMyFailed")
         );
       }
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   const fetchListing = useCallback(
     async (id: string) => {
@@ -105,14 +107,14 @@ export function useMarketplace() {
       } catch (err) {
         if (mountedRef.current) {
           setError(
-            err instanceof Error ? err.message : "Failed to fetch listing"
+            err instanceof Error ? err.message : t("marketplace.fetchDetailFailed")
           );
         }
       } finally {
         if (mountedRef.current) setLoading(false);
       }
     },
-    [user]
+    [user, t]
   );
 
   const fetchPurchases = useCallback(async () => {
@@ -127,13 +129,13 @@ export function useMarketplace() {
     } catch (err) {
       if (mountedRef.current) {
         setError(
-          err instanceof Error ? err.message : "Failed to fetch purchases"
+          err instanceof Error ? err.message : t("marketplace.fetchPurchasesFailed")
         );
       }
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   const fetchReviews = useCallback(async (listingId: string) => {
     try {
@@ -144,11 +146,11 @@ export function useMarketplace() {
     } catch (err) {
       if (mountedRef.current) {
         setError(
-          err instanceof Error ? err.message : "Failed to fetch reviews"
+          err instanceof Error ? err.message : t("marketplace.fetchReviewsFailed")
         );
       }
     }
-  }, []);
+  }, [t]);
 
   const fetchSellerStats = useCallback(async () => {
     if (!user) return;
@@ -168,11 +170,11 @@ export function useMarketplace() {
       const created = await createListingService(input);
       if (mountedRef.current) {
         setMyListings((prev) => [created, ...prev]);
-        toast.success("Listing created");
+        toast.success(t("marketplace.listingCreated"));
       }
       return created;
     },
-    [user]
+    [user, t]
   );
 
   const updateListing = useCallback(
@@ -182,20 +184,20 @@ export function useMarketplace() {
         setMyListings((prev) =>
           prev.map((l) => (l.id === id ? { ...l, ...updated } : l))
         );
-        toast.success("Listing updated");
+        toast.success(t("marketplace.listingUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const deleteListing = useCallback(async (id: string) => {
     await deleteListingService(id);
     if (mountedRef.current) {
       setMyListings((prev) => prev.filter((l) => l.id !== id));
-      toast.success("Listing deleted");
+      toast.success(t("marketplace.listingDeleted"));
     }
-  }, []);
+  }, [t]);
 
   const purchaseListing = useCallback(
     async (listingId: string) => {
@@ -215,11 +217,11 @@ export function useMarketplace() {
             prev ? { ...prev, is_purchased: true, download_count: prev.download_count + 1 } : prev
           );
         }
-        toast.success("Purchase completed!");
+        toast.success(t("marketplace.purchaseCompleted"));
       }
       return purchase;
     },
-    [user, currentListing]
+    [user, currentListing, t]
   );
 
   const createReview = useCallback(
@@ -228,11 +230,11 @@ export function useMarketplace() {
       const created = await createReviewService(listingId, input);
       if (mountedRef.current) {
         setReviews((prev) => [created, ...prev]);
-        toast.success("Review submitted");
+        toast.success(t("marketplace.reviewSubmitted"));
       }
       return created;
     },
-    [user]
+    [user, t]
   );
 
   const updateReview = useCallback(
@@ -242,20 +244,20 @@ export function useMarketplace() {
         setReviews((prev) =>
           prev.map((r) => (r.id === reviewId ? updated : r))
         );
-        toast.success("Review updated");
+        toast.success(t("marketplace.reviewUpdated"));
       }
       return updated;
     },
-    []
+    [t]
   );
 
   const deleteReview = useCallback(async (reviewId: string) => {
     await deleteReviewService(reviewId);
     if (mountedRef.current) {
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      toast.success("Review deleted");
+      toast.success(t("marketplace.reviewDeleted"));
     }
-  }, []);
+  }, [t]);
 
   return {
     listings,
