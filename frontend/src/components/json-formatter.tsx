@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Copy, Check, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/providers/language-provider";
 
 interface ValidationResult {
   valid: boolean;
@@ -40,6 +41,7 @@ interface JsonFormatterProps {
 }
 
 export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
+  const { t } = useTranslation();
   const [output, setOutput] = useState("");
   const [indent, setIndent] = useState<number | string>(2);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -93,9 +95,9 @@ export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Input</label>
+          <label className="text-sm font-medium">{t("jsonTools.input")}</label>
           <Textarea
-            placeholder="Paste JSON here..."
+            placeholder={t("jsonTools.inputPlaceholder")}
             className="min-h-[300px] font-mono text-sm"
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
@@ -103,7 +105,7 @@ export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Output</label>
+            <label className="text-sm font-medium">{t("jsonTools.output")}</label>
             {output && (
               <Button
                 variant="ghost"
@@ -120,7 +122,7 @@ export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
             )}
           </div>
           <Textarea
-            placeholder="Formatted output will appear here..."
+            placeholder={t("jsonTools.outputPlaceholder")}
             className="min-h-[300px] font-mono text-sm"
             value={output}
             readOnly
@@ -130,7 +132,7 @@ export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm text-muted-foreground">Indent:</span>
+          <span className="text-sm text-muted-foreground">{t("jsonTools.indent")}</span>
           {[2, 4, "tab"].map((val) => (
             <Button
               key={String(val)}
@@ -138,20 +140,20 @@ export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
               size="sm"
               onClick={() => setIndent(val)}
             >
-              {val === "tab" ? "Tab" : val}
+              {val === "tab" ? t("jsonTools.tab") : val}
             </Button>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={handleFormat}>
-            Format
+            {t("jsonTools.format")}
           </Button>
           <Button size="sm" variant="outline" onClick={handleMinify}>
-            Minify
+            {t("jsonTools.minify")}
           </Button>
           <Button size="sm" variant="outline" onClick={handleValidate}>
-            Validate
+            {t("jsonTools.validate")}
           </Button>
         </div>
 
@@ -160,14 +162,14 @@ export function JsonFormatter({ input, onInputChange }: JsonFormatterProps) {
             {validation.valid ? (
               <>
                 <CheckCircle2 className="size-4 text-green-500" />
-                <span className="text-green-600 dark:text-green-400">Valid JSON</span>
+                <span className="text-green-600 dark:text-green-400">{t("jsonTools.validJson")}</span>
               </>
             ) : (
               <>
                 <XCircle className="size-4 text-red-500" />
                 <span className="text-red-600 dark:text-red-400">
                   {validation.error}
-                  {validation.line && ` (line ${validation.line}, col ${validation.column})`}
+                  {validation.line && ` (${t("jsonTools.line")} ${validation.line}, ${t("jsonTools.col")} ${validation.column})`}
                 </span>
               </>
             )}

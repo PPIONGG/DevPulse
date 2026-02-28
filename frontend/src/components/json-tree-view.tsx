@@ -5,6 +5,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/language-provider";
 
 interface TreeNode {
   key: string;
@@ -126,6 +127,7 @@ interface JsonTreeViewProps {
 }
 
 export function JsonTreeView({ input, onInputChange }: JsonTreeViewProps) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [hasParsed, setHasParsed] = useState(false);
   const [treeData, setTreeData] = useState<TreeNode | null>(null);
@@ -152,7 +154,7 @@ export function JsonTreeView({ input, onInputChange }: JsonTreeViewProps) {
       setError(null);
       setHasParsed(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid JSON");
+      setError(e instanceof Error ? e.message : t("jsonTools.invalidJson"));
       setTreeData(null);
       setHasParsed(false);
     }
@@ -161,9 +163,9 @@ export function JsonTreeView({ input, onInputChange }: JsonTreeViewProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Input</label>
+        <label className="text-sm font-medium">{t("jsonTools.input")}</label>
         <Textarea
-          placeholder="Paste JSON here..."
+          placeholder={t("jsonTools.inputPlaceholder")}
           className="min-h-[200px] font-mono text-sm"
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
@@ -171,7 +173,7 @@ export function JsonTreeView({ input, onInputChange }: JsonTreeViewProps) {
       </div>
 
       <Button size="sm" onClick={handleParse}>
-        Parse Tree
+        {t("jsonTools.parseTree")}
       </Button>
 
       {error && (
@@ -188,7 +190,7 @@ export function JsonTreeView({ input, onInputChange }: JsonTreeViewProps) {
 
       {hasParsed && !treeData && !error && (
         <div className="rounded-md border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-          Empty result
+          {t("jsonTools.emptyResult")}
         </div>
       )}
     </div>

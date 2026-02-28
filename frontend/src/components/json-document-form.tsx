@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { JsonDocument, JsonDocumentInput } from "@/lib/types/database";
+import { useTranslation } from "@/providers/language-provider";
 
 interface JsonDocumentFormProps {
   open: boolean;
@@ -47,6 +48,7 @@ export function JsonDocumentForm({
   initialContent,
   initialFormat,
 }: JsonDocumentFormProps) {
+  const { t } = useTranslation();
   const isEditing = !!document;
   const initial: JsonDocumentInput = document
     ? {
@@ -112,7 +114,7 @@ export function JsonDocumentForm({
       await onSubmit(form);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save document");
+      setError(err instanceof Error ? err.message : t("jsonTools.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -123,7 +125,7 @@ export function JsonDocumentForm({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Document" : "Save Document"}
+            {isEditing ? t("jsonTools.editDocTitle") : t("jsonTools.saveDocTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -135,10 +137,10 @@ export function JsonDocumentForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="doc-title">Title</Label>
+            <Label htmlFor="doc-title">{t("jsonTools.formTitle")}</Label>
             <Input
               id="doc-title"
-              placeholder="e.g. API Response, Config File"
+              placeholder={t("jsonTools.formTitlePlaceholder")}
               value={form.title}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, title: e.target.value }))
@@ -148,10 +150,10 @@ export function JsonDocumentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="doc-content">Content</Label>
+            <Label htmlFor="doc-content">{t("jsonTools.formContent")}</Label>
             <Textarea
               id="doc-content"
-              placeholder="JSON or YAML content"
+              placeholder={t("jsonTools.formContentPlaceholder")}
               className="min-h-[120px] font-mono text-sm"
               value={form.content}
               onChange={(e) =>
@@ -162,7 +164,7 @@ export function JsonDocumentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="doc-format">Format</Label>
+            <Label htmlFor="doc-format">{t("jsonTools.formFormat")}</Label>
             <Select
               value={form.format}
               onValueChange={(value: "json" | "yaml") =>
@@ -180,10 +182,10 @@ export function JsonDocumentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="doc-description">Description</Label>
+            <Label htmlFor="doc-description">{t("jsonTools.formDescription")}</Label>
             <Textarea
               id="doc-description"
-              placeholder="Optional description"
+              placeholder={t("jsonTools.formDescPlaceholder")}
               className="min-h-[60px]"
               value={form.description}
               onChange={(e) =>
@@ -193,10 +195,10 @@ export function JsonDocumentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="doc-tags">Tags</Label>
+            <Label htmlFor="doc-tags">{t("jsonTools.formTags")}</Label>
             <Input
               id="doc-tags"
-              placeholder="Comma-separated tags (e.g. api, config)"
+              placeholder={t("jsonTools.formTagsPlaceholder")}
               value={tagsStr}
               onChange={(e) => handleTagsChange(e.target.value)}
             />
@@ -208,10 +210,10 @@ export function JsonDocumentForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Save"}
+              {saving ? t("common.saving") : isEditing ? t("common.saveChanges") : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

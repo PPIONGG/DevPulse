@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/language-provider";
 
 interface DiffEntry {
   path: string;
@@ -76,6 +77,7 @@ function formatValue(value: unknown): string {
 }
 
 export function JsonDiff() {
+  const { t } = useTranslation();
   const [original, setOriginal] = useState("");
   const [modified, setModified] = useState("");
   const [diffs, setDiffs] = useState<DiffEntry[]>([]);
@@ -85,7 +87,7 @@ export function JsonDiff() {
 
   const handleCompare = () => {
     if (!original.trim() || !modified.trim()) {
-      setError("Both inputs are required");
+      setError(t("jsonTools.bothRequired"));
       setDiffs([]);
       setHasCompared(false);
       return;
@@ -105,7 +107,7 @@ export function JsonDiff() {
       setDiffs(result);
       setHasCompared(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid JSON input");
+      setError(e instanceof Error ? e.message : t("jsonTools.invalidJson"));
       setDiffs([]);
       setHasCompared(false);
     }
@@ -119,18 +121,18 @@ export function JsonDiff() {
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Original</label>
+          <label className="text-sm font-medium">{t("jsonTools.original")}</label>
           <Textarea
-            placeholder="Paste original JSON here..."
+            placeholder={t("jsonTools.pasteOriginal")}
             className="min-h-[250px] font-mono text-sm"
             value={original}
             onChange={(e) => setOriginal(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Modified</label>
+          <label className="text-sm font-medium">{t("jsonTools.modified")}</label>
           <Textarea
-            placeholder="Paste modified JSON here..."
+            placeholder={t("jsonTools.pasteModified")}
             className="min-h-[250px] font-mono text-sm"
             value={modified}
             onChange={(e) => setModified(e.target.value)}
@@ -140,7 +142,7 @@ export function JsonDiff() {
 
       <div className="flex flex-wrap items-center gap-4">
         <Button size="sm" onClick={handleCompare}>
-          Compare
+          {t("jsonTools.compare")}
         </Button>
         <div className="flex items-center gap-2">
           <Checkbox
@@ -149,7 +151,7 @@ export function JsonDiff() {
             onCheckedChange={(checked) => setSortedKeys(checked === true)}
           />
           <Label htmlFor="sort-keys" className="font-normal">
-            Sort keys (structural comparison)
+            {t("jsonTools.sortKeys")}
           </Label>
         </div>
       </div>
@@ -163,14 +165,14 @@ export function JsonDiff() {
       {hasCompared && (
         <div className="space-y-3">
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-green-600 dark:text-green-400">{added} added</span>
-            <span className="text-red-600 dark:text-red-400">{removed} removed</span>
-            <span className="text-yellow-600 dark:text-yellow-400">{changed} changed</span>
+            <span className="text-green-600 dark:text-green-400">{added} {t("jsonTools.added")}</span>
+            <span className="text-red-600 dark:text-red-400">{removed} {t("jsonTools.removed")}</span>
+            <span className="text-yellow-600 dark:text-yellow-400">{changed} {t("jsonTools.changed")}</span>
           </div>
 
           {diffs.length === 0 ? (
             <div className="rounded-md border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-              No differences found
+              {t("jsonTools.noDifferences")}
             </div>
           ) : (
             <div className="overflow-hidden rounded-md border">

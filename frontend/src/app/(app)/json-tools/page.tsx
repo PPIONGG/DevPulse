@@ -23,6 +23,7 @@ import { JsonDocumentCard } from "@/components/json-document-card";
 import { JsonDocumentForm } from "@/components/json-document-form";
 import { JsonDocumentCardSkeleton } from "@/components/skeletons";
 import { useJsonDocuments } from "@/hooks/use-json-documents";
+import { useTranslation } from "@/providers/language-provider";
 import { toast } from "sonner";
 import type { JsonDocument, JsonDocumentInput } from "@/lib/types/database";
 
@@ -37,6 +38,7 @@ export default function JsonToolsPage() {
     toggleFavorite,
     refetch,
   } = useJsonDocuments();
+  const { t } = useTranslation();
 
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
@@ -98,7 +100,7 @@ export default function JsonToolsPage() {
     try {
       await deleteDocument(deletingDocument.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete document");
+      toast.error(err instanceof Error ? err.message : t("jsonTools.deleteFailed"));
     } finally {
       setDeletingDocument(null);
     }
@@ -117,23 +119,23 @@ export default function JsonToolsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">JSON Tools</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("jsonTools.title")}</h2>
           <p className="mt-1 text-muted-foreground">
-            Format, convert, compare, and visualize JSON and YAML.
+            {t("jsonTools.subtitle")}
           </p>
         </div>
         <Button onClick={handleSaveCurrent} disabled={!input.trim()}>
           <Plus className="mr-2 size-4" />
-          Save Current
+          {t("jsonTools.saveCurrent")}
         </Button>
       </div>
 
       <Tabs defaultValue="format">
         <TabsList>
-          <TabsTrigger value="format">Format</TabsTrigger>
-          <TabsTrigger value="convert">Convert</TabsTrigger>
-          <TabsTrigger value="diff">Diff</TabsTrigger>
-          <TabsTrigger value="tree">Tree</TabsTrigger>
+          <TabsTrigger value="format">{t("jsonTools.tabFormat")}</TabsTrigger>
+          <TabsTrigger value="convert">{t("jsonTools.tabConvert")}</TabsTrigger>
+          <TabsTrigger value="diff">{t("jsonTools.tabDiff")}</TabsTrigger>
+          <TabsTrigger value="tree">{t("jsonTools.tabTree")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="format">
@@ -155,12 +157,12 @@ export default function JsonToolsPage() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Saved Documents</h3>
+          <h3 className="text-lg font-semibold">{t("jsonTools.savedDocuments")}</h3>
           <div className="flex items-center gap-2">
             <div className="relative max-w-xs">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search documents..."
+                placeholder={t("jsonTools.searchPlaceholder")}
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -171,7 +173,7 @@ export default function JsonToolsPage() {
               size="icon"
               className="size-9"
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              title={showFavoritesOnly ? "Show all" : "Show favorites only"}
+              title={showFavoritesOnly ? t("jsonTools.showAll") : t("jsonTools.showFavorites")}
             >
               <Star className={`size-4 ${showFavoritesOnly ? "fill-current" : ""}`} />
             </Button>
@@ -182,7 +184,7 @@ export default function JsonToolsPage() {
           <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <p>{error}</p>
             <button onClick={refetch} className="mt-2 text-sm font-medium underline underline-offset-4">
-              Try again
+              {t("common.tryAgain")}
             </button>
           </div>
         )}
@@ -198,13 +200,13 @@ export default function JsonToolsPage() {
             <Braces className="mb-4 size-12 text-muted-foreground/50" />
             <h3 className="text-lg font-medium">
               {search.trim() || showFavoritesOnly
-                ? "No matching documents"
-                : "No saved documents yet"}
+                ? t("jsonTools.noMatch")
+                : t("jsonTools.empty")}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {search.trim() || showFavoritesOnly
-                ? "Try a different search term."
-                : "Use the tools above, then save your work for quick access."}
+                ? t("jsonTools.noMatchDesc")
+                : t("jsonTools.emptyDesc")}
             </p>
           </div>
         ) : (
@@ -238,15 +240,14 @@ export default function JsonToolsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete document?</AlertDialogTitle>
+            <AlertDialogTitle>{t("jsonTools.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{deletingDocument?.title}&quot;.
-              This action cannot be undone.
+              {t("jsonTools.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

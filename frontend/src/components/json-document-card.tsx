@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { JsonDocument } from "@/lib/types/database";
+import { useTranslation } from "@/providers/language-provider";
 
 interface JsonDocumentCardProps {
   document: JsonDocument;
@@ -32,6 +33,7 @@ export function JsonDocumentCard({
   onToggleFavorite,
   onLoad,
 }: JsonDocumentCardProps) {
+  const { t } = useTranslation();
   const previewLines = document.content
     .split("\n")
     .slice(0, 3)
@@ -75,7 +77,7 @@ export function JsonDocumentCard({
                 }}
               >
                 <Star className="mr-2 size-4" />
-                {document.is_favorite ? "Unfavorite" : "Favorite"}
+                {document.is_favorite ? t("common.unfavorite") : t("common.favorite")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {
@@ -84,7 +86,7 @@ export function JsonDocumentCard({
                 }}
               >
                 <Pencil className="mr-2 size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
@@ -94,7 +96,7 @@ export function JsonDocumentCard({
                 }}
               >
                 <Trash2 className="mr-2 size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
