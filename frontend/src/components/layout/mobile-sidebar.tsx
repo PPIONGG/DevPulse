@@ -12,10 +12,21 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { NavItem } from "./nav-item";
 import { useNavigation } from "@/hooks/use-navigation";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 const iconMap: Record<string, any> = {
   LayoutDashboard, Code2, DollarSign, Target, Kanban, Clock, ShieldCheck,
   Binary, Zap, History, Database, Workflow, ShoppingBag, SearchCode, Calculator, Settings,
+};
+
+const groupTranslationKey: Record<string, TranslationKey> = {
+  Overview: "sidebar.overview",
+  Development: "sidebar.development",
+  Projects: "sidebar.projects",
+  Lifestyle: "sidebar.lifestyle",
+  System: "sidebar.system",
+  Ungrouped: "sidebar.ungrouped",
 };
 
 export function MobileSidebar() {
@@ -23,6 +34,7 @@ export function MobileSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { items } = useNavigation();
+  const { t } = useTranslation();
 
   useEffect(() => { setOpen(false); }, [pathname]);
 
@@ -63,7 +75,7 @@ export function MobileSidebar() {
               {group !== "Overview" && (
                 <div className="mt-4 px-3 mb-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                    {group}
+                    {groupTranslationKey[group] ? t(groupTranslationKey[group]) : group}
                   </p>
                 </div>
               )}
@@ -84,15 +96,15 @@ export function MobileSidebar() {
             <>
               <div className="mt-6 px-3 mb-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-1.5">
-                  <Lock className="size-2.5" /> Admin Panel
+                  <Lock className="size-2.5" /> {t("sidebar.adminPanel")}
                 </p>
               </div>
-              <NavItem item={{ title: "Menu Manager", href: "/admin/navigation", icon: Settings }} />
-              <NavItem item={{ title: "User Management", href: "/admin/users", icon: Users }} />
-              <NavItem item={{ title: "Snippets Mod", href: "/admin/snippets", icon: FileCheck }} />
-              <NavItem item={{ title: "SQL Challenges", href: "/admin/challenges", icon: Database }} />
-              <NavItem item={{ title: "System Stats", href: "/admin/stats", icon: BarChart3 }} />
-              <NavItem item={{ title: "Settings", href: "/admin/settings", icon: Wrench }} />
+              <NavItem item={{ title: t("admin.menuManager"), href: "/admin/navigation", icon: Settings }} />
+              <NavItem item={{ title: t("admin.userManagement"), href: "/admin/users", icon: Users }} />
+              <NavItem item={{ title: t("admin.snippetsMod"), href: "/admin/snippets", icon: FileCheck }} />
+              <NavItem item={{ title: t("admin.sqlChallenges"), href: "/admin/challenges", icon: Database }} />
+              <NavItem item={{ title: t("admin.systemStats"), href: "/admin/stats", icon: BarChart3 }} />
+              <NavItem item={{ title: t("admin.settings"), href: "/admin/settings", icon: Wrench }} />
             </>
           )}
         </div>

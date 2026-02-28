@@ -10,6 +10,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "@/providers/auth-provider";
 import { useProfile } from "@/hooks/use-profile";
 import { useAvatarUpload } from "@/hooks/use-avatar-upload";
+import { useTranslation } from "@/providers/language-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Camera } from "lucide-react";
+import type { Language } from "@/lib/i18n";
 
 function getCroppedBlob(
   image: HTMLImageElement,
@@ -59,6 +68,7 @@ export default function SettingsPage() {
     uploading,
     error: avatarError,
   } = useAvatarUpload();
+  const { language, setLanguage, t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -120,14 +130,14 @@ export default function SettingsPage() {
 
     const blob = await getCroppedBlob(imgRef.current, crop);
     if (!blob) {
-      setMessage({ type: "error", text: "Failed to crop image." });
+      setMessage({ type: "error", text: t("settings.cropFailed") });
       return;
     }
 
     const freshUrl = await uploadAvatar(blob);
     if (freshUrl) {
       setAvatarUrl(freshUrl);
-      setMessage({ type: "success", text: "Avatar updated." });
+      setMessage({ type: "success", text: t("settings.avatarUpdated") });
     } else if (avatarError) {
       setMessage({ type: "error", text: avatarError });
     }
@@ -143,25 +153,25 @@ export default function SettingsPage() {
 
     try {
       await updateProfile({ display_name: displayName || null });
-      setMessage({ type: "success", text: "Profile saved." });
+      setMessage({ type: "success", text: t("settings.profileSaved") });
     } catch {
-      setMessage({ type: "error", text: "Failed to save profile." });
+      setMessage({ type: "error", text: t("settings.profileSaveFailed") });
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("settings.title")}</h2>
         <p className="mt-2 text-muted-foreground">
-          Manage your account and preferences.
+          {t("settings.subtitle")}
         </p>
       </div>
 
       <Card className="max-w-lg">
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your public profile information.</CardDescription>
+          <CardTitle>{t("settings.profile")}</CardTitle>
+          <CardDescription>{t("settings.profileDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="space-y-6">
@@ -197,8 +207,8 @@ export default function SettingsPage() {
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {uploading
-                    ? "Uploading..."
-                    : "Click the camera icon to change"}
+                    ? t("settings.uploading")
+                    : t("settings.avatarHint")}
                 </div>
               </div>
 
@@ -206,7 +216,7 @@ export default function SettingsPage() {
               {imageSrc && (
                 <div className="space-y-3 rounded-md border p-3">
                   <p className="text-sm font-medium">
-                    Crop your photo (drag to adjust)
+                    {t("settings.cropTitle")}
                   </p>
                   <ReactCrop
                     crop={crop}
@@ -230,7 +240,7 @@ export default function SettingsPage() {
                       disabled={uploading}
                       size="sm"
                     >
-                      {uploading ? "Uploading..." : "Save Photo"}
+                      {uploading ? t("settings.uploading") : t("settings.savePhoto")}
                     </Button>
                     <Button
                       type="button"
@@ -238,7 +248,7 @@ export default function SettingsPage() {
                       size="sm"
                       onClick={() => setImageSrc(null)}
                     >
-                      Cancel
+                      {t("settings.cancel")}
                     </Button>
                   </div>
                 </div>
@@ -247,18 +257,18 @@ export default function SettingsPage() {
 
             {/* Display Name */}
             <div className="space-y-2">
-              <Label htmlFor="display-name">Display Name</Label>
+              <Label htmlFor="display-name">{t("settings.displayName")}</Label>
               <Input
                 id="display-name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("settings.displayNamePlaceholder")}
               />
             </div>
 
             {/* Email (read-only) */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("settings.email")}</Label>
               <Input
                 id="email"
                 value={user?.email ?? ""}
@@ -268,7 +278,7 @@ export default function SettingsPage() {
             </div>
 
             <Button type="submit" disabled={updating}>
-              {updating ? "Saving..." : "Save Changes"}
+              {updating ? t("settings.saving") : t("settings.saveChanges")}
             </Button>
 
             {message && (
@@ -283,6 +293,25 @@ export default function SettingsPage() {
               </p>
             )}
           </form>
+        </CardContent>
+      </Card>
+
+      {/* Language Preference */}
+      <Card className="max-w-lg">
+        <CardHeader>
+          <CardTitle>{t("settings.language")}</CardTitle>
+          <CardDescription>{t("settings.languageDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">{t("language.en")}</SelectItem>
+              <SelectItem value="th">{t("language.th")}</SelectItem>
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
     </div>

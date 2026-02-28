@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { DashboardSkeleton } from "@/components/skeletons";
 
 export default function DashboardPage() {
@@ -33,17 +34,18 @@ export default function DashboardPage() {
   const { user, profile } = useAuth();
   const { stats, recentSnippets, upcomingTasks, todayHabits, dailyChallenge, loading, error, refetch } =
     useDashboard();
+  const { t } = useTranslation();
 
   const toastShown = useRef(false);
   useEffect(() => {
     if (toastShown.current) return;
-    const t = searchParams.get("toast");
-    if (t === "login") { toast.success("Signed in successfully!"); toastShown.current = true; }
-    if (t === "register") { toast.success("Account created successfully!"); toastShown.current = true; }
-    if (t) {
+    const toastType = searchParams.get("toast");
+    if (toastType === "login") { toast.success(t("auth.signedIn")); toastShown.current = true; }
+    if (toastType === "register") { toast.success(t("auth.accountCreated")); toastShown.current = true; }
+    if (toastType) {
       window.history.replaceState(null, "", "/dashboard");
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -59,20 +61,20 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
-            Welcome back, {profile?.display_name || user?.email?.split('@')[0] || 'Developer'}!
+            {t("dashboard.welcome")} {profile?.display_name || user?.email?.split('@')[0] || t("dashboard.developer")}
           </h2>
           <p className="text-muted-foreground">
-            Here's what's happening with your projects today.
+            {t("dashboard.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={() => router.push('/code-snippets')} size="sm" className="gap-2">
             <Plus className="size-4" />
-            New Snippet
+            {t("dashboard.newSnippet")}
           </Button>
           <Button onClick={() => router.push('/kanban')} variant="outline" size="sm" className="gap-2">
             <LayoutGrid className="size-4" />
-            Boards
+            {t("dashboard.boards")}
           </Button>
         </div>
       </div>
@@ -81,7 +83,7 @@ export default function DashboardPage() {
         <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive flex items-center justify-between">
           <p>{error}</p>
           <Button variant="ghost" size="sm" onClick={refetch} className="h-8 hover:bg-destructive/10">
-            Retry
+            {t("dashboard.retry")}
           </Button>
         </div>
       )}
@@ -94,18 +96,18 @@ export default function DashboardPage() {
           <div className="absolute right-0 top-0 -mr-4 -mt-4 size-24 rounded-full bg-primary/10 blur-2xl group-hover:bg-primary/20 transition-colors" />
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="bg-background/50 border-primary/30 text-primary">Daily SQL</Badge>
+              <Badge variant="outline" className="bg-background/50 border-primary/30 text-primary">{t("dashboard.dailySql")}</Badge>
               <Zap className="size-4 text-primary animate-pulse" />
             </div>
-            <CardTitle className="text-xl mt-2">{dailyChallenge?.title || "Daily Challenge"}</CardTitle>
-            <CardDescription className="line-clamp-1">{dailyChallenge?.description || "Sharpen your SQL skills today."}</CardDescription>
+            <CardTitle className="text-xl mt-2">{dailyChallenge?.title || t("dashboard.dailyChallenge")}</CardTitle>
+            <CardDescription className="line-clamp-1">{dailyChallenge?.description || t("dashboard.dailyChallengeDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
               onClick={() => router.push(`/sql-practice/${dailyChallenge?.slug || ''}`)}
               className="w-full mt-2 group/btn"
             >
-              Solve Challenge
+              {t("dashboard.solveChallenge")}
               <ArrowRight className="ml-2 size-4 transition-transform group-hover/btn:translate-x-1" />
             </Button>
           </CardContent>
@@ -115,7 +117,7 @@ export default function DashboardPage() {
         <Card className="lg:row-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-              Habits Today
+              {t("dashboard.habitsToday")}
               <Target className="size-4" />
             </CardTitle>
           </CardHeader>
@@ -133,7 +135,7 @@ export default function DashboardPage() {
                 </div>
               ))}
               {stats.habitsToday > 2 && (
-                <p className="text-[10px] text-muted-foreground">+{stats.habitsToday - 2} more</p>
+                <p className="text-[10px] text-muted-foreground">+{stats.habitsToday - 2} {t("dashboard.more")}</p>
               )}
             </div>
           </CardContent>
@@ -143,17 +145,17 @@ export default function DashboardPage() {
         <Card className="lg:row-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-              Monthly Spend
+              {t("dashboard.monthlySpend")}
               <TrendingUp className="size-4" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col">
               <span className="text-3xl font-bold">฿{stats.monthlyExpenses.toLocaleString()}</span>
-              <p className="text-xs text-muted-foreground mt-1">Total for {new Date().toLocaleString('default', { month: 'long' })}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("dashboard.totalForMonth")} {new Date().toLocaleString('default', { month: 'long' })}</p>
             </div>
             <Button variant="link" onClick={() => router.push('/expenses')} className="h-auto p-0 mt-4 text-xs">
-              Manage expenses →
+              {t("dashboard.manageExpenses")}
             </Button>
           </CardContent>
         </Card>
@@ -162,15 +164,15 @@ export default function DashboardPage() {
         <Card className="md:col-span-2 lg:col-span-2 lg:row-span-1">
           <CardHeader className="flex-row items-center justify-between py-4">
             <div className="space-y-0.5">
-              <CardTitle className="text-base">Upcoming Tasks</CardTitle>
-              <CardDescription>From your Kanban boards</CardDescription>
+              <CardTitle className="text-base">{t("dashboard.upcomingTasks")}</CardTitle>
+              <CardDescription>{t("dashboard.fromKanban")}</CardDescription>
             </div>
-            <Link href="/kanban" className="text-xs text-primary hover:underline">View all</Link>
+            <Link href="/kanban" className="text-xs text-primary hover:underline">{t("common.viewAll")}</Link>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y border-t">
               {upcomingTasks.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground text-center">No upcoming deadlines.</p>
+                <p className="p-4 text-sm text-muted-foreground text-center">{t("dashboard.noDeadlines")}</p>
               ) : (
                 upcomingTasks.map((task) => (
                   <div key={task.id} className="flex items-center justify-between p-3 px-4 hover:bg-muted/50 transition-colors">
@@ -196,15 +198,15 @@ export default function DashboardPage() {
         <Card className="md:col-span-2 lg:col-span-2 lg:row-span-1">
           <CardHeader className="flex-row items-center justify-between py-4">
             <div className="space-y-0.5">
-              <CardTitle className="text-base">Recent Snippets</CardTitle>
-              <CardDescription>Your latest code saves</CardDescription>
+              <CardTitle className="text-base">{t("dashboard.recentSnippets")}</CardTitle>
+              <CardDescription>{t("dashboard.latestSnippets")}</CardDescription>
             </div>
-            <Link href="/code-snippets/my-snippets" className="text-xs text-primary hover:underline">Manage</Link>
+            <Link href="/code-snippets/my-snippets" className="text-xs text-primary hover:underline">{t("common.manage")}</Link>
           </CardHeader>
           <CardContent className="p-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x border-t">
               {recentSnippets.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground text-center col-span-2">No snippets yet.</p>
+                <p className="p-4 text-sm text-muted-foreground text-center col-span-2">{t("dashboard.noSnippets")}</p>
               ) : (
                 recentSnippets.slice(0, 4).map((s) => (
                   <Link

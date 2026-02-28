@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { useNavigation } from "@/hooks/use-navigation";
+import { useTranslation } from "@/providers/language-provider";
 import { NavItem } from "./nav-item";
 import { UserMenu } from "./user-menu";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +31,7 @@ import {
   BarChart3,
   Wrench,
 } from "lucide-react";
+import type { TranslationKey } from "@/lib/i18n";
 
 const iconMap: Record<string, any> = {
   LayoutDashboard,
@@ -50,9 +52,19 @@ const iconMap: Record<string, any> = {
   Settings,
 };
 
+const groupTranslationKey: Record<string, TranslationKey> = {
+  Overview: "sidebar.overview",
+  Development: "sidebar.development",
+  Projects: "sidebar.projects",
+  Lifestyle: "sidebar.lifestyle",
+  System: "sidebar.system",
+  Ungrouped: "sidebar.ungrouped",
+};
+
 export function AppSidebar() {
   const { user } = useAuth();
   const { items, loading } = useNavigation();
+  const { t } = useTranslation();
 
   const groupedItems = useMemo(() => {
     const groups: Record<string, typeof items> = {};
@@ -95,7 +107,7 @@ export function AppSidebar() {
                 {group !== "Overview" && (
                   <div className="mt-4 px-3 mb-2">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                      {group}
+                      {groupTranslationKey[group] ? t(groupTranslationKey[group]) : group}
                     </p>
                   </div>
                 )}
@@ -117,15 +129,15 @@ export function AppSidebar() {
               <>
                 <div className="mt-6 px-3 mb-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 flex items-center gap-1.5">
-                    <Lock className="size-2.5" /> Admin Panel
+                    <Lock className="size-2.5" /> {t("sidebar.adminPanel")}
                   </p>
                 </div>
-                <NavItem item={{ title: "Menu Manager", href: "/admin/navigation", icon: Settings }} />
-                <NavItem item={{ title: "User Management", href: "/admin/users", icon: Users }} />
-                <NavItem item={{ title: "Snippets Mod", href: "/admin/snippets", icon: FileCheck }} />
-                <NavItem item={{ title: "SQL Challenges", href: "/admin/challenges", icon: Database }} />
-                <NavItem item={{ title: "System Stats", href: "/admin/stats", icon: BarChart3 }} />
-                <NavItem item={{ title: "Settings", href: "/admin/settings", icon: Wrench }} />
+                <NavItem item={{ title: t("admin.menuManager"), href: "/admin/navigation", icon: Settings }} />
+                <NavItem item={{ title: t("admin.userManagement"), href: "/admin/users", icon: Users }} />
+                <NavItem item={{ title: t("admin.snippetsMod"), href: "/admin/snippets", icon: FileCheck }} />
+                <NavItem item={{ title: t("admin.sqlChallenges"), href: "/admin/challenges", icon: Database }} />
+                <NavItem item={{ title: t("admin.systemStats"), href: "/admin/stats", icon: BarChart3 }} />
+                <NavItem item={{ title: t("admin.settings"), href: "/admin/settings", icon: Wrench }} />
               </>
             )}
           </>

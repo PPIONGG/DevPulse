@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Loader2, Settings, User as UserIcon, Shield } from "lucide-react";
+import { LogOut, Loader2, Settings, Globe, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ import {
 
 export function UserMenu() {
   const { user, profile, loading, signOut } = useAuth();
+  const { language, setLanguage, t } = useTranslation();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -51,8 +53,12 @@ export function UserMenu() {
   const handleSignOut = async () => {
     setSigningOut(true);
     await signOut();
-    toast.success("Signed out successfully!");
+    toast.success(t("userMenu.signedOut"));
     router.push("/auth/login");
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "th" : "en");
   };
 
   return (
@@ -73,24 +79,29 @@ export function UserMenu() {
         <DropdownMenuContent className="w-56" align="end" side="top" sideOffset={8}>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{displayName || 'Account'}</p>
+              <p className="text-sm font-medium leading-none">{displayName || t("userMenu.account")}</p>
               <p className="text-xs leading-none text-muted-foreground">{email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>{t("userMenu.settings")}</span>
           </DropdownMenuItem>
           {user.role === "admin" && (
             <DropdownMenuItem onClick={() => router.push("/admin/navigation")} className="cursor-pointer text-primary">
               <Shield className="mr-2 h-4 w-4" />
-              <span>Menu Manager</span>
+              <span>{t("userMenu.menuManager")}</span>
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
-          <DropdownMenuItem 
-            onClick={handleSignOut} 
+          <DropdownMenuItem onClick={toggleLanguage} className="cursor-pointer">
+            <Globe className="mr-2 h-4 w-4" />
+            <span>{language === "en" ? "ไทย" : "English"}</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={handleSignOut}
             disabled={signingOut}
             className="cursor-pointer text-destructive focus:text-destructive"
           >
@@ -99,7 +110,7 @@ export function UserMenu() {
             ) : (
               <LogOut className="mr-2 h-4 w-4" />
             )}
-            <span>Sign out</span>
+            <span>{t("userMenu.signOut")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
