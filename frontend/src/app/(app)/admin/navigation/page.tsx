@@ -23,12 +23,23 @@ import { getAdminNavigation, toggleNavigationVisibility, updateNavigationGroup }
 import { NAV_UPDATED_EVENT } from "@/hooks/use-navigation";
 import type { NavigationItem } from "@/lib/types/database";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { redirect } from "next/navigation";
 
-const GROUP_OPTIONS = ["Overview", "Development", "Projects", "Lifestyle", "System", "Ungrouped"];
+const GROUP_OPTIONS = ["Overview", "Development", "Projects", "Lifestyle", "System", "Ungrouped"] as const;
+
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  Overview: "sidebar.overview",
+  Development: "sidebar.development",
+  Projects: "sidebar.projects",
+  Lifestyle: "sidebar.lifestyle",
+  System: "sidebar.system",
+  Ungrouped: "sidebar.ungrouped",
+};
 
 export default function NavigationManagerPage() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [items, setItems] = useState<NavigationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -39,7 +50,7 @@ export default function NavigationManagerPage() {
       const data = await getAdminNavigation();
       setItems(data);
     } catch (err) {
-      toast.error("Failed to load navigation items");
+      toast.error(t("adminNav.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -62,9 +73,9 @@ export default function NavigationManagerPage() {
         item.id === id ? { ...item, is_hidden: !currentHidden } : item
       ));
       window.dispatchEvent(new Event(NAV_UPDATED_EVENT));
-      toast.success("Navigation updated");
+      toast.success(t("adminNav.updated"));
     } catch (err) {
-      toast.error("Failed to update visibility");
+      toast.error(t("adminNav.updateFailed"));
     } finally {
       setUpdatingId(null);
     }
@@ -78,9 +89,9 @@ export default function NavigationManagerPage() {
         item.id === id ? { ...item, group_name: groupName } : item
       ));
       window.dispatchEvent(new Event(NAV_UPDATED_EVENT));
-      toast.success("Group updated");
+      toast.success(t("adminNav.groupUpdated"));
     } catch (err) {
-      toast.error("Failed to update group");
+      toast.error(t("adminNav.groupFailed"));
     } finally {
       setUpdatingId(null);
     }
@@ -97,9 +108,9 @@ export default function NavigationManagerPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Menu Manager</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("adminNav.title")}</h2>
         <p className="text-muted-foreground">
-          Control which modules are visible in the sidebar for all users.
+          {t("adminNav.subtitle")}
         </p>
       </div>
 
@@ -107,11 +118,11 @@ export default function NavigationManagerPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="space-y-1">
-              <CardTitle className="text-xl">Sidebar Items</CardTitle>
-              <CardDescription>Toggle visibility and assign groups.</CardDescription>
+              <CardTitle className="text-xl">{t("adminNav.sidebarItems")}</CardTitle>
+              <CardDescription>{t("adminNav.sidebarItemsDesc")}</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={fetchNav} className="h-8 gap-2">
-              <RefreshCcw className="size-3" /> Refresh
+              <RefreshCcw className="size-3" /> {t("common.refresh")}
             </Button>
           </CardHeader>
           <CardContent className="p-0">
@@ -126,7 +137,7 @@ export default function NavigationManagerPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold">{item.label}</span>
                         {item.is_hidden && (
-                          <Badge variant="secondary" className="h-4 text-[10px] uppercase">Hidden</Badge>
+                          <Badge variant="secondary" className="h-4 text-[10px] uppercase">{t("adminNav.hidden")}</Badge>
                         )}
                         <Badge variant="outline" className="h-4 text-[10px] text-muted-foreground">{item.min_role}+</Badge>
                       </div>
@@ -144,13 +155,13 @@ export default function NavigationManagerPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {GROUP_OPTIONS.map(g => (
-                          <SelectItem key={g} value={g} className="text-xs">{g}</SelectItem>
+                          <SelectItem key={g} value={g} className="text-xs">{t(GROUP_LABEL_KEYS[g] as any)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-medium text-muted-foreground uppercase">
-                        {item.is_hidden ? "Hidden" : "Visible"}
+                        {item.is_hidden ? t("adminNav.hidden") : t("adminNav.visible")}
                       </span>
                       <Switch
                         checked={!item.is_hidden}
@@ -169,10 +180,9 @@ export default function NavigationManagerPage() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="size-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-yellow-800 dark:text-yellow-200">Admin Note</h4>
+              <h4 className="text-sm font-bold text-yellow-800 dark:text-yellow-200">{t("adminNav.adminNote")}</h4>
               <p className="text-xs text-yellow-700 dark:text-yellow-300 leading-relaxed">
-                Hiding a menu item only removes it from the sidebar. The direct URL path will still be accessible.
-                To completely disable a module, use the Feature Toggles in Settings.
+                {t("adminNav.adminNoteDesc")}
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { redirect } from "next/navigation";
 import { useAdminUsers } from "@/hooks/use-admin-users";
 import { Users, Search, Loader2, Trash2, Shield, ShieldOff } from "lucide-react";
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function UserManagementPage() {
   const { user, loading: authLoading } = useAuth();
   const { users, loading, updateRole, toggleActive, deleteUser } = useAdminUsers();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   if (!authLoading && user?.role !== "admin") {
@@ -39,30 +41,30 @@ export default function UserManagementPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">User Management</h2>
-        <p className="text-muted-foreground">Manage user accounts, roles, and access.</p>
+        <h2 className="text-3xl font-bold tracking-tight">{t("adminUsers.title")}</h2>
+        <p className="text-muted-foreground">{t("adminUsers.subtitle")}</p>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search by email or name..."
+            placeholder={t("adminUsers.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
-        <Badge variant="outline">{users.length} users</Badge>
+        <Badge variant="outline">{users.length} {t("adminUsers.users")}</Badge>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="size-5" /> All Users
+            <Users className="size-5" /> {t("adminUsers.allUsers")}
           </CardTitle>
           <CardDescription>
-            {users.filter(u => u.is_active).length} active, {users.filter(u => !u.is_active).length} inactive
+            {users.filter(u => u.is_active).length} {t("adminUsers.activeCount")}, {users.filter(u => !u.is_active).length} {t("adminUsers.inactiveCount")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -81,8 +83,8 @@ export default function UserManagementPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{u.display_name || u.email}</span>
-                        {isSelf && <Badge variant="outline" className="h-4 text-[10px]">You</Badge>}
-                        {!u.is_active && <Badge variant="destructive" className="h-4 text-[10px]">Disabled</Badge>}
+                        {isSelf && <Badge variant="outline" className="h-4 text-[10px]">{t("adminUsers.you")}</Badge>}
+                        {!u.is_active && <Badge variant="destructive" className="h-4 text-[10px]">{t("common.disabled")}</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground">{u.email}</p>
                     </div>
@@ -100,12 +102,12 @@ export default function UserManagementPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user" className="text-xs">User</SelectItem>
-                        <SelectItem value="admin" className="text-xs">Admin</SelectItem>
+                        <SelectItem value="user" className="text-xs">{t("adminUsers.user")}</SelectItem>
+                        <SelectItem value="admin" className="text-xs">{t("adminUsers.admin")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground">{u.is_active ? "Active" : "Disabled"}</span>
+                      <span className="text-[10px] text-muted-foreground">{u.is_active ? t("adminUsers.active") : t("common.disabled")}</span>
                       <Switch
                         checked={u.is_active}
                         onCheckedChange={(checked) => toggleActive(u.id, checked)}
@@ -120,15 +122,15 @@ export default function UserManagementPage() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete user?</AlertDialogTitle>
+                          <AlertDialogTitle>{t("adminUsers.deleteTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This will permanently delete {u.email} and all associated data. This action cannot be undone.
+                            {t("adminUsers.deleteDescPrefix")} {u.email} {t("adminUsers.deleteDescSuffix")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => deleteUser(u.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Delete
+                            {t("common.delete")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -138,7 +140,7 @@ export default function UserManagementPage() {
               );
             })}
             {filteredUsers.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground text-sm">No users found.</div>
+              <div className="p-8 text-center text-muted-foreground text-sm">{t("adminUsers.empty")}</div>
             )}
           </div>
         </CardContent>

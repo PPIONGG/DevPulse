@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { redirect } from "next/navigation";
 import { useAdminChallenges } from "@/hooks/use-admin-challenges";
 import { testChallenge } from "@/lib/services/admin";
@@ -34,6 +35,7 @@ const difficultyColors: Record<string, string> = {
 export default function ChallengesAdminPage() {
   const { user, loading: authLoading } = useAuth();
   const { challenges, loading, createChallenge, updateChallenge, deleteChallenge } = useAdminChallenges();
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<SqlChallengeInput>(EMPTY_INPUT);
@@ -70,7 +72,7 @@ export default function ChallengesAdminPage() {
 
   const handleSave = async () => {
     if (!form.slug || !form.title) {
-      toast.error("Slug and title are required");
+      toast.error(t("adminChallenges.slugRequired"));
       return;
     }
     setSaving(true);
@@ -85,7 +87,7 @@ export default function ChallengesAdminPage() {
 
   const handleTest = async () => {
     if (!form.table_schema || !form.solution_sql) {
-      toast.error("Table schema and solution SQL are required to test");
+      toast.error(t("adminChallenges.testRequired"));
       return;
     }
     setTesting(true);
@@ -96,12 +98,12 @@ export default function ChallengesAdminPage() {
         solution_sql: form.solution_sql,
       });
       if (result.success) {
-        toast.success(`Test passed! ${result.row_count} rows returned`);
+        toast.success(`${t("adminChallenges.testPassed")} ${result.row_count} ${t("adminChallenges.rowsReturned")}`);
       } else {
-        toast.error(result.error || "Test failed");
+        toast.error(result.error || t("adminChallenges.testFailed"));
       }
     } catch {
-      toast.error("Test failed");
+      toast.error(t("adminChallenges.testFailed"));
     }
     setTesting(false);
   };
@@ -110,20 +112,20 @@ export default function ChallengesAdminPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">SQL Challenges</h2>
-          <p className="text-muted-foreground">Create, edit, and manage SQL practice challenges.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t("adminChallenges.title")}</h2>
+          <p className="text-muted-foreground">{t("adminChallenges.subtitle")}</p>
         </div>
         <Button onClick={openCreate} className="gap-2">
-          <Plus className="size-4" /> New Challenge
+          <Plus className="size-4" /> {t("adminChallenges.new")}
         </Button>
       </div>
 
-      <Badge variant="outline">{challenges.length} challenges</Badge>
+      <Badge variant="outline">{challenges.length} {t("adminChallenges.challengeCount")}</Badge>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Database className="size-5" /> All Challenges
+            <Database className="size-5" /> {t("adminChallenges.allChallenges")}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -152,15 +154,15 @@ export default function ChallengesAdminPage() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete challenge?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("adminChallenges.deleteTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete &quot;{c.title}&quot; and all associated submissions.
+                          {t("adminChallenges.deleteDescPrefix")} {c.title} {t("adminChallenges.deleteDescSuffix")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => deleteChallenge(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                          Delete
+                          {t("common.delete")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -169,7 +171,7 @@ export default function ChallengesAdminPage() {
               </div>
             ))}
             {challenges.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground text-sm">No challenges yet.</div>
+              <div className="p-8 text-center text-muted-foreground text-sm">{t("adminChallenges.empty")}</div>
             )}
           </div>
         </CardContent>
@@ -178,83 +180,83 @@ export default function ChallengesAdminPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Challenge" : "New Challenge"}</DialogTitle>
+            <DialogTitle>{editingId ? t("adminChallenges.editTitle") : t("adminChallenges.newTitle")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Slug</Label>
-                <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="select-all-users" />
+                <Label>{t("adminChallenges.formSlug")}</Label>
+                <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder={t("adminChallenges.slugPlaceholder")} />
               </div>
               <div className="space-y-2">
-                <Label>Title</Label>
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Select All Users" />
+                <Label>{t("adminChallenges.formTitle")}</Label>
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t("adminChallenges.titlePlaceholder")} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Difficulty</Label>
+                <Label>{t("adminChallenges.formDifficulty")}</Label>
                 <Select value={form.difficulty} onValueChange={(v) => setForm({ ...form, difficulty: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
+                    <SelectItem value="easy">{t("adminChallenges.difficultyEasy")}</SelectItem>
+                    <SelectItem value="medium">{t("adminChallenges.difficultyMedium")}</SelectItem>
+                    <SelectItem value="hard">{t("adminChallenges.difficultyHard")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t("adminChallenges.formCategory")}</Label>
                 <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="select">SELECT</SelectItem>
-                    <SelectItem value="filtering">Filtering</SelectItem>
-                    <SelectItem value="joins">JOINs</SelectItem>
-                    <SelectItem value="aggregate">Aggregation</SelectItem>
-                    <SelectItem value="subquery">Subqueries</SelectItem>
-                    <SelectItem value="window">Window Functions</SelectItem>
-                    <SelectItem value="cte">CTEs</SelectItem>
-                    <SelectItem value="analytics">Analytics</SelectItem>
+                    <SelectItem value="select">{t("adminChallenges.catSelect")}</SelectItem>
+                    <SelectItem value="filtering">{t("adminChallenges.catFiltering")}</SelectItem>
+                    <SelectItem value="joins">{t("adminChallenges.catJoins")}</SelectItem>
+                    <SelectItem value="aggregate">{t("adminChallenges.catAggregation")}</SelectItem>
+                    <SelectItem value="subquery">{t("adminChallenges.catSubqueries")}</SelectItem>
+                    <SelectItem value="window">{t("adminChallenges.catWindow")}</SelectItem>
+                    <SelectItem value="cte">{t("adminChallenges.catCte")}</SelectItem>
+                    <SelectItem value="analytics">{t("adminChallenges.catAnalytics")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Sort Order</Label>
+                <Label>{t("adminChallenges.formSortOrder")}</Label>
                 <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("adminChallenges.formDescription")}</Label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
             </div>
             <div className="space-y-2">
-              <Label>Table Schema (CREATE TABLE)</Label>
+              <Label>{t("adminChallenges.formTableSchema")}</Label>
               <Textarea value={form.table_schema} onChange={(e) => setForm({ ...form, table_schema: e.target.value })} rows={4} className="font-mono text-xs" />
             </div>
             <div className="space-y-2">
-              <Label>Seed Data (INSERT)</Label>
+              <Label>{t("adminChallenges.formSeedData")}</Label>
               <Textarea value={form.seed_data} onChange={(e) => setForm({ ...form, seed_data: e.target.value })} rows={4} className="font-mono text-xs" />
             </div>
             <div className="space-y-2">
-              <Label>Solution SQL</Label>
+              <Label>{t("adminChallenges.formSolutionSql")}</Label>
               <Textarea value={form.solution_sql} onChange={(e) => setForm({ ...form, solution_sql: e.target.value })} rows={3} className="font-mono text-xs" />
             </div>
             <div className="space-y-2">
-              <Label>Hint</Label>
+              <Label>{t("adminChallenges.formHint")}</Label>
               <Input value={form.hint} onChange={(e) => setForm({ ...form, hint: e.target.value })} />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={form.order_sensitive} onCheckedChange={(v) => setForm({ ...form, order_sensitive: v })} />
-              <Label>Order-sensitive results</Label>
+              <Label>{t("adminChallenges.formOrderSensitive")}</Label>
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={handleTest} disabled={testing} className="gap-2">
-              <Play className="size-4" /> {testing ? "Testing..." : "Test Solution"}
+              <Play className="size-4" /> {testing ? t("adminChallenges.testing") : t("adminChallenges.testSolution")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : editingId ? "Update" : "Create"}
+              {saving ? t("common.saving") : editingId ? t("adminChallenges.update") : t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

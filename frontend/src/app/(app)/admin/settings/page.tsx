@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -24,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function AdminSettingsPage() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<SystemSetting[]>([]);
   const [toggles, setToggles] = useState<FeatureToggle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function AdminSettingsPage() {
       setAnnouncementMessage(getVal("announcement_message"));
       setAnnouncementType(getVal("announcement_type") || "info");
     } catch {
-      toast.error("Failed to load settings");
+      toast.error(t("adminSettings.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -82,18 +84,18 @@ export default function AdminSettingsPage() {
   const handleSaveMaintenance = async () => {
     try {
       await setMaintenanceMode({ enabled: maintenanceEnabled, message: maintenanceMessage });
-      toast.success("Maintenance mode updated");
+      toast.success(t("adminSettings.maintenanceUpdated"));
     } catch {
-      toast.error("Failed to update maintenance mode");
+      toast.error(t("adminSettings.maintenanceFailed"));
     }
   };
 
   const handleSaveAnnouncement = async () => {
     try {
       await setAnnouncement({ enabled: announcementEnabled, message: announcementMessage, type: announcementType });
-      toast.success("Announcement updated");
+      toast.success(t("adminSettings.announcementUpdated"));
     } catch {
-      toast.error("Failed to update announcement");
+      toast.error(t("adminSettings.announcementFailed"));
     }
   };
 
@@ -102,9 +104,9 @@ export default function AdminSettingsPage() {
       const newEnabled = !toggle.is_enabled;
       await updateFeatureToggle(toggle.id, newEnabled, toggle.disabled_message);
       setToggles(prev => prev.map(t => t.id === toggle.id ? { ...t, is_enabled: newEnabled } : t));
-      toast.success(`${toggle.module_path} ${newEnabled ? "enabled" : "disabled"}`);
+      toast.success(`${toggle.module_path} ${newEnabled ? t("adminSettings.featureEnabled") : t("adminSettings.featureDisabled")}`);
     } catch {
-      toast.error("Failed to update feature toggle");
+      toast.error(t("adminSettings.featureToggleFailed"));
     }
   };
 
@@ -113,47 +115,47 @@ export default function AdminSettingsPage() {
       await updateFeatureToggle(toggle.id, toggle.is_enabled, message);
       setToggles(prev => prev.map(t => t.id === toggle.id ? { ...t, disabled_message: message } : t));
     } catch {
-      toast.error("Failed to update message");
+      toast.error(t("adminSettings.disabledMessageFailed"));
     }
   };
 
   const typeConfig = {
-    info: { label: "Info", icon: Info, color: "text-blue-600" },
-    warning: { label: "Warning", icon: AlertTriangle, color: "text-yellow-600" },
-    error: { label: "Error", icon: XCircle, color: "text-red-600" },
-    success: { label: "Success", icon: CheckCircle, color: "text-green-600" },
+    info: { label: t("adminSettings.typeInfo"), icon: Info, color: "text-blue-600" },
+    warning: { label: t("adminSettings.typeWarning"), icon: AlertTriangle, color: "text-yellow-600" },
+    error: { label: t("adminSettings.typeError"), icon: XCircle, color: "text-red-600" },
+    success: { label: t("adminSettings.typeSuccess"), icon: CheckCircle, color: "text-green-600" },
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Admin Settings</h2>
-        <p className="text-muted-foreground">Configure system-wide settings, announcements, and feature toggles.</p>
+        <h2 className="text-3xl font-bold tracking-tight">{t("adminSettings.title")}</h2>
+        <p className="text-muted-foreground">{t("adminSettings.subtitle")}</p>
       </div>
 
       {/* Maintenance Mode */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="size-5 text-yellow-500" /> Maintenance Mode
+            <AlertTriangle className="size-5 text-yellow-500" /> {t("adminSettings.maintenance")}
           </CardTitle>
-          <CardDescription>When enabled, a maintenance banner may be shown to users.</CardDescription>
+          <CardDescription>{t("adminSettings.maintenanceDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
             <Switch checked={maintenanceEnabled} onCheckedChange={setMaintenanceEnabled} />
-            <Label>{maintenanceEnabled ? "Enabled" : "Disabled"}</Label>
+            <Label>{maintenanceEnabled ? t("common.enabled") : t("common.disabled")}</Label>
           </div>
           <div className="space-y-2">
-            <Label>Maintenance Message</Label>
+            <Label>{t("adminSettings.maintenanceMessage")}</Label>
             <Textarea
               value={maintenanceMessage}
               onChange={(e) => setMaintenanceMessage(e.target.value)}
               rows={2}
-              placeholder="DevPulse is currently undergoing maintenance..."
+              placeholder={t("adminSettings.maintenancePlaceholder")}
             />
           </div>
-          <Button onClick={handleSaveMaintenance} size="sm">Save Maintenance Settings</Button>
+          <Button onClick={handleSaveMaintenance} size="sm">{t("adminSettings.saveMaintenanceSettings")}</Button>
         </CardContent>
       </Card>
 
@@ -161,26 +163,26 @@ export default function AdminSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Megaphone className="size-5 text-blue-500" /> Announcement Banner
+            <Megaphone className="size-5 text-blue-500" /> {t("adminSettings.announcement")}
           </CardTitle>
-          <CardDescription>Show a banner message to all users at the top of every page.</CardDescription>
+          <CardDescription>{t("adminSettings.announcementDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
             <Switch checked={announcementEnabled} onCheckedChange={setAnnouncementEnabled} />
-            <Label>{announcementEnabled ? "Enabled" : "Disabled"}</Label>
+            <Label>{announcementEnabled ? t("common.enabled") : t("common.disabled")}</Label>
           </div>
           <div className="space-y-2">
-            <Label>Message</Label>
+            <Label>{t("adminSettings.announcementMessage")}</Label>
             <Textarea
               value={announcementMessage}
               onChange={(e) => setAnnouncementMessage(e.target.value)}
               rows={2}
-              placeholder="Welcome to the new DevPulse!"
+              placeholder={t("adminSettings.announcementPlaceholder")}
             />
           </div>
           <div className="space-y-2">
-            <Label>Type</Label>
+            <Label>{t("adminSettings.announcementType")}</Label>
             <Select value={announcementType} onValueChange={setAnnouncementType}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
@@ -201,7 +203,7 @@ export default function AdminSettingsPage() {
           {/* Live Preview */}
           {announcementEnabled && announcementMessage && (
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Preview</Label>
+              <Label className="text-xs text-muted-foreground">{t("adminSettings.announcementPreview")}</Label>
               <div className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg border ${
                 announcementType === "warning" ? "bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-200 dark:border-yellow-900/30" :
                 announcementType === "error" ? "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/30 dark:text-red-200 dark:border-red-900/30" :
@@ -217,7 +219,7 @@ export default function AdminSettingsPage() {
             </div>
           )}
 
-          <Button onClick={handleSaveAnnouncement} size="sm">Save Announcement</Button>
+          <Button onClick={handleSaveAnnouncement} size="sm">{t("adminSettings.saveAnnouncement")}</Button>
         </CardContent>
       </Card>
 
@@ -225,9 +227,9 @@ export default function AdminSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ToggleLeft className="size-5" /> Feature Toggles
+            <ToggleLeft className="size-5" /> {t("adminSettings.featureToggles")}
           </CardTitle>
-          <CardDescription>Enable or disable individual modules for all users.</CardDescription>
+          <CardDescription>{t("adminSettings.featureTogglesDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y border-t">
@@ -238,10 +240,10 @@ export default function AdminSettingsPage() {
                     <span className="font-medium text-sm">{toggle.module_path}</span>
                     {toggle.is_enabled ? (
                       <Badge className="h-4 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Enabled
+                        {t("common.enabled")}
                       </Badge>
                     ) : (
-                      <Badge variant="destructive" className="h-4 text-[10px]">Disabled</Badge>
+                      <Badge variant="destructive" className="h-4 text-[10px]">{t("common.disabled")}</Badge>
                     )}
                   </div>
                   {!toggle.is_enabled && (
@@ -252,7 +254,7 @@ export default function AdminSettingsPage() {
                       }}
                       onBlur={() => handleUpdateDisabledMessage(toggle, toggle.disabled_message)}
                       className="mt-2 h-7 text-xs"
-                      placeholder="Message shown when disabled..."
+                      placeholder={t("adminSettings.disabledPlaceholder")}
                     />
                   )}
                 </div>
@@ -263,7 +265,7 @@ export default function AdminSettingsPage() {
               </div>
             ))}
             {toggles.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground text-sm">No feature toggles configured.</div>
+              <div className="p-8 text-center text-muted-foreground text-sm">{t("adminSettings.noToggles")}</div>
             )}
           </div>
         </CardContent>

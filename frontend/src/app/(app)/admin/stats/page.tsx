@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { redirect } from "next/navigation";
 import { useAdminStats } from "@/hooks/use-admin-stats";
 import {
@@ -11,20 +12,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const statCards = [
-  { key: "total_users", label: "Total Users", icon: Users },
-  { key: "active_users", label: "Active Users", icon: Activity },
-  { key: "total_snippets", label: "Snippets", icon: Code2 },
-  { key: "total_expenses", label: "Expenses", icon: DollarSign },
-  { key: "total_habits", label: "Habits", icon: Target },
-  { key: "total_boards", label: "Kanban Boards", icon: Kanban },
-  { key: "total_vaults", label: "Env Vaults", icon: ShieldCheck },
-  { key: "total_challenges", label: "SQL Challenges", icon: Database },
-  { key: "total_sessions", label: "Active Sessions", icon: BarChart3 },
+  { key: "total_users", labelKey: "adminStats.totalUsers", icon: Users },
+  { key: "active_users", labelKey: "adminStats.activeUsers", icon: Activity },
+  { key: "total_snippets", labelKey: "adminStats.snippets", icon: Code2 },
+  { key: "total_expenses", labelKey: "adminStats.expenses", icon: DollarSign },
+  { key: "total_habits", labelKey: "adminStats.habits", icon: Target },
+  { key: "total_boards", labelKey: "adminStats.kanbanBoards", icon: Kanban },
+  { key: "total_vaults", labelKey: "adminStats.envVaults", icon: ShieldCheck },
+  { key: "total_challenges", labelKey: "adminStats.sqlChallenges", icon: Database },
+  { key: "total_sessions", labelKey: "adminStats.activeSessions", icon: BarChart3 },
 ] as const;
 
 export default function SystemStatsPage() {
   const { user, loading: authLoading } = useAuth();
   const { stats, loading, refetch } = useAdminStats();
+  const { t } = useTranslation();
 
   if (!authLoading && user?.role !== "admin") {
     redirect("/dashboard");
@@ -44,22 +46,22 @@ export default function SystemStatsPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">System Stats</h2>
-          <p className="text-muted-foreground">Overview of platform usage and growth.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t("adminStats.title")}</h2>
+          <p className="text-muted-foreground">{t("adminStats.subtitle")}</p>
         </div>
         <Button variant="outline" size="sm" onClick={refetch} className="gap-2">
-          <RefreshCcw className="size-3" /> Refresh
+          <RefreshCcw className="size-3" /> {t("common.refresh")}
         </Button>
       </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {statCards.map(({ key, label, icon: Icon }) => (
+        {statCards.map(({ key, labelKey, icon: Icon }) => (
           <Card key={key}>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="size-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">{label}</span>
+                <span className="text-xs text-muted-foreground">{t(labelKey)}</span>
               </div>
               <p className="text-2xl font-bold">
                 {stats[key as keyof typeof stats] as number}
@@ -73,8 +75,8 @@ export default function SystemStatsPage() {
         {/* User Growth Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">User Growth (30 days)</CardTitle>
-            <CardDescription>New user registrations per day</CardDescription>
+            <CardTitle className="text-base">{t("adminStats.userGrowth")}</CardTitle>
+            <CardDescription>{t("adminStats.userGrowthDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {stats.user_growth.length > 0 ? (
@@ -87,13 +89,13 @@ export default function SystemStatsPage() {
                       key={day.date}
                       className="flex-1 bg-primary/80 rounded-t hover:bg-primary transition-colors"
                       style={{ height: `${height}%` }}
-                      title={`${day.date}: ${day.count} users`}
+                      title={`${day.date}: ${day.count} ${t("adminStats.usersTooltip")}`}
                     />
                   );
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t("common.noData")}</p>
             )}
           </CardContent>
         </Card>
@@ -101,8 +103,8 @@ export default function SystemStatsPage() {
         {/* Feature Usage */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Feature Usage</CardTitle>
-            <CardDescription>Total items created per feature</CardDescription>
+            <CardTitle className="text-base">{t("adminStats.featureUsage")}</CardTitle>
+            <CardDescription>{t("adminStats.featureUsageDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -121,7 +123,7 @@ export default function SystemStatsPage() {
                 </div>
               ))}
               {stats.feature_usage.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No data yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t("common.noData")}</p>
               )}
             </div>
           </CardContent>

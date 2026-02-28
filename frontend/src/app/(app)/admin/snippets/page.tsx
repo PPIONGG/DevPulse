@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/providers/auth-provider";
+import { useTranslation } from "@/providers/language-provider";
 import { redirect } from "next/navigation";
 import { useAdminSnippets } from "@/hooks/use-admin-snippets";
 import { FileCheck, Loader2, Trash2, CheckCircle, XCircle } from "lucide-react";
@@ -13,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function SnippetsModerationPage() {
   const { user, loading: authLoading } = useAuth();
   const { snippets, loading, verify, deleteSnippet } = useAdminSnippets();
+  const { t } = useTranslation();
 
   if (!authLoading && user?.role !== "admin") {
     redirect("/dashboard");
@@ -29,23 +31,23 @@ export default function SnippetsModerationPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Snippets Moderation</h2>
-        <p className="text-muted-foreground">Review and verify public code snippets.</p>
+        <h2 className="text-3xl font-bold tracking-tight">{t("adminSnippets.title")}</h2>
+        <p className="text-muted-foreground">{t("adminSnippets.subtitle")}</p>
       </div>
 
       <div className="flex items-center gap-2">
-        <Badge variant="outline">{snippets.length} public snippets</Badge>
+        <Badge variant="outline">{snippets.length} {t("adminSnippets.publicSnippets")}</Badge>
         <Badge variant="outline" className="text-green-600">
-          {snippets.filter(s => s.is_verified).length} verified
+          {snippets.filter(s => s.is_verified).length} {t("adminSnippets.verified")}
         </Badge>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileCheck className="size-5" /> Public Snippets
+            <FileCheck className="size-5" /> {t("adminSnippets.allPublic")}
           </CardTitle>
-          <CardDescription>Verify snippets to mark them as reviewed and safe.</CardDescription>
+          <CardDescription>{t("adminSnippets.allPublicDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y border-t">
@@ -57,22 +59,22 @@ export default function SnippetsModerationPage() {
                     <Badge variant="secondary" className="h-4 text-[10px]">{snippet.language}</Badge>
                     {snippet.is_verified ? (
                       <Badge className="h-4 text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        <CheckCircle className="size-2.5 mr-1" /> Verified
+                        <CheckCircle className="size-2.5 mr-1" /> {t("adminSnippets.verified")}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="h-4 text-[10px] text-muted-foreground">
-                        <XCircle className="size-2.5 mr-1" /> Unverified
+                        <XCircle className="size-2.5 mr-1" /> {t("adminSnippets.unverified")}
                       </Badge>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    by {snippet.owner_name || "Unknown"} &middot; {snippet.tags?.join(", ") || "no tags"}
+                    {t("adminSnippets.by")} {snippet.owner_name || t("adminSnippets.unknown")} &middot; {snippet.tags?.join(", ") || t("adminSnippets.noTags")}
                   </p>
                 </div>
                 <div className="flex items-center gap-4 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">
-                      {snippet.is_verified ? "Verified" : "Verify"}
+                      {snippet.is_verified ? t("adminSnippets.verified") : t("adminSnippets.verify")}
                     </span>
                     <Switch
                       checked={snippet.is_verified}
@@ -87,15 +89,15 @@ export default function SnippetsModerationPage() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete snippet?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("adminSnippets.deleteTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete &quot;{snippet.title}&quot;. This action cannot be undone.
+                          {t("adminSnippets.deleteDesc")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => deleteSnippet(snippet.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                          Delete
+                          {t("common.delete")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -104,7 +106,7 @@ export default function SnippetsModerationPage() {
               </div>
             ))}
             {snippets.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground text-sm">No public snippets to moderate.</div>
+              <div className="p-8 text-center text-muted-foreground text-sm">{t("adminSnippets.empty")}</div>
             )}
           </div>
         </CardContent>
